@@ -24,7 +24,7 @@ export default function DashboardPage() {
         </p>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-4">
+      <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Stat label="Weighted readiness" value={pct(overall)} />
         <Stat
           label="Last mock (estimated)"

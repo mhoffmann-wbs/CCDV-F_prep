@@ -101,7 +101,7 @@ function MockRunner({ exam, onSubmit }: { exam: MockExam; onSubmit: (answers: An
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-0 z-10 flex items-center justify-between rounded bg-field-dark px-4 py-2 text-chalk">
+      <div className="sticky top-0 z-10 flex items-center justify-between rounded bg-header px-4 py-2 text-chalk">
         <span>
           {reviewing ? 'Review' : `Item ${index + 1} of ${exam.questions.length}`}
         </span>

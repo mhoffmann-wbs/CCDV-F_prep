@@ -21,8 +21,8 @@ const NAV = [
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-chalk text-neutral-900">
-      <header className="bg-field-dark text-chalk">
+    <div className="min-h-screen bg-page text-neutral-900">
+      <header className="bg-header text-chalk">
         <nav className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
           <Link to="/" className="text-lg font-bold tracking-tight">
             🏈 Gridiron Prep

@@ -122,7 +122,7 @@ function PracticeSession({ pool, label }: { pool: typeof QUESTIONS; label: strin
 
   return (
     <div className="space-y-6">
-      <div className="flex items-baseline justify-between text-sm text-neutral-600">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 text-sm text-neutral-600">
         <span>{label}</span>
         <span>
           Question {index + 1} of {questions.length} · {score.correct}/{score.answered} correct
