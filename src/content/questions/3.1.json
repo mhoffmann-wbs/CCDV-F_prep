@@ -1,0 +1,332 @@
+[
+  {
+    "id": "q-3.1-001",
+    "skillId": "3.1",
+    "difficulty": 1,
+    "stem": "A team's CLAUDE.md has grown to include a 40-step production deploy checklist that is used once a week. It costs context in every session, and the team never wants Claude to start a deploy on its own. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move the checklist into a rule file under .claude/rules/ without path frontmatter.",
+        "explanation": "A rule without paths loads at launch just like CLAUDE.md, so it would still cost context in every session."
+      },
+      {
+        "id": "B",
+        "text": "Move it into a skill with disable-model-invocation set to true.",
+        "explanation": "Correct. A skill's body loads only when used, and disabling model invocation ensures only a person can trigger the deploy."
+      },
+      {
+        "id": "C",
+        "text": "Move it into a separate file and import it from CLAUDE.md with an @path reference.",
+        "explanation": "Imported files load at launch alongside the CLAUDE.md that references them, so the context cost doesn't change."
+      },
+      {
+        "id": "D",
+        "text": "Delete it and rely on auto memory to recall the procedure.",
+        "explanation": "Auto memory is machine-local notes Claude writes itself. It's neither a reliable procedure nor a control on who can deploy."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/skills",
+      "https://code.claude.com/docs/en/memory"
+    ]
+  },
+  {
+    "id": "q-3.1-002",
+    "skillId": "3.1",
+    "difficulty": 2,
+    "stem": "Earlier in a session, a developer and Claude agreed that log timestamps are in UTC. Claude then delegated log analysis to a custom subagent, which reported times as local time and drew the wrong conclusion. Why did this happen, and what fixes it?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The subagent lacks a memory field, so add one and it will read the main conversation's history.",
+        "explanation": "A memory field gives a subagent its own persistent notes, not access to the parent conversation."
+      },
+      {
+        "id": "B",
+        "text": "The context window was full, so the developer should run /compact before delegating again.",
+        "explanation": "Compaction affects the main conversation only. The subagent would still start without that decision."
+      },
+      {
+        "id": "C",
+        "text": "Subagents can't read CLAUDE.md, so the UTC rule has to be written into the subagent's model setting.",
+        "explanation": "The model field chooses a model. It isn't a place for instructions, and the issue is missing context from the conversation."
+      },
+      {
+        "id": "D",
+        "text": "Subagents run in their own context window, so the delegation prompt must include the UTC decision.",
+        "explanation": "Correct. A subagent starts with its own context and returns only its result. Anything decided in the main conversation has to be passed along explicitly."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/sub-agents"
+    ]
+  },
+  {
+    "id": "q-3.1-003",
+    "skillId": "3.1",
+    "difficulty": 2,
+    "stem": "A CI job runs `claude -p \"run the tests and fix failures\"`. Every Bash call is denied, and the job ends without running the tests. The author assumed it would behave like their interactive sessions, which start in auto mode. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Pre-approve the test command with --allowedTools, since -p runs start in Manual mode.",
+        "explanation": "Correct. Non-interactive runs start in default (Manual) mode, where calls needing approval are denied unless something approves them."
+      },
+      {
+        "id": "B",
+        "text": "Add a CLAUDE.md line telling Claude that it has permission to run shell commands in CI.",
+        "explanation": "CLAUDE.md is guidance, not permission. It can't approve a tool call that the permission system denies."
+      },
+      {
+        "id": "C",
+        "text": "Run the job with bypassPermissions on the shared CI runner so nothing is ever denied.",
+        "explanation": "Bypass is meant for isolated containers or VMs only, and it skips all safety checks. A narrow allowlist meets the need."
+      },
+      {
+        "id": "D",
+        "text": "Switch the job to an interactive session so a CI operator can approve each prompt as it appears.",
+        "explanation": "CI has nobody to answer prompts. Headless runs are designed to be configured up front."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/headless",
+      "https://code.claude.com/docs/en/permission-modes"
+    ]
+  },
+  {
+    "id": "q-3.1-004",
+    "skillId": "3.1",
+    "difficulty": 3,
+    "stem": "An open-source project wants a CI job that runs `claude -p` to triage pull requests from external forks. Any fork could add its own `.claude/settings.json` hooks or `.mcp.json` servers. Which configuration best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Rely on Claude Code's workspace trust dialog to block hooks and MCP servers from untrusted folders.",
+        "explanation": "A -p run shows no workspace trust dialog, so the project's hooks and MCP servers would load without one."
+      },
+      {
+        "id": "B",
+        "text": "Add a CLAUDE.md instruction telling Claude to ignore any hooks or servers that the fork defines.",
+        "explanation": "Hooks and MCP servers are loaded by the client, not chosen by the model. An instruction can't stop them, and the fork controls that file too."
+      },
+      {
+        "id": "C",
+        "text": "Run with --bare, pass the triage instructions in the prompt, and limit tools with --allowedTools.",
+        "explanation": "Correct. --bare skips auto-discovery of hooks, skills, plugins, MCP servers and CLAUDE.md, so fork-supplied configuration never loads."
+      },
+      {
+        "id": "D",
+        "text": "Run with --dangerously-skip-permissions inside the CI container so the job never blocks on prompts.",
+        "explanation": "Skipping permissions removes checks rather than adding them. The fork's hooks and servers would still load."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/headless"
+    ]
+  },
+  {
+    "id": "q-3.1-005",
+    "skillId": "3.1",
+    "difficulty": 1,
+    "stem": "Halfway through a long debugging session, a developer's context is nearly full, but they want to keep working on the same bug. Later they'll switch to an unrelated documentation task. Which TWO commands fit these two needs? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "/compact with a focus hint, to summarize the bug session and keep going.",
+        "explanation": "Correct. /compact frees space by summarizing the current conversation, so the bug work continues with its key details."
+      },
+      {
+        "id": "B",
+        "text": "/rewind, to permanently delete the oldest messages and free up space.",
+        "explanation": "/rewind rolls the conversation or code back to a checkpoint. It isn't a way to keep going with less context."
+      },
+      {
+        "id": "C",
+        "text": "/clear, to start an empty conversation for the documentation task.",
+        "explanation": "Correct. /clear starts fresh for unrelated work, and the old conversation stays resumable."
+      },
+      {
+        "id": "D",
+        "text": "/init, to regenerate CLAUDE.md so the session context is reset.",
+        "explanation": "/init drafts or improves a project CLAUDE.md. It doesn't manage the conversation's context."
+      },
+      {
+        "id": "E",
+        "text": "/context, to compress the conversation into a shorter summary.",
+        "explanation": "/context shows what's using the context window. It doesn't change it."
+      }
+    ],
+    "correct": [
+      "A",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/commands"
+    ]
+  },
+  {
+    "id": "q-3.1-006",
+    "skillId": "3.1",
+    "difficulty": 2,
+    "stem": "A release script runs Claude Code headless to list functions that are missing docstrings, then feeds the list to another program. The downstream parser breaks whenever the output format varies. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use the default text output and ask Claude in the prompt to answer only with a JSON array.",
+        "explanation": "A prompt request is not a guarantee, and text output gives no schema check. The parser would still break occasionally."
+      },
+      {
+        "id": "B",
+        "text": "Use --output-format stream-json and concatenate all the text deltas into one string.",
+        "explanation": "Streaming events help with real-time display. Reassembling them gives the same unvalidated text."
+      },
+      {
+        "id": "C",
+        "text": "Add --bare so that no CLAUDE.md content can change the shape of the answer.",
+        "explanation": "--bare speeds startup and skips auto-discovery, but it doesn't constrain the output format."
+      },
+      {
+        "id": "D",
+        "text": "Use --output-format json with --json-schema and read the structured_output field.",
+        "explanation": "Correct. With a JSON Schema, the result arrives in structured_output in a shape the parser can rely on."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/headless"
+    ]
+  },
+  {
+    "id": "q-3.1-007",
+    "skillId": "3.1",
+    "difficulty": 1,
+    "stem": "An analyst named a Claude Code session `draft-board` while working on mock-draft logic yesterday. Since then she has run several other sessions in the same directory, and now wants to pick up the draft-board work where it left off. Which command best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "claude --continue, which reopens the most recent conversation in this directory.",
+        "explanation": "--continue picks the most recent conversation, which is now one of her later sessions, not draft-board."
+      },
+      {
+        "id": "B",
+        "text": "claude, then paste in a summary of yesterday's work.",
+        "explanation": "A pasted summary loses detail and wastes effort when the full conversation can be resumed."
+      },
+      {
+        "id": "C",
+        "text": "claude --resume draft-board, which resumes that session by name.",
+        "explanation": "Correct. --resume takes a session ID or name, so it reopens exactly the conversation she wants."
+      },
+      {
+        "id": "D",
+        "text": "claude --fork-session, which opens a copy of yesterday's most recent session.",
+        "explanation": "--fork-session only works together with --resume or --continue, and on its own it doesn't choose the right session."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/cli-reference"
+    ]
+  },
+  {
+    "id": "q-3.1-008",
+    "skillId": "3.1",
+    "difficulty": 2,
+    "stem": "A developer on a company laptop is tired of approving every file edit and test run, and proposes starting Claude Code with `bypassPermissions`. The security team insists that risky actions such as force-pushes still be checked. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use bypassPermissions, but add a CLAUDE.md note asking Claude to be careful with git.",
+        "explanation": "Bypass is only for isolated containers or VMs, and a CLAUDE.md note doesn't enforce anything."
+      },
+      {
+        "id": "B",
+        "text": "Use auto mode, where a classifier reviews actions and blocks risky ones, and keep deny rules for pushes.",
+        "explanation": "Correct. Auto mode removes most prompts while a separate classifier checks each action, and deny rules still apply in every mode."
+      },
+      {
+        "id": "C",
+        "text": "Use dontAsk mode so that anything that would normally prompt runs automatically.",
+        "explanation": "dontAsk does the opposite: anything not pre-approved is denied. It suits locked-down CI, not interactive work."
+      },
+      {
+        "id": "D",
+        "text": "Use plan mode, which approves edits and commands once the plan has been accepted.",
+        "explanation": "Plan mode is for exploring and proposing changes before editing. It isn't designed to remove prompts during implementation."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/permission-modes"
+    ]
+  },
+  {
+    "id": "q-3.1-009",
+    "skillId": "3.1",
+    "difficulty": 3,
+    "stem": "A team wants two things from Claude Code. SQL migration conventions should load only when Claude works on files under `db/migrations/`. An investigator should explore the codebase with read-only tools without flooding the main conversation. Which TWO mechanisms best fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a migrations section to the root CLAUDE.md so the conventions are always available.",
+        "explanation": "Root CLAUDE.md loads in every session, so the conventions would cost context even when nobody touches migrations."
+      },
+      {
+        "id": "B",
+        "text": "A rule in .claude/rules/ with paths frontmatter matching db/migrations/**.",
+        "explanation": "Correct. A path-scoped rule loads only when Claude works on matching files, which is exactly the condition the team gave."
+      },
+      {
+        "id": "C",
+        "text": "Import the conventions file into CLAUDE.md with an @path reference to keep it separate.",
+        "explanation": "Imports organize content but load at launch, so the conventions would still be in context all the time."
+      },
+      {
+        "id": "D",
+        "text": "Ask Claude to save the conventions to auto memory the first time someone edits a migration.",
+        "explanation": "Auto memory is machine-local and loaded each session. It doesn't scope content to a path or share it with the team."
+      },
+      {
+        "id": "E",
+        "text": "A subagent in .claude/agents/ whose tools field lists only read-only tools such as Read, Grep and Glob.",
+        "explanation": "Correct. A subagent runs in its own context window and returns only a summary, and restricting its tools keeps it read-only."
+      }
+    ],
+    "correct": [
+      "B",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/memory",
+      "https://code.claude.com/docs/en/sub-agents"
+    ]
+  }
+]

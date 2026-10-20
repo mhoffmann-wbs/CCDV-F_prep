@@ -9,6 +9,7 @@ export const meta = {
     { title: 'Agent SDK: modifying system prompts', url: 'https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts' },
     { title: 'Claude Code: how Claude remembers your project (CLAUDE.md)', url: 'https://code.claude.com/docs/en/memory' },
     { title: 'Claude Code plugins overview', url: 'https://code.claude.com/docs/en/plugins' },
+    { title: 'Mitigate jailbreaks and prompt injections', url: 'https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks' },
   ],
 }
 
@@ -23,7 +24,7 @@ The same model behaves differently depending on **what ends up in its context**.
 | Surface | System prompt | Extra context added for you |
 |---|---|---|
 | **Messages API / client SDKs** | Exactly what you send in `system`. Nothing else is added. | Only your tool definitions and messages. The API is **stateless**, so you resend history every call. |
-| **Claude Agent SDK** | A **minimal default** prompt unless you choose the `claude_code` preset (optionally with `append`) or a custom string | CLAUDE.md is injected **into the conversation** when `settingSources` includes `project` / `user`, not into the system prompt |
+| **Claude Agent SDK** | A **minimal default** prompt unless you choose the `claude_code` preset (optionally with `append`) or a custom string | CLAUDE.md loads **by default** and is injected **into the conversation**, not the system prompt. An explicit `settingSources` list controls which levels load, and an empty list turns it off. |
 | **Claude Code (CLI, IDE, desktop)** | Claude Code's own prompt (tools, safety, coding guidance) | CLAUDE.md hierarchy, rules, skills list, hook output and file-change notes, added as reminders in the conversation |
 | **claude.ai / Desktop** | Anthropic's product prompt | Your profile preferences, project instructions and knowledge, styles, connectors |
 
@@ -35,7 +36,10 @@ Consequences you should be able to reason about:
 ### 2. Content boundaries
 
 Keep **trusted instructions** (your system prompt, or operator instructions) apart from **untrusted data** (user uploads, web pages, tool results, emails).
-- Wrap data in clearly labelled tags such as `<scouting_report>…</scouting_report>`, and tell Claude that content inside them is data to analyse, not instructions to follow.
+- Deliver **third-party content** (web pages, emails, uploaded files) inside **`tool_result` blocks**, JSON-encoded where possible. Claude is trained to be skeptical of instructions it finds in tool results. Don't put that content in the system prompt or a plain user text block.
+- **State the policy in the system prompt:** content returned by tools is untrusted data, and it must never change the goal or trigger tools the user didn't ask for.
+- **Your own data** (for example a stats table you fetched) can go in clearly labelled XML tags such as `<team_stats>…</team_stats>`, which help Claude tell data apart from instructions. Tags structure the prompt; they're not an injection defense.
+- Never put your own instructions inside a tool result. Claude may ignore them or flag them as an injection. Send instructions in a following user turn, or in a mid-conversation system message on supported models.
 - Never put user-controlled text into the system prompt. It would gain operator-level authority.
 - Send operator instructions that change mid-session through an operator channel, not by editing earlier turns. On models that support it, that channel is a mid-conversation `system` message, which also keeps the prompt cache intact.
 - Boundaries reduce risk but don't enforce anything. Pair them with least-privilege tools and approval gates (see 7.1 and 7.2).
@@ -80,6 +84,6 @@ A Claude Code **plugin** bundles skills, subagents, hooks, MCP servers and other
 
 *Why:* the API call has none of the project knowledge, so Claude has no stats to work from. *Fix:* fetch the stats yourself and pass them as data inside `<team_stats>` tags (or through a `get_team_stats` tool with a strict schema). Tell Claude to use only that data and to say so when something is missing.
 
-Later you move the same feature into an Agent SDK service. Reviewers notice the agent edits files without the usual Claude Code caution. *Why:* the SDK's minimal default prompt. *Fix:* use the `claude_code` preset with `append` for your preview rules, and load your repo's CLAUDE.md through `settingSources: ['project']`.
+Later you move the same feature into an Agent SDK service. Reviewers notice the agent edits files without the usual Claude Code caution. *Why:* the SDK's minimal default prompt, which lacks Claude Code's tool and safety guidance. Your CLAUDE.md still loads, but it's project context, not a safety policy. *Fix:* use the `claude_code` preset with `append` for your preview rules. If you set `settingSources` explicitly, keep `'project'` in it so the repo's CLAUDE.md still loads.
 
 Try it in **Lab L1** (play-by-play summarizer) and **Lab L7** (Claude Code on the repo).

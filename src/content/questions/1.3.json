@@ -1,0 +1,509 @@
+[
+  {
+    "id": "q-1.3-001",
+    "skillId": "1.3",
+    "difficulty": 1,
+    "stem": "A fantasy lineup assistant uses a hand-written tool loop. Claude replies with three tool_use blocks at once: stats lookups for two running backs and an injury check for a tight end. The code runs the first call, returns its result, and the next API request fails. What is the correct fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run all three calls and return the three tool_result blocks in one user message, matched by tool_use_id.",
+        "explanation": "Correct. Every tool_use block in a turn needs a matching tool_result, and all of them belong in a single user message."
+      },
+      {
+        "id": "B",
+        "text": "Disable parallel tool use for the session so Claude only ever asks for one tool call in each of its responses.",
+        "explanation": "This hides the bug at the cost of slower, more numerous turns. The loop should handle parallel calls correctly instead."
+      },
+      {
+        "id": "C",
+        "text": "Answer the first call only and drop the other two, since Claude will simply ask for them again on its next turn.",
+        "explanation": "Unanswered tool_use blocks are exactly what makes the next request fail. Every call needs a result."
+      },
+      {
+        "id": "D",
+        "text": "Send each of the three results back in its own user message, one after another, in the order the calls appeared.",
+        "explanation": "Splitting results across messages is the wrong shape and teaches Claude to stop making parallel calls. Return them together."
+      }
+    ],
+    "correct": ["A"],
+    "sourceLinks": ["https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"]
+  },
+  {
+    "id": "q-1.3-002",
+    "skillId": "1.3",
+    "difficulty": 1,
+    "stem": "A game-day assistant calls an injury-feed tool that sometimes times out. When it does, the app throws an exception and the whole conversation ends with a generic error page. What should the tool loop do instead?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Retry the injury feed in a silent loop until it eventually succeeds, however long that takes to happen.",
+        "explanation": "An unbounded silent retry can hang the conversation. Claude should learn about the failure and decide how to proceed."
+      },
+      {
+        "id": "B",
+        "text": "Return a tool_result with is_error set to true and a clear message, so Claude can retry or change course.",
+        "explanation": "Correct. Errors are results. A descriptive error lets Claude retry, use another source or tell the user, instead of the loop crashing."
+      },
+      {
+        "id": "C",
+        "text": "Leave out the tool_result for the failed call, so that Claude doesn't see a confusing error in its context.",
+        "explanation": "A tool_use block with no result makes the next request invalid. The failure must still be reported."
+      },
+      {
+        "id": "D",
+        "text": "End the conversation and ask the user to start over once the injury feed is working normally again later.",
+        "explanation": "This throws away the conversation for a recoverable failure. Claude can often finish the task without that one call."
+      }
+    ],
+    "correct": ["B"],
+    "sourceLinks": ["https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"]
+  },
+  {
+    "id": "q-1.3-003",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "A report-writing agent's loop continues while stop_reason is tool_use and treats every other stop as a finished answer. Users report that long reports sometimes end mid-sentence with no error shown. What is the best change to the loop?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add stop sequences to the request so the model always ends its report cleanly at a paragraph boundary.",
+        "explanation": "Stop sequences end output earlier, not later. They can't prevent a response from being cut off by the token limit."
+      },
+      {
+        "id": "B",
+        "text": "Treat any response that has no tool_use blocks in it as an end_turn, as the loop already does today.",
+        "explanation": "That is the current bug. A response can stop for reasons other than finishing, and those need handling."
+      },
+      {
+        "id": "C",
+        "text": "Branch on stop_reason: on max_tokens raise the limit or continue, and handle pause_turn and refusal too.",
+        "explanation": "Correct. A max_tokens stop means the output was truncated. Each stop reason needs its own handling instead of being treated as success."
+      },
+      {
+        "id": "D",
+        "text": "Lower the effort setting so that the model writes shorter reports that fit comfortably within the limit.",
+        "explanation": "This might hide the symptom by degrading the reports, and the loop would still misreport any truncation that happens."
+      }
+    ],
+    "correct": ["C"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons"
+    ]
+  },
+  {
+    "id": "q-1.3-004",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "A research agent uses the server-side web search tool. On long searches, some responses come back with stop_reason pause_turn, and the app shows those partial responses to users as final answers. How should the app handle pause_turn?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Discard the paused response and resend the original request from scratch to get a complete answer.",
+        "explanation": "Starting over wastes the work already done and may pause again at the same point."
+      },
+      {
+        "id": "B",
+        "text": "Treat it as a refusal and tell the user the request couldn't be completed because of a safety policy.",
+        "explanation": "A refusal has its own stop reason. pause_turn means the turn paused, not that Claude declined."
+      },
+      {
+        "id": "C",
+        "text": "Raise max_uses on the web search tool so that the search never needs to pause in the first place.",
+        "explanation": "max_uses limits the number of searches. It doesn't stop a long server-tool turn from pausing."
+      },
+      {
+        "id": "D",
+        "text": "Append the paused response to the conversation and send it back so that Claude can continue the turn.",
+        "explanation": "Correct. pause_turn means a long server-tool turn paused. Sending the conversation back, including the paused content, lets Claude resume."
+      }
+    ],
+    "correct": ["D"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool"
+    ]
+  },
+  {
+    "id": "q-1.3-005",
+    "skillId": "1.3",
+    "difficulty": 3,
+    "stem": "A fantasy assistant serves thousands of users. In October, one coach says he never starts rookies in week 1; next September, in a brand-new conversation, the assistant should still know this, and other users must never see it. Which approach fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Enable the memory tool and map /memories to per-user storage, so Claude saves the preference and reads it later.",
+        "explanation": "Correct. The memory tool is for facts that must outlive a session. It is client-side, so the app scopes storage per user, and Claude checks memory before starting a task."
+      },
+      {
+        "id": "B",
+        "text": "Add the preference to the project's CLAUDE.md, so that it loads automatically at the start of every session.",
+        "explanation": "CLAUDE.md holds stable project rules shared by every session. Writing one coach's preference there would expose it to all users."
+      },
+      {
+        "id": "C",
+        "text": "Keep each coach's full season of chat history in the messages array and resend all of it with each request.",
+        "explanation": "Replaying months of history bloats context and cost, and the new September conversation wouldn't have it anyway."
+      },
+      {
+        "id": "D",
+        "text": "Resume the coach's October session by its session ID whenever he returns, so that its context is restored.",
+        "explanation": "Resuming restores one conversation. It doesn't carry a fact into new conversations and drags the whole old transcript back in."
+      }
+    ],
+    "correct": ["A"],
+    "sourceLinks": ["https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool"]
+  },
+  {
+    "id": "q-1.3-006",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "A multi-tenant fan app adds the memory tool so its assistant can remember each fan's favorite team and past questions. Which TWO tasks are the app's responsibility? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Validate every path so operations stay under /memories and traversal such as ../ is rejected.",
+        "explanation": "Correct. The app executes every file operation, so it must block paths that escape the memory directory."
+      },
+      {
+        "id": "B",
+        "text": "Map /memories onto separate storage per fan, so that one fan's memory never reaches another.",
+        "explanation": "Correct. /memories is a prefix your handler maps to real storage, so per-user isolation is the app's job."
+      },
+      {
+        "id": "C",
+        "text": "Nothing beyond enabling the tool, because Anthropic stores memory files server-side for the app.",
+        "explanation": "The memory tool is client-side. Claude only requests operations; the app executes and stores them."
+      },
+      {
+        "id": "D",
+        "text": "Add a system prompt rule telling Claude to always view its memory directory before anything else.",
+        "explanation": "The API adds that memory protocol to the system prompt automatically when the tool is present."
+      },
+      {
+        "id": "E",
+        "text": "Turn off context editing, because clearing old tool results can't be combined with the memory tool.",
+        "explanation": "The two are designed to work together. Claude gets a warning to save important information before results are cleared."
+      }
+    ],
+    "correct": ["A", "B"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
+      "https://platform.claude.com/docs/en/build-with-claude/context-editing"
+    ]
+  },
+  {
+    "id": "q-1.3-007",
+    "skillId": "1.3",
+    "difficulty": 1,
+    "stem": "A logistics team is building a claims-processing agent. It mixes fixed code steps with LLM steps, must resume where it left off after a server crash, and needs to pause so a human can inspect and edit its state before a payment step. Which framework's core design matches this best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Pydantic AI, because its main strength is validating structured outputs against typed Python models.",
+        "explanation": "Typed, validated outputs are useful, but the stated needs are explicit control flow, durable execution and human-in-the-loop pauses."
+      },
+      {
+        "id": "B",
+        "text": "LangGraph, because it models stateful graphs with durable execution and human-in-the-loop interrupts.",
+        "explanation": "Correct. LangGraph is a low-level orchestration runtime for long-running, stateful agents, with durable execution and pauses for human inspection."
+      },
+      {
+        "id": "C",
+        "text": "Strands Agents, because its model-driven loop lets the model decide each step without any fixed path.",
+        "explanation": "A model-driven loop is the opposite of what's wanted here. The team needs explicit, deterministic steps mixed with LLM steps."
+      },
+      {
+        "id": "D",
+        "text": "A single Messages API call with a long prompt that describes every step, crash recovery and the pause.",
+        "explanation": "One call can't persist state across a crash or wait for a human. Those need an orchestration layer."
+      }
+    ],
+    "correct": ["B"],
+    "sourceLinks": ["https://docs.langchain.com/oss/python/langgraph/overview"]
+  },
+  {
+    "id": "q-1.3-008",
+    "skillId": "1.3",
+    "difficulty": 1,
+    "stem": "A Python team's scouting tool must return player evaluations as validated, typed objects, re-prompting the model automatically when validation fails. The team also wants to inject a database connection into tools so tests can swap in a fake. Which framework fits this priority best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "LangGraph, because a graph of nodes and edges is the only way to validate structured agent output.",
+        "explanation": "LangGraph focuses on orchestration and state. Graphs aren't required for output validation."
+      },
+      {
+        "id": "B",
+        "text": "Strands Agents, because its swarm pattern lets several agents cross-check each other's evaluations.",
+        "explanation": "Multi-agent cross-checking adds cost and doesn't give typed, schema-validated objects or dependency injection."
+      },
+      {
+        "id": "C",
+        "text": "Pydantic AI, because it returns validated typed outputs and injects dependencies into tools.",
+        "explanation": "Correct. Pydantic AI validates runs against an output type, retries on validation failure and has type-safe dependency injection."
+      },
+      {
+        "id": "D",
+        "text": "No framework at all, just a manual loop with regular expressions that parse the model's text.",
+        "explanation": "Regex parsing is brittle, and the team would rebuild validation, retries and injection by hand."
+      }
+    ],
+    "correct": ["C"],
+    "sourceLinks": ["https://pydantic.dev/docs/ai/overview/"]
+  },
+  {
+    "id": "q-1.3-009",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "A media company wants to give an agent a model, a system prompt and a set of tools, and let the model plan its own steps. It also wants built-in multi-agent patterns such as agents-as-tools and swarms, MCP support, and the freedom to switch between providers such as Anthropic and Amazon Bedrock. Which option matches this best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "LangGraph, where the team defines every node and edge of the agent's control flow up front.",
+        "explanation": "LangGraph gives explicit control flow you design. The company wants the model to plan its own steps."
+      },
+      {
+        "id": "B",
+        "text": "Pydantic AI, where the main design goal is typed outputs that are validated against schemas.",
+        "explanation": "Pydantic AI is model-agnostic, but its focus is typed outputs. The stated priorities are a model-driven loop and multi-agent patterns."
+      },
+      {
+        "id": "C",
+        "text": "A hand-written Messages API loop, with multi-agent patterns and MCP support written in-house.",
+        "explanation": "Possible, but the team would rebuild what it explicitly wants supplied, including multi-agent wiring and provider switching."
+      },
+      {
+        "id": "D",
+        "text": "Strands Agents, an open-source SDK built around a model-driven loop and multi-agent patterns.",
+        "explanation": "Correct. Strands describes itself as a model-driven approach, with built-in MCP, multi-agent patterns and first-class support for providers including Anthropic and Bedrock."
+      }
+    ],
+    "correct": ["D"],
+    "sourceLinks": [
+      "https://strandsagents.com/",
+      "https://github.com/strands-agents/harness-sdk"
+    ]
+  },
+  {
+    "id": "q-1.3-010",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "An analyst has an Agent SDK session in which a scouting agent has already reviewed a quarterback's film. She wants to try a different evaluation approach from that point while keeping the original session intact for comparison. Which option fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Fork the session, which branches a copy from that point and leaves the original session unchanged.",
+        "explanation": "Correct. Forking branches into a different approach without modifying the original, and both keep the earlier context."
+      },
+      {
+        "id": "B",
+        "text": "Resume the original session with the new approach, then undo any changes if the result is worse.",
+        "explanation": "Resuming continues and changes the original session, which she wants to keep intact for comparison."
+      },
+      {
+        "id": "C",
+        "text": "Start a fresh session and paste in a short summary of the film review that was done in the first one.",
+        "explanation": "A pasted summary loses the detail of the earlier work, so the comparison would not start from the same point."
+      },
+      {
+        "id": "D",
+        "text": "Save the film review to the memory tool and load it from there in every later analysis session.",
+        "explanation": "Memory is for durable facts across sessions, not for branching an in-progress conversation."
+      }
+    ],
+    "correct": ["A"],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "https://code.claude.com/docs/en/agent-sdk/agent-loop"
+    ]
+  },
+  {
+    "id": "q-1.3-011",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "In a hand-written loop, a draft assistant exposes a research_player tool that runs its own sub-agent loop with separate messages and tools. That sub-loop reads dozens of scouting reports per call. What should research_player return to the parent agent?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The sub-loop's full transcript, including every report it read, so the parent can check its work.",
+        "explanation": "This puts all the reports into the parent's context, which is exactly what the sub-agent was meant to prevent."
+      },
+      {
+        "id": "B",
+        "text": "A short final report as the tool_result, while the sub-loop's own history stays inside the sub-agent.",
+        "explanation": "Correct. In the agents-as-tools pattern, the parent sends a self-contained task and gets back a concise report. Noisy work stays in the sub-agent."
+      },
+      {
+        "id": "C",
+        "text": "Nothing at all, because the sub-loop appends its messages directly to the parent's messages array.",
+        "explanation": "Sharing one messages array removes the isolation and mixes two conversations' tool blocks together."
+      },
+      {
+        "id": "D",
+        "text": "An empty tool_result, after the sub-loop writes its findings into a global variable the parent reads.",
+        "explanation": "Hidden side channels make the loop hard to debug, and Claude doesn't see the findings in its context."
+      }
+    ],
+    "correct": ["B"],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/building-effective-agents",
+      "https://code.claude.com/docs/en/agent-sdk/subagents"
+    ]
+  },
+  {
+    "id": "q-1.3-012",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "A developer's manual loop appends only the text from each assistant response to the history, then appends the tool results in the next user message. The API rejects the follow-up request. What is wrong?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Tool results must be sent with the assistant role, because the assistant was the one that asked for them.",
+        "explanation": "Tool results go in a user message. The role is right; the preceding assistant message is incomplete."
+      },
+      {
+        "id": "B",
+        "text": "The loop needs a turn cap. Without one the API rejects any request that contains a tool_result block.",
+        "explanation": "A turn cap is good practice, but the API doesn't require it. The rejection comes from the history's shape."
+      },
+      {
+        "id": "C",
+        "text": "The full assistant content must be appended, because tool_result blocks refer to tool_use blocks in it.",
+        "explanation": "Correct. Each tool_result points at a tool_use_id. If the tool_use blocks were stripped from the history, the results have nothing to match."
+      },
+      {
+        "id": "D",
+        "text": "Tool results must be wrapped as text in the system prompt, because the API only reads tool data there.",
+        "explanation": "Tool results are tool_result content blocks in the user turn. The system prompt is for instructions."
+      }
+    ],
+    "correct": ["C"],
+    "sourceLinks": ["https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"]
+  },
+  {
+    "id": "q-1.3-013",
+    "skillId": "1.3",
+    "difficulty": 3,
+    "stem": "A league office wants a research agent that works on a rules study for a week. The process may restart at any time, the agent should resume the next day from where it stopped, and its working context should stay small throughout. Which combination fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Compaction alone, because its summary is stored server-side and is reloaded on its own after a restart.",
+        "explanation": "The API is stateless. Compaction keeps a conversation small, but the app holds the history, and nothing reloads it after a restart."
+      },
+      {
+        "id": "B",
+        "text": "One long conversation on a 1M-token model, so that the whole week of work fits inside a single window.",
+        "explanation": "A large window doesn't survive a process restart, and quality degrades as a week of tool output piles up."
+      },
+      {
+        "id": "C",
+        "text": "Subagents for every step, since each one starts fresh and the parent can rebuild the state from them.",
+        "explanation": "Subagents isolate context within a run, but they don't persist anything across restarts or days."
+      },
+      {
+        "id": "D",
+        "text": "A memory-tool progress file read at startup, plus context editing or compaction within each session.",
+        "explanation": "Correct. Memory persists state across restarts and sessions, while context editing or compaction keep the working window small. Long-running agents often use both."
+      }
+    ],
+    "correct": ["D"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
+      "https://www.anthropic.com/research/effective-harnesses-for-long-running-agents"
+    ]
+  },
+  {
+    "id": "q-1.3-014",
+    "skillId": "1.3",
+    "difficulty": 3,
+    "stem": "In one turn, a roster agent's custom loop receives five tool_use blocks: three get_stats lookups, which are read-only, and two update_roster calls that change league data. Which TWO handling choices are correct? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run the three read-only get_stats lookups concurrently, because they don't change any shared state.",
+        "explanation": "Correct. Independent read-only calls are safe to run in parallel, which shortens the turn."
+      },
+      {
+        "id": "B",
+        "text": "Run the two roster updates one after another, then send all five results in one user message.",
+        "explanation": "Correct. State-changing calls run sequentially to avoid conflicts, and every result for the turn goes back together."
+      },
+      {
+        "id": "C",
+        "text": "Send each result back as soon as its call finishes, each one in a separate user message.",
+        "explanation": "All results for one assistant turn belong in a single user message."
+      },
+      {
+        "id": "D",
+        "text": "Skip the second roster update if it looks like the first, and send no tool_result for it.",
+        "explanation": "Every tool_use needs a result. If a call is rejected, return that as an error result instead of dropping it."
+      },
+      {
+        "id": "E",
+        "text": "Set tool_choice to any on the next request, so Claude makes only one tool call per turn.",
+        "explanation": "Forcing tool_choice doesn't limit calls to one, and current models reject forced tool_choice anyway."
+      }
+    ],
+    "correct": ["A", "B"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "https://code.claude.com/docs/en/agent-sdk/agent-loop"
+    ]
+  },
+  {
+    "id": "q-1.3-015",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "An architect at a ticketing company is deciding whether to build a two-tool order-lookup agent on an agent framework or directly on the Claude API. Which TWO statements reflect Anthropic's guidance? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Many agent patterns take only a few lines on the API, so start there and add a framework when it earns its place.",
+        "explanation": "Correct. Anthropic recommends starting with the API directly, since a simple loop is often enough."
+      },
+      {
+        "id": "B",
+        "text": "If a framework is used, the team should understand the prompts and responses it produces underneath.",
+        "explanation": "Correct. Abstraction layers can hide prompts and responses, which makes debugging harder unless the team knows what is underneath."
+      },
+      {
+        "id": "C",
+        "text": "Frameworks always make agents more reliable, because they add retries and validation automatically.",
+        "explanation": "Frameworks can add useful features, but extra layers also add complexity and can obscure failures. It isn't automatic."
+      },
+      {
+        "id": "D",
+        "text": "Pick the framework with the largest community, since popularity is the best predictor of a good fit.",
+        "explanation": "Fit depends on matching the framework's abstraction to the problem, not on popularity."
+      },
+      {
+        "id": "E",
+        "text": "A framework removes the need to design tool names, descriptions and outputs carefully for the agent.",
+        "explanation": "Tool design matters whatever runs the loop. A framework doesn't write good tool descriptions for you."
+      }
+    ],
+    "correct": ["A", "B"],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/building-effective-agents",
+      "https://www.anthropic.com/research/writing-tools-for-agents"
+    ]
+  }
+]

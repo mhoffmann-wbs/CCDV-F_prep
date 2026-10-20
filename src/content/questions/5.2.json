@@ -1,0 +1,656 @@
+[
+  {
+    "id": "q-5.2-001",
+    "skillId": "5.2",
+    "difficulty": 1,
+    "stem": "A ticketing company's Python service calls the Claude API with hand-written HTTP requests and its own retry loop. It breaks whenever a response contains a content block type the code didn't expect, and its retries hammer the API during outages. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Switch to the official Python SDK for typed responses, retries with backoff and streaming.",
+        "explanation": "Correct. The SDK wraps the REST API with typed content blocks to narrow on, automatic retries with exponential backoff for retryable errors, and stream helpers, which are exactly what the hand-rolled client lacks."
+      },
+      {
+        "id": "B",
+        "text": "Route the calls through an OpenAI-compatible shim so a more familiar client library can be reused.",
+        "explanation": "A compatibility layer hides Claude-specific features and typed responses. The official SDK is the supported path when one exists for the language."
+      },
+      {
+        "id": "C",
+        "text": "Keep the raw HTTP client but match on more strings in the response body to detect new block types.",
+        "explanation": "String matching is the brittle approach that caused the breakage. New block types should be handled by type, as the SDK's typed unions do."
+      },
+      {
+        "id": "D",
+        "text": "Generate a client from the API reference web pages once, then freeze it so behavior never changes.",
+        "explanation": "A frozen home-made client still lacks retries and backoff, and it breaks again as the API adds fields and event types."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/cli-sdks-libraries/overview"
+    ]
+  },
+  {
+    "id": "q-5.2-002",
+    "skillId": "5.2",
+    "difficulty": 1,
+    "stem": "A nightly shell script on a locked-down server must call the Messages API with curl, because no SDK can be installed there. It sends the API key and a JSON content-type header, but every request fails with a 400 error about a missing header. Which header is it most likely missing?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "anthropic-beta, which every single request must send to choose a feature set",
+        "explanation": "The beta header is optional and only opts in to beta features by name."
+      },
+      {
+        "id": "B",
+        "text": "request-id, which the client generates so the API can trace each call",
+        "explanation": "request-id is a response header that the API returns. Clients don't send it."
+      },
+      {
+        "id": "C",
+        "text": "anthropic-version, which names the API version the request is written for",
+        "explanation": "Correct. Raw HTTP requests must send anthropic-version along with credentials and the JSON content type. The SDKs set it automatically."
+      },
+      {
+        "id": "D",
+        "text": "retry-after, which tells the API how long to wait before it may reply",
+        "explanation": "retry-after is a response header on some rate-limit errors. Clients read it and never send it."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/overview"
+    ]
+  },
+  {
+    "id": "q-5.2-003",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A scouting tool sends several high-resolution scanned playbooks as base64 PDF blocks in a single Messages request. The request fails immediately with a 413 request_too_large error. The scouts still need Claude to read all the playbooks. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Retry the same request with exponential backoff until capacity frees up for the larger payload.",
+        "explanation": "A 413 means the request exceeds the endpoint's size limit. Sending the same bytes again fails the same way."
+      },
+      {
+        "id": "B",
+        "text": "Switch the request to streaming so the large payload is sent to the API in smaller chunks.",
+        "explanation": "Streaming changes how the response arrives. The request body still has to fit within the size limit."
+      },
+      {
+        "id": "C",
+        "text": "Raise max_tokens so the API reserves enough room to accept the larger set of documents.",
+        "explanation": "max_tokens limits output. It has no effect on the maximum request size."
+      },
+      {
+        "id": "D",
+        "text": "Upload the PDFs via the Files API and reference them by file_id, or split the work.",
+        "explanation": "Correct. Request size is capped per endpoint. Uploading the files separately keeps the Messages request small, and splitting the work is another way to stay under the limit."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors",
+      "https://platform.claude.com/docs/en/build-with-claude/files"
+    ]
+  },
+  {
+    "id": "q-5.2-004",
+    "skillId": "5.2",
+    "difficulty": 1,
+    "stem": "A TypeScript developer wants each Claude request in a scoring-alert service to give up after one minute, so they configure the official SDK client with timeout set to 60. Every request now fails almost immediately with a timeout error. What is the most likely cause?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The SDK requires streaming to be enabled before any timeout value is respected by the client.",
+        "explanation": "Timeouts apply to non-streaming requests too. The issue is the unit of the configured value."
+      },
+      {
+        "id": "B",
+        "text": "The TypeScript SDK reads the timeout in milliseconds, so 60 means 60 ms rather than one minute.",
+        "explanation": "Correct. Timeout units differ by SDK: seconds in Python, milliseconds in TypeScript. One minute is 60000 in TypeScript."
+      },
+      {
+        "id": "C",
+        "text": "Timeouts below the SDK's default are ignored, so the client falls back to an immediate cancel.",
+        "explanation": "Shorter timeouts are valid and are applied as given. There is no fallback to immediate cancellation."
+      },
+      {
+        "id": "D",
+        "text": "The API rejects requests from clients that set custom timeouts, returning a timeout-style error.",
+        "explanation": "Timeouts are client-side settings that the API never sees. Nothing on the server rejects them."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/cli-sdks-libraries/overview"
+    ]
+  },
+  {
+    "id": "q-5.2-005",
+    "skillId": "5.2",
+    "difficulty": 3,
+    "stem": "A league's partner webhook must respond within 30 seconds, and the handler calls Claude synchronously with the SDK's default client settings. During an incident, the handler hung for many minutes before failing, and the partner disabled the integration. The work behind each call usually takes 5–10 seconds. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Give this route a short per-request timeout and fewer retries, and queue slow work for later.",
+        "explanation": "Correct. SDK defaults use a long timeout and retry twice, so wall-clock time can reach several timeouts in a row. A route with a hard deadline needs its own tight timeout and retry budget, with longer work handed off asynchronously."
+      },
+      {
+        "id": "B",
+        "text": "Disable retries entirely across the whole application so no request can ever wait longer than one attempt.",
+        "explanation": "Retries are valuable for other routes and transient errors. The fix belongs on the deadline-bound route, not globally."
+      },
+      {
+        "id": "C",
+        "text": "Increase the SDK's maximum retries so transient failures are more likely to succeed within the handler.",
+        "explanation": "More retries make the wall-clock problem worse. The handler would wait even longer before the partner's deadline."
+      },
+      {
+        "id": "D",
+        "text": "Switch the handler to the Message Batches API so the partner gets its response from the batch results.",
+        "explanation": "Batches are asynchronous with no response-time guarantee. They can't meet a 30-second synchronous deadline."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/cli-sdks-libraries/overview",
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  },
+  {
+    "id": "q-5.2-006",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A merchandise assistant's error handling checks whether the exception message contains the words \"rate limit\" and retries only in that case. After an SDK upgrade, the wording changed and rate-limit errors are no longer retried. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Catch the generic base exception and retry on every error, since any failure could be temporary.",
+        "explanation": "Retrying 400, 401 or 404 errors wastes calls and never succeeds. Errors need to be told apart by type."
+      },
+      {
+        "id": "B",
+        "text": "Parse the HTTP status code out of the error message text so the check is less sensitive to wording.",
+        "explanation": "This is still string parsing. The SDK already exposes the status and a typed error class."
+      },
+      {
+        "id": "C",
+        "text": "Catch the SDK's typed error classes, most specific first, before the general status error.",
+        "explanation": "Correct. Typed exceptions are stable across message wording changes. Ordering from most specific to least keeps retryable and non-retryable cases distinct."
+      },
+      {
+        "id": "D",
+        "text": "Pin the SDK to the old version forever so the error message wording can never change again.",
+        "explanation": "Pinning blocks fixes and new features, and messages can still change on the API side. It treats the symptom, not the design flaw."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  },
+  {
+    "id": "q-5.2-007",
+    "skillId": "5.2",
+    "difficulty": 1,
+    "stem": "During a design review for a live recap feature, an engineer states that receiving streamed output from the Messages API requires opening a websocket connection to the API. Which statement is accurate?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The Messages API streams with server-sent events over plain HTTP, a one-way channel.",
+        "explanation": "Correct. Setting stream to true returns server-sent events over HTTP. Websockets aren't part of the Messages API."
+      },
+      {
+        "id": "B",
+        "text": "The Messages API streams over a websocket that the SDK opens and keeps alive between requests.",
+        "explanation": "No websocket is involved. The SDK reads an SSE stream from a single HTTP response."
+      },
+      {
+        "id": "C",
+        "text": "The Messages API can't stream, so clients must poll the request ID until the full response is ready.",
+        "explanation": "The Messages API supports streaming directly. Polling applies to asynchronous work such as batches."
+      },
+      {
+        "id": "D",
+        "text": "The Messages API streams over gRPC, so browsers need a proxy that converts it into websocket frames.",
+        "explanation": "The API uses HTTPS with JSON and SSE. There is no gRPC interface to convert."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-5.2-008",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A team building a fan-facing React app wants Claude's answers to type out live in the browser. A developer proposes putting the API key in the front-end bundle so the browser can stream directly from the API and skip the backend. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Ship the key in the bundle but obfuscate it, and rotate it weekly to limit exposure.",
+        "explanation": "Anything shipped to the browser can be extracted. Obfuscation and rotation don't stop misuse of a leaked key in between."
+      },
+      {
+        "id": "B",
+        "text": "Create a separate low-limit key for the browser so that leaks cost less money.",
+        "explanation": "A leaked key is still usable by anyone until it's revoked. Lower limits only cap the damage."
+      },
+      {
+        "id": "C",
+        "text": "Have the browser call the API directly but require users to log in before the key is loaded.",
+        "explanation": "Once the key reaches the browser, any logged-in user can copy it and use it outside the app."
+      },
+      {
+        "id": "D",
+        "text": "Keep the key on the backend, stream from the API there, and relay the text deltas to the browser.",
+        "explanation": "Correct. The backend holds credentials and calls the API with the SDK's streaming support, then forwards deltas to the browser over SSE or a websocket. The key never leaves the server."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "https://platform.claude.com/docs/en/api/overview"
+    ]
+  },
+  {
+    "id": "q-5.2-009",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A second-screen app streams Claude's play explanations to fans. Fans must be able to tap \"stop\" or send a follow-up while an answer is still arriving, and the app also pushes live game events to the same screen. Which architecture best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Open a websocket from the browser directly to the Claude API and send stop and follow-up messages over it.",
+        "explanation": "The Claude API doesn't offer a websocket interface, and calling it from the browser would expose the API key."
+      },
+      {
+        "id": "B",
+        "text": "Use a websocket between browser and backend; the backend streams from Claude over SSE and relays events both ways.",
+        "explanation": "Correct. The two-way need is between your browser and your backend, which is where a websocket fits. The backend keeps the key, consumes the SSE stream from the API, and can cancel it when a fan taps stop."
+      },
+      {
+        "id": "C",
+        "text": "Have the browser poll the backend every second, and let the backend use the Message Batches API for answers.",
+        "explanation": "Polling adds delay, and batches are asynchronous with no response-time guarantee. Neither fits a live experience."
+      },
+      {
+        "id": "D",
+        "text": "Stream from Claude with SSE straight into the browser and handle stop requests by reloading the page.",
+        "explanation": "SSE is one-way, and a reload is a poor stop control. The request also needs to go through the backend to protect the key."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-5.2-010",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A backend relays Claude's streamed answers to browsers over websockets. Logs show that when a fan closes the tab mid-answer, the backend keeps reading the upstream stream to the end, and output-token spend for abandoned answers is significant. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Lower max_tokens on every request so abandoned answers cost less when they run to completion.",
+        "explanation": "This shortens every answer, including ones users read in full, and abandoned answers still run until the cap."
+      },
+      {
+        "id": "B",
+        "text": "Buffer the full answer on the backend and send it only when it's complete, so tabs close less often.",
+        "explanation": "Removing live streaming hurts the experience and doesn't stop generation for users who leave."
+      },
+      {
+        "id": "C",
+        "text": "Treat a websocket disconnect as cancellation and abort the upstream stream from the backend.",
+        "explanation": "Correct. When nobody is listening, the backend should close the upstream request instead of consuming a response no one will see."
+      },
+      {
+        "id": "D",
+        "text": "Move abandoned conversations to the Message Batches API so the unfinished answers cost half as much.",
+        "explanation": "A batch can't take over a stream that is already running, and the abandoned answers aren't needed at any price."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-5.2-011",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A hand-written SSE parser in a sports-betting news service handles message_start, the content block events, message_delta and message_stop. It crashes intermittently in production on events it doesn't recognize. Which two changes best fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Skip ping events, which can appear anywhere in the stream and carry no content.",
+        "explanation": "Correct. Streams may include any number of ping events. They should be ignored, not treated as errors."
+      },
+      {
+        "id": "B",
+        "text": "Abort the stream on any event type the parser doesn't recognize, then retry the request.",
+        "explanation": "New event types can be added over time. Aborting on them causes needless failures and repeated spend."
+      },
+      {
+        "id": "C",
+        "text": "Retry the request whenever a ping event arrives, since it means the connection stalled.",
+        "explanation": "Ping events are normal keep-alive traffic. Retrying on them would discard good responses."
+      },
+      {
+        "id": "D",
+        "text": "Handle unknown event types gracefully, by logging and skipping them instead of throwing.",
+        "explanation": "Correct. The docs say new event types may be added, so clients should tolerate events they don't recognize."
+      },
+      {
+        "id": "E",
+        "text": "Switch to websockets, whose message framing prevents unrecognized events from appearing.",
+        "explanation": "The Messages API streams over SSE. There is no websocket option, and the parser still has to tolerate new events."
+      }
+    ],
+    "correct": [
+      "A",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-5.2-012",
+    "skillId": "5.2",
+    "difficulty": 3,
+    "stem": "A live recap service checks the HTTP status of each streaming request and shows an error banner only for non-200 responses. During a traffic spike, some recaps freeze halfway with no banner, and logs show the HTTP status was 200. What is the most likely cause, and the best fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The SDK silently drops streams longer than its timeout; raise the timeout so recaps can finish.",
+        "explanation": "Timeouts raise a client error rather than freezing silently, and the logs point to a server-side event, not the client timeout."
+      },
+      {
+        "id": "B",
+        "text": "An error event arrived inside the 200 stream; handle it in the stream loop and retry with backoff.",
+        "explanation": "Correct. Errors can arrive as events in a stream that already returned 200. The stream loop must handle them, for example by retrying with backoff and showing a retrying state."
+      },
+      {
+        "id": "C",
+        "text": "The 200 status means the recap completed, so the frozen text must be a front-end rendering bug.",
+        "explanation": "A 200 only means the stream started. The response can still end with an error event."
+      },
+      {
+        "id": "D",
+        "text": "Overloaded errors are only ever sent before a stream starts, so the freeze must come from the network.",
+        "explanation": "The API can send an overloaded error mid-stream, which in a non-streaming call would have been a 529."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  },
+  {
+    "id": "q-5.2-013",
+    "skillId": "5.2",
+    "difficulty": 3,
+    "stem": "A long streamed season-review article on a current Claude model is cut off by a network drop after about 70% of the text has arrived. Regenerating it from scratch is slow and costly, and the partial text is saved. Which recovery approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Send a new request with a user message that quotes the partial text and asks Claude to continue from there.",
+        "explanation": "Correct. On current models, the continuation goes in a user message containing the partial response and an instruction to continue. Then stream the rest."
+      },
+      {
+        "id": "B",
+        "text": "Send the partial text back as a final assistant message so the model continues it as a prefill.",
+        "explanation": "That was the recovery pattern for older models. Current models reject assistant prefill with a 400 error."
+      },
+      {
+        "id": "C",
+        "text": "Reconnect to the same stream with the last event ID so the API resumes from where it stopped.",
+        "explanation": "The documented recovery for a dropped stream is a new request, not resuming the old one from an event ID."
+      },
+      {
+        "id": "D",
+        "text": "Re-run the request with a higher max_tokens value, because the drop was caused by hitting the limit.",
+        "explanation": "The cause was a network failure, not the output cap. A higher limit regenerates the whole article anyway."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-5.2-014",
+    "skillId": "5.2",
+    "difficulty": 3,
+    "stem": "On NFL draft night, a team's trade-rumor bot expects traffic to jump from near zero to ten times its normal peak within minutes. Last year it hit a wave of 429 errors at the start. Which two practices best reduce 429 errors this year? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Retry each 429 immediately in a tight loop so requests get through before the surge peaks.",
+        "explanation": "Immediate retries add load and make limits worse. Wait for retry-after and back off."
+      },
+      {
+        "id": "B",
+        "text": "Ramp traffic up gradually ahead of the event instead of jumping from idle to peak.",
+        "explanation": "Correct. Sharp increases in usage can trigger acceleration limits. Ramping up gradually and keeping usage consistent avoids them."
+      },
+      {
+        "id": "C",
+        "text": "Create extra API keys in the same organization so each key gets its own rate limit.",
+        "explanation": "Rate limits apply at the organization level, so more keys in the same organization don't add capacity."
+      },
+      {
+        "id": "D",
+        "text": "Cache the large shared prompt prefix, since cache reads don't count toward input-token limits on most models.",
+        "explanation": "Correct. With cache-aware rate limits, cached reads don't count against the input-tokens-per-minute limit on most models, so the same limit carries more traffic."
+      },
+      {
+        "id": "E",
+        "text": "Switch every request from streaming to non-streaming, which is counted against a separate rate limit.",
+        "explanation": "Streaming and non-streaming requests draw on the same limits. Switching doesn't create new capacity."
+      }
+    ],
+    "correct": [
+      "B",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/rate-limits"
+    ]
+  },
+  {
+    "id": "q-5.2-015",
+    "skillId": "5.2",
+    "difficulty": 1,
+    "stem": "A developer on a fantasy-sports team hardcodes the Claude API key into the source file of a new service so it works in local testing. The repository is shared with contractors. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Commit the key but restrict repository access to the core team members only.",
+        "explanation": "Secrets in source control spread to clones, forks and history. Access restrictions don't remove them."
+      },
+      {
+        "id": "B",
+        "text": "Encode the key in base64 inside the source file so it isn't readable at a glance.",
+        "explanation": "Base64 is an encoding, not encryption. Anyone can decode the key."
+      },
+      {
+        "id": "C",
+        "text": "Split the key into two string constants in different files and join them at runtime.",
+        "explanation": "The key is still in the repository and can be reassembled by anyone who reads the code."
+      },
+      {
+        "id": "D",
+        "text": "Load the key from an environment variable or secret store, as the SDK client expects.",
+        "explanation": "Correct. A zero-argument SDK client reads credentials from the environment, so the key stays out of code and can be rotated without code changes."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/cli-sdks-libraries/overview",
+      "https://platform.claude.com/docs/en/api/overview"
+    ]
+  },
+  {
+    "id": "q-5.2-016",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A league compliance job lists all of the organization's uploaded files to find documents older than a year. It reports only the first batch of results, even though staff know there are many more files. The job calls the list endpoint once and reads the returned array. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Call the list endpoint repeatedly with the same parameters until the result count stops changing.",
+        "explanation": "Repeating the same call returns the same first page. Pagination needs the cursor from each response."
+      },
+      {
+        "id": "B",
+        "text": "Raise max_tokens on the list call so the API returns more items in one response.",
+        "explanation": "max_tokens applies to Messages generation, not to list endpoints."
+      },
+      {
+        "id": "C",
+        "text": "Use the SDK's auto-pagination when iterating the list so it fetches every page in turn.",
+        "explanation": "Correct. List endpoints return pages. The SDKs' auto-pagination follows the cursors for you, so iterating yields every item."
+      },
+      {
+        "id": "D",
+        "text": "Switch the job to the Message Batches API, which returns every file in a single result set.",
+        "explanation": "Batches process Messages requests. They don't list files."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/cli-sdks-libraries/overview"
+    ]
+  },
+  {
+    "id": "q-5.2-017",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A production assistant for a stadium-operations team occasionally fails, and the on-call engineer struggles to get help from Anthropic support or to correlate failures. Which two things should the client log for each failed API call? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "The request ID the API returns with the response",
+        "explanation": "Correct. Every response carries a request ID, also included in error bodies. Quoting it lets support find the exact call."
+      },
+      {
+        "id": "B",
+        "text": "The full API key, so support can locate the account",
+        "explanation": "Never log credentials. The request ID and organization details are enough to identify the call."
+      },
+      {
+        "id": "C",
+        "text": "The SDK's default retry and timeout settings",
+        "explanation": "Defaults are the same on every call and say nothing about why a particular call failed."
+      },
+      {
+        "id": "D",
+        "text": "The HTTP status and the error type from the body",
+        "explanation": "Correct. The status code and error type, such as rate_limit_error or overloaded_error, show whether the failure is retryable and where to look."
+      },
+      {
+        "id": "E",
+        "text": "A count of the ping events received in the stream",
+        "explanation": "Ping events are keep-alive traffic and carry no diagnostic value."
+      }
+    ],
+    "correct": [
+      "A",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  },
+  {
+    "id": "q-5.2-018",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A sports-data company writes its backend in Elixir, a language with no official Anthropic SDK, and wants to add Claude-generated injury summaries. The team asks how to integrate. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Call the REST API directly with the required headers, and add backoff for 429 and 5xx errors.",
+        "explanation": "Correct. Raw HTTP is the right choice when no official SDK exists for the language. The team then owns what an SDK would provide, such as versioned headers, typed errors and retries."
+      },
+      {
+        "id": "B",
+        "text": "Run the Python SDK in a subprocess for every request and parse its printed output back into Elixir.",
+        "explanation": "A per-request subprocess adds latency and fragile text parsing. Calling the REST API directly is simpler and supported."
+      },
+      {
+        "id": "C",
+        "text": "Use an OpenAI-compatible endpoint shim so a generic third-party client library can be used instead.",
+        "explanation": "Compatibility layers hide Claude-specific features. The native REST API is available to any language."
+      },
+      {
+        "id": "D",
+        "text": "Call the REST API directly but leave out the version header so requests always get the newest behavior.",
+        "explanation": "The version header is required. Leaving it out causes errors rather than opting in to new behavior."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/overview",
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  }
+]

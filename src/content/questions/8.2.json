@@ -1,0 +1,219 @@
+[
+  {
+    "id": "q-8.2-001",
+    "skillId": "8.2",
+    "difficulty": 1,
+    "stem": "A fantasy football platform is building an MCP server for its league data. The league's 40-page scoring-rules document rarely changes, and the host application should be able to attach it to a conversation as read-only context without Claude having to decide to call anything. Which MCP primitive should expose the document?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A get_scoring_rules tool that Claude calls whenever it decides the rules are relevant.",
+        "explanation": "Tools are model-controlled actions. This would work, but it leaves the decision to Claude, while the requirement is for the application to attach static, read-only context."
+      },
+      {
+        "id": "B",
+        "text": "A resource with its own URI that the host application reads and attaches as context.",
+        "explanation": "Correct. Resources are passive, read-only data identified by a URI, and they are application-controlled: the host decides when to read them and include them in context."
+      },
+      {
+        "id": "C",
+        "text": "A prompt template that every user must invoke explicitly before asking a question.",
+        "explanation": "Prompts are user-controlled templates for workflows. Making every user invoke one is not the same as the application attaching reference data on its own."
+      },
+      {
+        "id": "D",
+        "text": "A startup message the server writes to stdout so the host captures it as context.",
+        "explanation": "On stdio, the server must write nothing to stdout except valid MCP messages. Free text there corrupts the protocol stream and is not a way to share data."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts"
+    ]
+  },
+  {
+    "id": "q-8.2-002",
+    "skillId": "8.2",
+    "difficulty": 1,
+    "stem": "A developer wraps a scouting database as a local MCP server that Claude Code launches over stdio. After adding print statements to trace slow queries, the connection starts failing with message parse errors. The developer still wants the trace output. What is the right fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Switch the server to Streamable HTTP so the trace lines get a separate channel.",
+        "explanation": "Changing transports is unnecessary for a local, single-user server and does not address the cause: the server is mixing non-protocol text into its message stream."
+      },
+      {
+        "id": "B",
+        "text": "Raise the client's request timeout so it waits until the trace lines are flushed.",
+        "explanation": "The errors come from invalid content on stdout, not from slowness. Waiting longer still leaves the client reading text that is not an MCP message."
+      },
+      {
+        "id": "C",
+        "text": "Wrap each trace line in a JSON-RPC envelope so the client accepts it as valid.",
+        "explanation": "Inventing messages to smuggle logs through the protocol channel is fragile and misuses the stream. Trace output belongs on a channel reserved for logging."
+      },
+      {
+        "id": "D",
+        "text": "Write the trace output to stderr and keep stdout for MCP messages only.",
+        "explanation": "Correct. In the stdio transport the server must not write anything to stdout that is not a valid MCP message, and it may write logs to stderr."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio"
+    ]
+  },
+  {
+    "id": "q-8.2-003",
+    "skillId": "8.2",
+    "difficulty": 2,
+    "stem": "An NFL club's analytics group built an MCP server for player-tracking queries, and it runs over stdio on one analyst's laptop. The coaching app, a scouting agent and several analysts now all need it, the data team wants a single deployment it can patch, and access must be granted per user. Which deployment best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Deploy it once as a remote server over Streamable HTTP, protected with OAuth authorization.",
+        "explanation": "Correct. Remote servers over Streamable HTTP are designed to serve many clients from one deployment, and the MCP authorization spec uses OAuth so access can be granted per user."
+      },
+      {
+        "id": "B",
+        "text": "Copy the stdio server onto every machine and put one shared password in each client's config.",
+        "explanation": "This multiplies deployments the data team must patch, and a shared password cannot tell users apart, so per-user access is lost."
+      },
+      {
+        "id": "C",
+        "text": "Keep stdio but expose it over a Unix domain socket so the other apps can connect.",
+        "explanation": "A Unix domain socket is a local channel on one machine. It can carry MCP framing, but it does not make the server reachable by remote apps or add per-user authorization."
+      },
+      {
+        "id": "D",
+        "text": "Export the query results nightly and paste them into each app's system prompt.",
+        "explanation": "Static exports give no live access to tracking data, waste context on every request, and bypass the per-user access requirement."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+    ]
+  },
+  {
+    "id": "q-8.2-004",
+    "skillId": "8.2",
+    "difficulty": 2,
+    "stem": "A back-end service calls the Messages API with the MCP connector. Tools from a vendor's remote ticketing MCP server work fine. The team also wants Claude to see policy documents that a stdio server on their own host exposes as MCP resources, but that part never works. What should they do?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add the stdio server's launch command to the mcp_servers array in each request.",
+        "explanation": "The connector reaches servers over HTTP by URL. The API cannot launch a process on your host, so local stdio servers cannot be connected directly."
+      },
+      {
+        "id": "B",
+        "text": "Ask Anthropic to allowlist the host's private address for the connector to reach.",
+        "explanation": "The connector needs a publicly reachable HTTP server, and even then it exposes tools only, so the resources would still be unavailable."
+      },
+      {
+        "id": "C",
+        "text": "Run an MCP client in the service for the local server and pass its content to Claude.",
+        "explanation": "Correct. The connector supports remote servers' tools only. For local servers, resources or prompts, the docs direct you to manage your own MCP client connection, with SDK helpers that convert MCP content into API content."
+      },
+      {
+        "id": "D",
+        "text": "Move the documents into prompts on the vendor's server, which the connector also supports.",
+        "explanation": "The connector gives access to MCP tools, not prompts, so moving the documents into prompts would not make them reachable either."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector"
+    ]
+  },
+  {
+    "id": "q-8.2-005",
+    "skillId": "8.2",
+    "difficulty": 3,
+    "stem": "A sports-media company runs a remote MCP server that clients reach with OAuth access tokens. One tool must fetch clips from the company's internal video-archive API for the signed-in user. A developer proposes forwarding each incoming bearer token unchanged to the archive API. What should the server do instead?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Forward the token unchanged, because the user consented when the client was authorized.",
+        "explanation": "This is token passthrough. MCP servers must not accept or transit tokens that were not issued for them, so a token meant for the MCP server must not be replayed to another service."
+      },
+      {
+        "id": "B",
+        "text": "Check that incoming tokens were issued for this server, and use a separate credential for the archive.",
+        "explanation": "Correct. The server is an OAuth resource server: it must validate that tokens name it as the audience, and calls to downstream APIs need their own credential rather than the client's token."
+      },
+      {
+        "id": "C",
+        "text": "Accept any token signed by the company's authorization server, whatever its audience.",
+        "explanation": "Skipping audience validation lets a token minted for another service be used here. The spec requires the server to confirm the token was issued specifically for it."
+      },
+      {
+        "id": "D",
+        "text": "Append the token to the query string of every archive request so the archive can log which user called it.",
+        "explanation": "Putting bearer tokens in URLs leaks them into logs and histories, and the request would still be token passthrough to a service the token was not issued for."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+    ]
+  },
+  {
+    "id": "q-8.2-006",
+    "skillId": "8.2",
+    "difficulty": 2,
+    "stem": "A team-operations MCP server must meet two requirements. Claude should look up live injury reports on its own whenever a conversation needs them. Coordinators also want a reusable game-day briefing that they start themselves, choosing the opponent as an argument. Which two primitives fit these requirements? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Expose the injury lookup as a tool with a JSON Schema for its inputs.",
+        "explanation": "Correct. Tools are model-controlled: Claude decides when to call them, which matches looking up injuries whenever the conversation needs it."
+      },
+      {
+        "id": "B",
+        "text": "Expose the game-day briefing as a prompt with an opponent argument.",
+        "explanation": "Correct. Prompts are user-controlled, parameterized templates that users invoke explicitly, often as slash commands, which matches a briefing coordinators start themselves."
+      },
+      {
+        "id": "C",
+        "text": "Expose the game-day briefing as a resource template keyed by opponent.",
+        "explanation": "Resource templates give the application parameterized read-only data. They are not a workflow that users launch, so they don't meet the briefing requirement."
+      },
+      {
+        "id": "D",
+        "text": "Expose the injury lookup as a prompt so Claude can run it automatically.",
+        "explanation": "Prompts need explicit invocation by a user. Claude does not trigger them on its own, so this misses the first requirement."
+      },
+      {
+        "id": "E",
+        "text": "Expose the injury feed as a resource that Claude fetches when it decides to.",
+        "explanation": "Resources are application-controlled: the host decides what to read and include. Model-driven, on-demand lookups are the job of a tool."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts"
+    ]
+  }
+]

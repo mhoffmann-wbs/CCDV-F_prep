@@ -1,0 +1,807 @@
+[
+  {
+    "id": "q-2.4-001",
+    "skillId": "2.4",
+    "difficulty": 1,
+    "stem": "A fantasy football app's nightly job started failing right after the ops team rotated API keys. Every call to the Claude API now returns a 401 `authentication_error`, and the job's retry wrapper keeps resending each request with backoff for an hour before giving up. What should the client do instead?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep retrying with exponential backoff, but extend the window so the new key has time to propagate.",
+        "explanation": "A 401 is a client-side error that will fail identically on every attempt. More retries only delay the alert and waste the job's time window."
+      },
+      {
+        "id": "B",
+        "text": "Treat the 401 as non-retryable, fail fast with a clear alert, and fix the credential the job is using.",
+        "explanation": "Correct. 4xx errors such as 401 mean the request itself is wrong. Retrying can't fix a bad key, so the right behavior is to stop and surface the error."
+      },
+      {
+        "id": "C",
+        "text": "Switch the job to streaming responses, since streamed requests authenticate through a separate path.",
+        "explanation": "Streaming changes how the response is delivered, not how the request is authenticated. The same key would be rejected."
+      },
+      {
+        "id": "D",
+        "text": "Raise the SDK's max_retries setting so the built-in retry logic can recover from the auth failure.",
+        "explanation": "The SDK retries transient failures such as 429 and 5xx. A higher retry count does nothing for an invalid credential."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  },
+  {
+    "id": "q-2.4-002",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A ticketing service's support bot sees bursts of 529 `overloaded_error` responses during playoff ticket drops. It already uses the official Python SDK. A developer proposes wrapping every call in a custom loop that retries up to ten times immediately. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Adopt the custom loop, since immediate retries recover fastest while capacity is briefly constrained.",
+        "explanation": "Immediate retries add load at the exact moment the API is overloaded, and stacking them on top of the SDK's own retries multiplies the request volume."
+      },
+      {
+        "id": "B",
+        "text": "Treat 529 as a permanent failure and return an error to the user on the first occurrence.",
+        "explanation": "A 529 is transient. Failing on the first one throws away requests that a short backoff would usually complete."
+      },
+      {
+        "id": "C",
+        "text": "Rely on the SDK's built-in exponential backoff and show a graceful fallback once it gives up.",
+        "explanation": "Correct. The SDK already retries 5xx and overload errors with exponential backoff. Tuning it and adding a graceful fallback avoids a second, aggressive retry layer."
+      },
+      {
+        "id": "D",
+        "text": "Catch the 529 and resend the same request with a larger max_tokens value so it gets queued with priority.",
+        "explanation": "max_tokens has no effect on overload handling or queue priority. It only caps the length of the response."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  },
+  {
+    "id": "q-2.4-003",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A stadium app lets Claude call a `purchase_tickets` tool, which your backend implements as a POST to the internal payments service. During a network blip the POST times out, and the agent loop retries it, so some fans were charged twice. Which TWO changes make the retry safe? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Send a client-generated idempotency key with each purchase so the payments service ignores duplicates.",
+        "explanation": "Correct. An idempotency key lets the server recognize a repeated POST and return the original result instead of charging again."
+      },
+      {
+        "id": "B",
+        "text": "Change the purchase call from POST to GET, because GET requests are idempotent by definition.",
+        "explanation": "Idempotency is a promise about semantics, not a property you gain by renaming the method. A GET that charges a card is still unsafe and violates REST conventions."
+      },
+      {
+        "id": "C",
+        "text": "Remove retries from the purchase path entirely and raise the request timeout to ten minutes.",
+        "explanation": "Long timeouts make fans wait and still leave the outcome unknown after a dropped connection. The real fix is making a retry harmless."
+      },
+      {
+        "id": "D",
+        "text": "Before retrying, look up the order by its client-generated ID and only resend if no charge exists.",
+        "explanation": "Correct. Checking the order's status first turns an unknown outcome into a known one, so the retry only happens when the first attempt really failed."
+      },
+      {
+        "id": "E",
+        "text": "Ask Claude in the system prompt to call the purchase tool only once per conversation.",
+        "explanation": "A prompt instruction can't stop the transport layer from replaying a request. Duplicate protection has to be enforced in code."
+      }
+    ],
+    "correct": [
+      "A",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors",
+      "https://developer.mozilla.org/en-US/docs/Glossary/Idempotent"
+    ]
+  },
+  {
+    "id": "q-2.4-004",
+    "skillId": "2.4",
+    "difficulty": 3,
+    "stem": "A media company's summarization pipeline began returning 429 `rate_limit_error` on every request this morning. The responses carry no `retry-after` header, and the errors continue unchanged after an hour of exponential backoff, even at one request per minute. What is the most likely explanation?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The token bucket is still refilling after a burst, so the pipeline should keep backing off a little longer.",
+        "explanation": "Token-bucket capacity replenishes continuously. An hour at one request per minute would have recovered a normal rate limit long ago."
+      },
+      {
+        "id": "B",
+        "text": "The API is overloaded, so the pipeline should treat these as 529 errors.",
+        "explanation": "Overload is reported as 529 `overloaded_error`, not 429. The status code here points to a limit on the account, not to API load."
+      },
+      {
+        "id": "C",
+        "text": "The requests are too large, and splitting each document into smaller chunks will clear the error.",
+        "explanation": "Oversized requests return 413 `request_too_large`. Chunking wouldn't help a 429 that persists at one tiny request per minute."
+      },
+      {
+        "id": "D",
+        "text": "The organization has hit its spend cap, so retries can't succeed until access resumes.",
+        "explanation": "Correct. A spend-cap 429 has no `retry-after` header and keeps failing however long you wait. The fix is administrative, not a better backoff."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors",
+      "https://platform.claude.com/docs/en/api/rate-limits"
+    ]
+  },
+  {
+    "id": "q-2.4-005",
+    "skillId": "2.4",
+    "difficulty": 1,
+    "stem": "A scouting tool asks Claude to return a player profile as JSON. The code then checks `if '\"position\": \"QB\"' in response_text` to route quarterbacks to a special view, but some quarterbacks are missed. Which fix is most robust?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Parse the text as JSON, validate it against a schema, and read the position field from the parsed object.",
+        "explanation": "Correct. Parsing and then validating removes any dependence on whitespace, key order or escaping, and gives a clear failure path for malformed output."
+      },
+      {
+        "id": "B",
+        "text": "Loosen the substring check with a regular expression that tolerates extra spaces around the colon.",
+        "explanation": "A regex on serialized JSON is still fragile. Key order, escaping or nested objects can break it again."
+      },
+      {
+        "id": "C",
+        "text": "Ask Claude to return YAML instead, since YAML is easier to scan with simple string matching.",
+        "explanation": "Changing the format doesn't fix the habit of string-matching structured data. YAML has its own whitespace and quoting variations."
+      },
+      {
+        "id": "D",
+        "text": "Set temperature to 0 so that Claude always formats the JSON identically across responses.",
+        "explanation": "Current models reject non-default sampling parameters, and even fixed formatting wouldn't make substring matching a sound way to read JSON."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse"
+    ]
+  },
+  {
+    "id": "q-2.4-006",
+    "skillId": "2.4",
+    "difficulty": 3,
+    "stem": "An insurance claims service uses structured outputs to get a JSON object with a `priority` field that the schema limits to three values. A teammate wants to delete the downstream validation layer because the schema is now enforced. The worker writes results straight into a queue that other systems consume. What is the best decision?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Delete the validation layer, since structured outputs make any further shape or value checks redundant.",
+        "explanation": "Schema enforcement narrows what can come back, but the output still crosses a trust boundary. Business rules and failure paths remain the application's job."
+      },
+      {
+        "id": "B",
+        "text": "Keep validating at the boundary and route any failures to a retry or review path.",
+        "explanation": "Correct. Model output is untrusted until validated. Checking it before it reaches the queue keeps a bad value from propagating into every consumer."
+      },
+      {
+        "id": "C",
+        "text": "Replace validation with a try/except that silently drops bad records.",
+        "explanation": "Silently dropping records hides failures and loses claims. A failure path should be visible and recoverable."
+      },
+      {
+        "id": "D",
+        "text": "Turn on citations alongside structured outputs so each field can be traced back to the source text.",
+        "explanation": "Citations can't be combined with structured outputs, and tracing fields to sources wouldn't replace validating their values."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-2.4-007",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "Before kickoff, a sports network's dashboard generates short previews for 300 players. Each call is independent, but the code awaits them one by one in a loop and takes 25 minutes. The previews must be ready within 10 minutes, and the account has a moderate rate limit. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Launch all 300 requests at once with Promise.all so every preview starts at the same moment.",
+        "explanation": "Firing every request at once will trip the rate limit and return a wave of 429s. Concurrency needs a cap."
+      },
+      {
+        "id": "B",
+        "text": "Submit the 300 previews to the Message Batches API and poll until the batch completes.",
+        "explanation": "Batches are cheaper but asynchronous, with results that can take much longer than ten minutes. That breaks the pre-kickoff deadline."
+      },
+      {
+        "id": "C",
+        "text": "Run the calls concurrently with a bounded limit, such as a semaphore of ten.",
+        "explanation": "Correct. Bounded concurrency removes the sequential bottleneck while keeping the request rate under the account's limits."
+      },
+      {
+        "id": "D",
+        "text": "Keep the loop but lower max_tokens so each preview returns faster.",
+        "explanation": "Shorter outputs trim a little time per call but don't fix the real problem: 300 independent calls waiting on one another."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://docs.python.org/3/library/asyncio-task.html",
+      "https://platform.claude.com/docs/en/api/rate-limits"
+    ]
+  },
+  {
+    "id": "q-2.4-008",
+    "skillId": "2.4",
+    "difficulty": 1,
+    "stem": "An internal legal tool asks Claude to draft long contract summaries. Users stare at a spinner for over a minute, and some requests fail with HTTP timeouts before the full response arrives. Which change best addresses both problems?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Raise max_tokens so the model can finish before the connection closes.",
+        "explanation": "max_tokens limits output length. It doesn't keep the connection alive or show users any progress."
+      },
+      {
+        "id": "B",
+        "text": "Send the request, return immediately, and poll the Messages API with GET requests for partial text.",
+        "explanation": "The Messages API has no endpoint for polling partial output. Progressive delivery is done with streaming."
+      },
+      {
+        "id": "C",
+        "text": "Move the summaries to the Message Batches API so long generations run in the background.",
+        "explanation": "Batch processing suits work nobody is waiting on. Here users are waiting interactively for the result."
+      },
+      {
+        "id": "D",
+        "text": "Stream the response as server-sent events and render text as it arrives in the UI.",
+        "explanation": "Correct. Streaming shows progress immediately and keeps long generations from hitting HTTP timeouts."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-2.4-009",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A game-day assistant receives three `tool_use` blocks from Claude in one turn: injury report, weather and betting line. The code runs them one at a time and sends each `tool_result` back in its own user message, which adds latency and produces malformed conversations. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run the three tools concurrently and return all three tool_result blocks together in one user message.",
+        "explanation": "Correct. When Claude requests several tools in one turn, all of the results belong in a single user message. Running independent tools concurrently also cuts latency."
+      },
+      {
+        "id": "B",
+        "text": "Set tool_choice to force a single named tool on each turn so Claude never requests several at once.",
+        "explanation": "Forcing a specific tool is rejected on several current models, and serializing independent lookups makes the latency worse."
+      },
+      {
+        "id": "C",
+        "text": "Keep separate messages but add a short sleep between them so the API can process each result in order.",
+        "explanation": "The structure is the problem, not timing. Delays add latency and the conversation would still be malformed."
+      },
+      {
+        "id": "D",
+        "text": "Merge the three tools into one large tool that returns injuries, weather and odds as a single string.",
+        "explanation": "Collapsing well-scoped tools into one blob reduces clarity and reuse, and it sidesteps rather than fixes the result-handling bug."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use"
+    ]
+  },
+  {
+    "id": "q-2.4-010",
+    "skillId": "2.4",
+    "difficulty": 1,
+    "stem": "A customer-support platform wants Claude to score 50,000 closed tickets each night for a quality report that managers read the next morning. The first version runs inside the web app's request handler and keeps timing out. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Raise the request handler's timeout to several hours so the whole job can finish in one call.",
+        "explanation": "Long-running work in a web request ties up server capacity and still fails on any dropped connection."
+      },
+      {
+        "id": "B",
+        "text": "Stream each scoring response so the handler sees progress and doesn't time out.",
+        "explanation": "Streaming helps an interactive user see progress, but nobody is waiting on this job. It still doesn't belong in a request handler."
+      },
+      {
+        "id": "C",
+        "text": "Move the job out of the request path into a queued worker or the Message Batches API.",
+        "explanation": "Correct. Work nobody waits for belongs in the background. Batch processing also lowers cost for latency-tolerant volume like this."
+      },
+      {
+        "id": "D",
+        "text": "Fire all 50,000 requests concurrently from the handler so the job finishes before the timeout.",
+        "explanation": "Unbounded concurrency at this scale will hit rate limits immediately, and it's still the wrong place to run a nightly job."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing"
+    ]
+  },
+  {
+    "id": "q-2.4-011",
+    "skillId": "2.4",
+    "difficulty": 1,
+    "stem": "A team wants Claude Code to implement a new draft-board filter in their scouting repository. The tech lead's only requirements are that every change can be reviewed and rolled back cheaply. Which git workflow best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Let Claude commit straight to main, and revert the commits if anything breaks after deployment.",
+        "explanation": "Committing to main skips review entirely, and reverting after a production failure is the expensive kind of rollback."
+      },
+      {
+        "id": "B",
+        "text": "Have Claude work on a feature branch with small focused commits and merge through a pull request.",
+        "explanation": "Correct. A branch gives a reviewable diff and a cheap rollback, and the pull request keeps the normal review gate."
+      },
+      {
+        "id": "C",
+        "text": "Have Claude make all changes as uncommitted edits so the lead can inspect the working tree directly.",
+        "explanation": "Uncommitted edits have no history, so there's nothing to review commit by commit and nothing safe to roll back to."
+      },
+      {
+        "id": "D",
+        "text": "Disable the repository's pre-commit hooks so Claude can commit quickly without interruptions.",
+        "explanation": "Hooks are part of the quality gate. Turning them off for AI-written code removes checks rather than adding reviewability."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/common-workflows",
+      "https://git-scm.com/book/en/v2/Git-Branching-Branching-Workflows"
+    ]
+  },
+  {
+    "id": "q-2.4-012",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A platform team wants every engineer who clones the payments repository to get the team's Claude Code permission rules and its release skill automatically. Personal preferences and credentials must never reach the remote. Which TWO paths should be committed to git? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "`.claude/settings.local.json`, so each engineer's approvals are shared across the team.",
+        "explanation": "This file holds personal, per-project overrides and is meant to stay out of git."
+      },
+      {
+        "id": "B",
+        "text": "`.claude/settings.json`, which holds the shared project permissions and hooks.",
+        "explanation": "Correct. The shared project settings file is designed to be committed so everyone gets the same rules."
+      },
+      {
+        "id": "C",
+        "text": "`.env`, so new engineers have the API keys they need to run the app locally.",
+        "explanation": "Secrets must never be committed. Each engineer should supply keys through a secret store or their own environment."
+      },
+      {
+        "id": "D",
+        "text": "`CLAUDE.local.md`, so the team can read each developer's private notes on the codebase.",
+        "explanation": "CLAUDE.local.md is for personal, project-specific notes and belongs in .gitignore."
+      },
+      {
+        "id": "E",
+        "text": "`.claude/skills/release/`, which contains the team's release procedure as a skill.",
+        "explanation": "Correct. Project skills under .claude/ are committed so that every teammate can invoke the same procedure."
+      }
+    ],
+    "correct": [
+      "B",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/settings",
+      "https://code.claude.com/docs/en/skills"
+    ]
+  },
+  {
+    "id": "q-2.4-013",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A developer runs two Claude Code sessions in the same checkout of a league-stats repo: one fixes a scoring bug while the other builds a new playoff-odds feature. The sessions keep overwriting each other's files and switching branches under each other. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run both sessions in plan mode so neither one is allowed to edit files until the other finishes.",
+        "explanation": "Plan mode only defers editing. The two tasks would still collide in the same working directory once they start changing files."
+      },
+      {
+        "id": "B",
+        "text": "Have each session run git checkout on its own branch before editing.",
+        "explanation": "Both sessions share one working tree, so checking out a branch in one changes the files under the other."
+      },
+      {
+        "id": "C",
+        "text": "Copy the source folder to a temporary directory without git and merge the changes by hand later.",
+        "explanation": "Dropping version control loses history and makes the eventual merge manual and error-prone."
+      },
+      {
+        "id": "D",
+        "text": "Start each session in its own git worktree, for example with claude --worktree.",
+        "explanation": "Correct. Worktrees give each task its own working directory on its own branch while sharing the repository's history, so parallel sessions don't collide."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/worktrees",
+      "https://git-scm.com/docs/git-worktree"
+    ]
+  },
+  {
+    "id": "q-2.4-014",
+    "skillId": "2.4",
+    "difficulty": 1,
+    "stem": "A software company wants Claude to draft a fix whenever a maintainer comments `@claude` on a GitHub issue. Fixes must still go through the repository's normal review and branch protection. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Install Claude Code GitHub Actions so Claude answers mentions by opening pull requests.",
+        "explanation": "Correct. The GitHub Action responds to @claude mentions and turns issues into pull requests, so the existing review and protection rules still apply."
+      },
+      {
+        "id": "B",
+        "text": "Give Claude a token that can push directly to main when it is mentioned.",
+        "explanation": "Pushing straight to main bypasses review and branch protection, which the requirement keeps in place."
+      },
+      {
+        "id": "C",
+        "text": "Run a cron job on a developer's laptop that polls issues and applies Claude's patches locally.",
+        "explanation": "A laptop cron job is fragile and invisible to the team, and it still doesn't route changes through pull requests."
+      },
+      {
+        "id": "D",
+        "text": "Replace the CI test stage with a Claude review step, since Claude will already have checked the fix.",
+        "explanation": "AI-written changes need the same automated tests as any other change. A review step doesn't replace them."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/github-actions"
+    ]
+  },
+  {
+    "id": "q-2.4-015",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A sports-betting startup's engineers propose that pull requests written by Claude Code can skip human review whenever Claude also wrote tests that pass. The lead engineer is concerned about this policy. Which review policy best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Skip human review only when line coverage on the changed files is above 80 percent.",
+        "explanation": "Coverage shows which lines ran, not whether the tests check the right behavior. Tests written by the same author can share the same blind spots."
+      },
+      {
+        "id": "B",
+        "text": "Let the managed Code Review service approve the pull request automatically when it finds no issues.",
+        "explanation": "The managed Code Review service posts findings but never approves or blocks a pull request. The merge decision stays with humans."
+      },
+      {
+        "id": "C",
+        "text": "Apply the same gates as human code: tests, linters, type checks, branch protection and a human reviewer.",
+        "explanation": "Correct. AI-generated changes should be reviewed like a new teammate's work. The normal gates exist for exactly this kind of change."
+      },
+      {
+        "id": "D",
+        "text": "Review only the test files, because passing tests already prove that the implementation is correct.",
+        "explanation": "Tests prove only what they assert. Reviewers still need to check the implementation for edge cases, security and fit."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/code-review",
+      "https://code.claude.com/docs/en/code-review-local"
+    ]
+  },
+  {
+    "id": "q-2.4-016",
+    "skillId": "2.4",
+    "difficulty": 1,
+    "stem": "Before opening a pull request, a developer wants Claude Code to check the changes on their current branch for correctness bugs. They don't need style cleanups right now. Which built-in option best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run /simplify, which reviews the changed code and applies cleanups to it.",
+        "explanation": "/simplify focuses on reuse and simplification cleanups. It explicitly doesn't hunt for bugs."
+      },
+      {
+        "id": "B",
+        "text": "Run /code-review, which reviews the branch's changes for correctness bugs.",
+        "explanation": "Correct. /code-review reviews the branch's diff and reports correctness bugs, which is what the developer wants."
+      },
+      {
+        "id": "C",
+        "text": "Run /security-review, which reviews the pending changes for vulnerabilities.",
+        "explanation": "A security review looks for vulnerabilities. It's useful, but it's not aimed at general correctness bugs."
+      },
+      {
+        "id": "D",
+        "text": "Run /context, which shows which files from the branch are loaded in context.",
+        "explanation": "/context visualizes context-window usage. It doesn't review code at all."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/code-review-local"
+    ]
+  },
+  {
+    "id": "q-2.4-017",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A football analytics firm turned on the managed Code Review service for its GitHub organization. A manager now plans to remove the human approval requirement, expecting the service to block any pull request that contains a bug. What should the team understand?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The service blocks merges only for high-severity findings, so lower-severity issues still need a human.",
+        "explanation": "The service doesn't block merges at any severity. It reports findings and leaves the decision to the team."
+      },
+      {
+        "id": "B",
+        "text": "The service approves pull requests automatically when it finds nothing, so human approval becomes optional.",
+        "explanation": "The service never approves a pull request either. Its output is advisory."
+      },
+      {
+        "id": "C",
+        "text": "The service only reviews pull requests opened by Claude, so human-written code still needs approval.",
+        "explanation": "The service reviews pull requests in repositories where it's enabled. The real issue is that it never makes the merge decision."
+      },
+      {
+        "id": "D",
+        "text": "The service posts inline findings but never approves or blocks, so human approval must stay in place.",
+        "explanation": "Correct. Code Review comments on the lines concerned and adds a check run, but the merge decision always stays with people."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/code-review"
+    ]
+  },
+  {
+    "id": "q-2.4-018",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A developer asks Claude Code to rename a function and extract a helper in a billing module. The module has only patchy test coverage, and the change must not alter behavior. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add tests for current behavior first, then make one change at a time and rerun them.",
+        "explanation": "Correct. Refactoring changes structure without changing behavior, so tests are the contract. Small verified steps make any regression easy to locate."
+      },
+      {
+        "id": "B",
+        "text": "Make the rename and the extraction together, then write tests afterwards to confirm everything still works.",
+        "explanation": "Tests written after the change can't tell you what the old behavior was. The safety net has to exist before the refactor."
+      },
+      {
+        "id": "C",
+        "text": "Skip new tests, because a rename and an extraction can't change behavior if the code still compiles.",
+        "explanation": "Compiling isn't the same as behaving the same. Dynamic dispatch, reflection and edge cases can still change."
+      },
+      {
+        "id": "D",
+        "text": "Ask Claude to fix any bugs it notices during the refactor as well.",
+        "explanation": "Mixing behavior changes into a refactor makes it impossible to tell whether a test failure came from the restructure or the fix."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/common-workflows",
+      "https://refactoring.com/"
+    ]
+  },
+  {
+    "id": "q-2.4-019",
+    "skillId": "2.4",
+    "difficulty": 3,
+    "stem": "A league's stats platform must move 400 files from a legacy HTTP client to a new one. Production cannot break during the season, and reviewers can only handle small pull requests. The team will use Claude Code. Which plan best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Let Claude do the full migration in one session and open one big PR.",
+        "explanation": "A 400-file pull request is effectively unreviewable, and a single big-bang change concentrates all of the risk in one deploy."
+      },
+      {
+        "id": "B",
+        "text": "Have Claude rewrite the platform from scratch in a new repository on the new client, then switch over.",
+        "explanation": "A rewrite multiplies risk and freezes the old system's fixes. It also ignores the requirement for small, reviewable steps."
+      },
+      {
+        "id": "C",
+        "text": "Plan first, pin behavior with characterization tests, and migrate incrementally in small PRs.",
+        "explanation": "Correct. Plan first, protect behavior with tests, and migrate in small steps behind the old interface. That keeps production stable and each PR reviewable."
+      },
+      {
+        "id": "D",
+        "text": "Use a scripted find-and-replace across all files, deploy, and let production monitoring catch what breaks.",
+        "explanation": "Using production as the test environment directly violates the constraint that the platform can't break during the season."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/common-workflows",
+      "https://martinfowler.com/bliki/StranglerFigApplication.html"
+    ]
+  },
+  {
+    "id": "q-2.4-020",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "An e-commerce team must change how 120 modules call their pricing library. The change is mechanical, but the modules are critical and some have no tests. Which TWO practices most reduce the risk of the refactor? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Combine the whole change into one pull request so the codebase is never in a mixed state.",
+        "explanation": "One giant pull request can't be reviewed meaningfully, and one bad hunk forces the whole change to roll back."
+      },
+      {
+        "id": "B",
+        "text": "Add characterization tests that pin current pricing behavior before any module is touched.",
+        "explanation": "Correct. Characterization tests capture what the code does today, so any unintended behavior change shows up immediately."
+      },
+      {
+        "id": "C",
+        "text": "Temporarily disable failing tests during the migration and re-enable them when it's finished.",
+        "explanation": "Disabling tests removes the safety net exactly when it's most needed."
+      },
+      {
+        "id": "D",
+        "text": "Let Claude work directly on main so the migration doesn't drift behind other teams' changes.",
+        "explanation": "Working on main removes review and rollback. Long-lived drift is better handled with small, frequent merges."
+      },
+      {
+        "id": "E",
+        "text": "Migrate incrementally in small, independently reviewable pull requests that each pass CI.",
+        "explanation": "Correct. Small verified steps keep each change reviewable and make any regression easy to isolate and revert."
+      }
+    ],
+    "correct": [
+      "B",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/common-workflows"
+    ]
+  },
+  {
+    "id": "q-2.4-021",
+    "skillId": "2.4",
+    "difficulty": 3,
+    "stem": "A sports-media monorepo has 25 independent microservices, each with its own test suite. The team needs the same logging-library upgrade applied to all of them and wants the work done in parallel without changes colliding. Which approach in Claude Code best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run one long interactive session that edits the services one after another in the main checkout.",
+        "explanation": "A single sequential session is slow and fills its context with 25 services' worth of detail, so later units are handled with less focus."
+      },
+      {
+        "id": "B",
+        "text": "Ask Claude to spawn one subagent per service, all editing the same working directory at once.",
+        "explanation": "Parallel agents in one working directory can overwrite each other's files. They need isolation."
+      },
+      {
+        "id": "C",
+        "text": "Run /simplify on the whole repository so Claude can find and apply the upgrade everywhere.",
+        "explanation": "/simplify suggests cleanups to changed code. It doesn't plan or run a cross-service migration."
+      },
+      {
+        "id": "D",
+        "text": "Use the bundled /batch skill so each unit is planned, then run and tested in its own worktree.",
+        "explanation": "Correct. /batch decomposes a large change into independent units and runs each in an isolated worktree, where it implements, tests and publishes the change."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/commands",
+      "https://code.claude.com/docs/en/worktrees"
+    ]
+  },
+  {
+    "id": "q-2.4-022",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A fan-engagement service sees a handful of 500 `api_error` responses from the Claude API each day. The team wants these failures to be both diagnosable with support and recoverable for users. Which TWO practices best fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Log the request-id from each response so a failing request can be traced with Anthropic support.",
+        "explanation": "Correct. Every response carries a request ID. Logging it is what support needs to investigate a specific failure."
+      },
+      {
+        "id": "B",
+        "text": "Log the full API key next to each error so support can see which credential sent the request.",
+        "explanation": "Keys are secrets and must never be logged. The request ID already identifies the request."
+      },
+      {
+        "id": "C",
+        "text": "Retry 500 errors with exponential backoff, which the official SDK already does by default.",
+        "explanation": "Correct. 500 errors are transient server-side failures. Backoff retries recover most of them without user impact."
+      },
+      {
+        "id": "D",
+        "text": "Treat 500 errors as client bugs and rewrite the request body before sending it again.",
+        "explanation": "A 500 means an internal error on the API side. The request body isn't the cause."
+      },
+      {
+        "id": "E",
+        "text": "Parse the error's human-readable message with a regex to decide whether to retry.",
+        "explanation": "Retry decisions should use the status code or the structured error type, not free-text messages that can change."
+      }
+    ],
+    "correct": [
+      "A",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  }
+]

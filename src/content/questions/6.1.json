@@ -1,0 +1,380 @@
+[
+  {
+    "id": "q-6.1-001",
+    "skillId": "6.1",
+    "difficulty": 1,
+    "stem": "A red-zone analysis agent calls get_play_by_play, which returns the full play-by-play of a game as about 40,000 tokens of JSON. The agent only ever needs the plays run inside the 20-yard line. Which fix is most effective?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Change the tool to accept filters and return only the red-zone plays and the fields they need.",
+        "explanation": "Correct. The cheapest token is one that never enters context. Pruning at the source removes the bloat before it costs anything."
+      },
+      {
+        "id": "B",
+        "text": "Move the agent to a model with a larger context window so that several full games fit comfortably.",
+        "explanation": "More room doesn't remove the irrelevant tokens. Cost rises and recall still degrades as context fills."
+      },
+      {
+        "id": "C",
+        "text": "Turn on compaction with a low trigger so the play-by-play dumps are summarized on almost every turn.",
+        "explanation": "Summarizing after the fact still pays for the full dump each time, and frequent summaries lose detail."
+      },
+      {
+        "id": "D",
+        "text": "Tell the agent in its system prompt to ignore every play that happens outside the opponent's red zone.",
+        "explanation": "The irrelevant plays still fill the context and dilute attention, even if the model tries to ignore them."
+      }
+    ],
+    "correct": ["A"],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
+      "https://www.anthropic.com/research/writing-tools-for-agents"
+    ]
+  },
+  {
+    "id": "q-6.1-002",
+    "skillId": "6.1",
+    "difficulty": 1,
+    "stem": "A scouting agent's conversation is far below the context limit, but dozens of old search results it has already summarized are still in the history. The rest of the conversation, including the coach's instructions, is still needed. Which technique fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Compaction, which replaces the older turns of the whole conversation with a summary that Claude writes.",
+        "explanation": "Compaction summarizes everything older, including turns that are still needed. It is meant for conversations nearing the window limit."
+      },
+      {
+        "id": "B",
+        "text": "Context editing that clears old tool results and keeps the most recent ones, leaving the rest intact.",
+        "explanation": "Correct. Tool-result clearing removes stale results and leaves placeholders, while the instructions and other turns stay as they are."
+      },
+      {
+        "id": "C",
+        "text": "The memory tool, so that Claude writes the old search results into files under the /memories folder.",
+        "explanation": "Memory persists information across sessions. On its own it doesn't remove anything from the current context."
+      },
+      {
+        "id": "D",
+        "text": "A fresh session started from scratch, with the coach's instructions pasted again at the top of it.",
+        "explanation": "This discards useful conversation along with the stale results. Targeted clearing keeps what is still needed."
+      }
+    ],
+    "correct": ["B"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "https://platform.claude.com/docs/en/build-with-claude/compaction"
+    ]
+  },
+  {
+    "id": "q-6.1-003",
+    "skillId": "6.1",
+    "difficulty": 2,
+    "stem": "A support agent enables server-side compaction at a token threshold. After each response, the app extracts the text block and appends only that string to its stored history. Compaction appears to happen, but the requests keep growing as if it never did. What is the fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Raise the compaction trigger, because a low threshold makes the API discard its compaction work.",
+        "explanation": "The threshold sets when compaction runs. It doesn't explain why the summary never takes effect."
+      },
+      {
+        "id": "B",
+        "text": "Switch to context editing, because compaction only works when the tool runner is driving the loop.",
+        "explanation": "Server-side compaction works on ordinary Messages API requests. The issue is how the response is stored."
+      },
+      {
+        "id": "C",
+        "text": "Append the full response content, including the compaction block, rather than only the text string.",
+        "explanation": "Correct. The compaction block replaces the older history on later requests. Keeping only the text throws it away, so the full history is resent."
+      },
+      {
+        "id": "D",
+        "text": "Resend custom summarization instructions with each request, so that the API keeps the summary.",
+        "explanation": "Summarization instructions change what the summary says. They don't fix a history that drops the compaction block."
+      }
+    ],
+    "correct": ["C"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/compaction-threshold",
+      "https://platform.claude.com/docs/en/build-with-claude/compaction"
+    ]
+  },
+  {
+    "id": "q-6.1-004",
+    "skillId": "6.1",
+    "difficulty": 2,
+    "stem": "In week 1, a coach told a long-running Agent SDK scouting agent to \"flag every 4th-down tendency,\" in the first user message. By week 9, after several automatic compactions, the agent has stopped flagging them. Which fix is most reliable?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Turn off compaction and rely on the 1M-token window so that the first message is never summarized.",
+        "explanation": "The session will eventually hit the limit, and a buried early instruction gets less attention as context grows anyway."
+      },
+      {
+        "id": "B",
+        "text": "Ask the coach to repeat the instruction in the chat whenever the agent seems to have forgotten it.",
+        "explanation": "This relies on people noticing the drift after it has caused misses. It doesn't make the rule durable."
+      },
+      {
+        "id": "C",
+        "text": "Lower the compaction threshold, so that summaries are smaller and each one keeps more of the details.",
+        "explanation": "More frequent compaction means more summarization passes, which gives the instruction more chances to be dropped."
+      },
+      {
+        "id": "D",
+        "text": "Put the rule in CLAUDE.md or the system prompt, which are sent on every request after compaction.",
+        "explanation": "Correct. Compaction can drop early instructions, while CLAUDE.md content is re-injected on every request. That is where persistent rules belong."
+      }
+    ],
+    "correct": ["D"],
+    "sourceLinks": ["https://code.claude.com/docs/en/agent-sdk/agent-loop"]
+  },
+  {
+    "id": "q-6.1-005",
+    "skillId": "6.1",
+    "difficulty": 2,
+    "stem": "A team enabled tool-result clearing with a very low trigger, so a few old results are cleared on almost every request. Since then, the prompt-cache hit rate has collapsed and input costs have gone up. What change best addresses this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Clear more at once and less often, using clear_at_least and a higher trigger, so the cache breaks less.",
+        "explanation": "Correct. Clearing invalidates the cached prefix from that point. The docs recommend clearing enough tokens at once, using clear_at_least, to make the invalidation worth it."
+      },
+      {
+        "id": "B",
+        "text": "Turn off prompt caching entirely, because caching and context editing can't be used in the same request.",
+        "explanation": "They can be combined. The fix is to make each cache break count, not to give up caching."
+      },
+      {
+        "id": "C",
+        "text": "Clear tool results on every single turn, so that the prefix always stays small enough to be cached cheaply.",
+        "explanation": "Every clearing invalidates the cache from that point, so clearing more often makes the problem worse."
+      },
+      {
+        "id": "D",
+        "text": "Move the older tool results into the system prompt, since cached system prompts are never invalidated.",
+        "explanation": "Rewriting the system prompt changes the cached prefix itself and adds the stale results back into context."
+      }
+    ],
+    "correct": ["A"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-6.1-006",
+    "skillId": "6.1",
+    "difficulty": 3,
+    "stem": "An Agent SDK migration agent repeatedly runs a test suite whose output is thousands of lines, then fixes the failures. After a few cycles, its main context is dominated by old test logs and its fixes start repeating earlier mistakes. The team wants to keep one lead agent driving the migration. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add the test-runner tool to exclude_tools in context editing, so that its output is never cleared.",
+        "explanation": "This does the opposite of what's needed. It guarantees the large test logs stay in context permanently."
+      },
+      {
+        "id": "B",
+        "text": "Run each test cycle in a subagent that returns only a short list of failing tests and their errors.",
+        "explanation": "Correct. The verbose output stays in the subagent's own context, so the lead agent's context grows only by a concise report."
+      },
+      {
+        "id": "C",
+        "text": "Turn off automatic compaction, so that none of the earlier test results are ever lost by summarizing.",
+        "explanation": "Keeping every log makes the bloat worse, and the session will still run toward the window limit."
+      },
+      {
+        "id": "D",
+        "text": "Paste the latest test output into the system prompt each cycle, so it always has the agent's attention.",
+        "explanation": "This changes the system prompt every cycle, which breaks caching, and still fills context with raw logs."
+      }
+    ],
+    "correct": ["B"],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "https://code.claude.com/docs/en/agent-sdk/agent-loop"
+    ]
+  },
+  {
+    "id": "q-6.1-007",
+    "skillId": "6.1",
+    "difficulty": 2,
+    "stem": "A three-step contract pipeline extracts clauses, scores their risk, then drafts a memo. Today step 2 receives step 1's entire conversation, including the raw contract and every intermediate message, and its risk scores have become erratic. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Merge the three steps into one long conversation, so each step can see everything the others did.",
+        "explanation": "This increases the noise each step sees. The problem is too much irrelevant context, not too little."
+      },
+      {
+        "id": "B",
+        "text": "Give step 2 a larger and more capable model, so that it can cope with the extra conversation it gets.",
+        "explanation": "A stronger model doesn't remove the irrelevant tokens. Cutting the input addresses the cause directly."
+      },
+      {
+        "id": "C",
+        "text": "Pass step 2 only step 1's structured output, the extracted clauses, not step 1's whole conversation.",
+        "explanation": "Correct. In a multi-step workflow each step should get only the inputs it needs, which keeps every context small and focused."
+      },
+      {
+        "id": "D",
+        "text": "Enable compaction on step 2, so that step 1's conversation is summarized before scoring begins.",
+        "explanation": "Summarizing the transcript is a workaround. Passing just the structured output avoids the transcript entirely."
+      }
+    ],
+    "correct": ["C"],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
+      "https://www.anthropic.com/research/building-effective-agents"
+    ]
+  },
+  {
+    "id": "q-6.1-008",
+    "skillId": "6.1",
+    "difficulty": 3,
+    "stem": "A game-planning agent calls get_team_rules once at the start of a session; its result lists constraints the agent must respect all session. The team enabled tool-result clearing, and after clearing first triggered, the agent began breaking those rules. Which change fixes this with the least side effect?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Set clear_tool_inputs to true, so that the call's parameters are cleared along with its old result.",
+        "explanation": "This clears even more of the call. The rule result would still be removed."
+      },
+      {
+        "id": "B",
+        "text": "Lower keep to a single tool use, so the clearing strategy holds on to only the most recent result.",
+        "explanation": "Keeping fewer results makes it more likely the early rules result is cleared, not less."
+      },
+      {
+        "id": "C",
+        "text": "Turn off prompt caching, since cached prefixes are what cause old results to disappear from context.",
+        "explanation": "Caching doesn't remove content. The clearing strategy is what replaced the rules result with a placeholder."
+      },
+      {
+        "id": "D",
+        "text": "List get_team_rules in exclude_tools so it is never cleared, or move the rules to the system prompt.",
+        "explanation": "Correct. exclude_tools lists tools whose uses and results are never cleared. Constraints that apply all session can also live in the system prompt."
+      }
+    ],
+    "correct": ["D"],
+    "sourceLinks": ["https://platform.claude.com/docs/en/build-with-claude/context-editing"]
+  },
+  {
+    "id": "q-6.1-009",
+    "skillId": "6.1",
+    "difficulty": 1,
+    "stem": "An operations agent is connected to six MCP servers exposing about 150 tools in total, and every schema is loaded on every request. Before the agent does any work, a large share of its context is used, and it sometimes picks the wrong tool. Which approach helps most?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Merge all 150 tools into one large tool that takes an action name and a free-form JSON payload.",
+        "explanation": "One vague mega-tool makes selection and argument errors more likely and hides each action's schema from the model."
+      },
+      {
+        "id": "B",
+        "text": "Move to a model with a larger context window, so all of the tool schemas fit with room to spare.",
+        "explanation": "More room doesn't reduce the noise of 150 schemas, and they still cost tokens on every request."
+      },
+      {
+        "id": "C",
+        "text": "Use tool search to load tool definitions on demand, and give each agent only the tools it needs.",
+        "explanation": "Correct. Deferred loading keeps unused schemas out of context, and scoping tools per agent reduces both bloat and wrong selections."
+      },
+      {
+        "id": "D",
+        "text": "Delete the descriptions from every tool definition, so that each schema costs fewer tokens to load.",
+        "explanation": "Descriptions are how the model chooses the right tool. Removing them saves tokens but makes selection worse."
+      }
+    ],
+    "correct": ["C"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool",
+      "https://code.claude.com/docs/en/agent-sdk/agent-loop"
+    ]
+  },
+  {
+    "id": "q-6.1-010",
+    "skillId": "6.1",
+    "difficulty": 2,
+    "stem": "A ticket-triage agent for a team's season-ticket office runs all day in a single session. Each lookup returns full customer records, and by afternoon responses are slow and expensive. Which TWO techniques directly reduce context bloat? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Have lookups return a short summary and a record ID, with a separate tool to fetch full details.",
+        "explanation": "Correct. Just-in-time retrieval keeps lightweight references in context and loads details only when needed."
+      },
+      {
+        "id": "B",
+        "text": "Enable clearing of old tool results, keeping only the few most recent lookups in the context.",
+        "explanation": "Correct. Stale lookup results are replaced with placeholders, so they stop adding tokens to every request."
+      },
+      {
+        "id": "C",
+        "text": "Raise max_tokens so the agent has more room to write its answers about each customer ticket.",
+        "explanation": "max_tokens caps output length. It does nothing about the input context piling up."
+      },
+      {
+        "id": "D",
+        "text": "Switch to a model with a larger context window, so the growing history no longer causes issues.",
+        "explanation": "A larger window postpones the limit but not the cost, latency or quality loss from irrelevant tokens."
+      },
+      {
+        "id": "E",
+        "text": "Copy every earlier lookup result into the system prompt, so that those tokens are cached cheaply.",
+        "explanation": "This keeps all the stale data in context and changes the system prompt each time, which breaks caching."
+      }
+    ],
+    "correct": ["A", "B"],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
+      "https://platform.claude.com/docs/en/build-with-claude/context-editing"
+    ]
+  },
+  {
+    "id": "q-6.1-011",
+    "skillId": "6.1",
+    "difficulty": 2,
+    "stem": "A platform team is writing internal guidance on context-management features for its agent developers. Which TWO descriptions of a technique and its effect are accurate? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Context editing clears selected old tool results or thinking blocks and leaves placeholders in their place.",
+        "explanation": "Correct. Clearing removes specific stale content while the rest of the conversation stays word for word."
+      },
+      {
+        "id": "B",
+        "text": "Compaction replaces the older turns of a conversation with a summary that Claude writes on the server.",
+        "explanation": "Correct. Compaction summarizes rather than deletes, which keeps a long task inside the window."
+      },
+      {
+        "id": "C",
+        "text": "The memory tool summarizes the conversation on the server whenever the context approaches its limit.",
+        "explanation": "The memory tool is client-side file storage that persists notes across sessions. It doesn't summarize anything."
+      },
+      {
+        "id": "D",
+        "text": "Subagents share their parent's context window, so everything they read is also visible to the parent.",
+        "explanation": "Subagents run in their own context. Only their final report returns to the parent."
+      },
+      {
+        "id": "E",
+        "text": "Server-side context editing rewrites the client's stored history, which the app must then sync locally.",
+        "explanation": "Context editing is applied before the prompt reaches Claude. The client keeps its full, unmodified history and needs no sync."
+      }
+    ],
+    "correct": ["A", "B"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "https://platform.claude.com/docs/en/build-with-claude/compaction"
+    ]
+  }
+]

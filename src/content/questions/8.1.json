@@ -1,0 +1,482 @@
+[
+  {
+    "id": "q-8.1-001",
+    "skillId": "8.1",
+    "difficulty": 1,
+    "stem": "A fantasy assistant has a get_player_stats tool described only as \"Gets player stats.\" When users ask \"Should I start my running back this week?\", Claude often answers from general knowledge without calling the tool. Which change is most likely to fix this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Expand the description to say what it returns, when to call it, and that the data is current.",
+        "explanation": "Correct. The description is the biggest lever on tool use. Saying when to call the tool, and why Claude needs it, raises the should-call rate."
+      },
+      {
+        "id": "B",
+        "text": "Set tool_choice to type any on Claude Opus 5.5 so that some tool is always called on every turn.",
+        "explanation": "Claude Opus 5.5 rejects forced tool_choice with a 400. Forcing a call on every turn would also be wrong for questions that need no tool."
+      },
+      {
+        "id": "C",
+        "text": "Add \"CRITICAL: you MUST ALWAYS use tools\" to the system prompt and leave the description unchanged.",
+        "explanation": "Shouted, unconditional rules tend to cause overtriggering on current models, and they don't explain what the tool is for."
+      },
+      {
+        "id": "D",
+        "text": "Rename the tool to a shorter name such as stats so that it is easier for Claude to select it.",
+        "explanation": "A shorter, vaguer name removes information. Specific, descriptive names help selection."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools"
+    ]
+  },
+  {
+    "id": "q-8.1-002",
+    "skillId": "8.1",
+    "difficulty": 2,
+    "stem": "A research assistant adds the web_search tool. The developer also writes a handler that watches for tool_use blocks named web_search, calls a search API, and returns a tool_result. The handler never runs, yet answers include fresh search results. What explains this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The handler must also set is_error on its results before Claude will accept them.",
+        "explanation": "is_error marks a failed client tool. It has nothing to do with whether a handler runs."
+      },
+      {
+        "id": "B",
+        "text": "The handler is skipped because tool_choice was left at its default of auto.",
+        "explanation": "auto still lets Claude call tools. tool_choice doesn't decide where a tool executes."
+      },
+      {
+        "id": "C",
+        "text": "web_search is a server tool: Anthropic runs it and returns results in the same response.",
+        "explanation": "Correct. Server tools execute on Anthropic's infrastructure. You write no handler, and you only need to handle pause_turn if the server loop pauses."
+      },
+      {
+        "id": "D",
+        "text": "The handler needs a public URL registered with Anthropic before it can be called.",
+        "explanation": "Client tools run in your own process inside your loop. There is no registration step, and this tool is a server tool anyway."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview"
+    ]
+  },
+  {
+    "id": "q-8.1-003",
+    "skillId": "8.1",
+    "difficulty": 2,
+    "stem": "A lineup agent's manual loop runs tools by their position in the tools array, assuming Claude calls them in order. After a new tool was added, Claude's calls ran the wrong handlers, and a call to an unknown name crashed the loop. How should dispatch work?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep the positional dispatch, but sort the tools array alphabetically so the order is stable.",
+        "explanation": "Claude may call any tool, in any order, several times. Position never identifies the tool that was requested."
+      },
+      {
+        "id": "B",
+        "text": "Catch the crash, end the loop, and show the user a generic message saying something went wrong.",
+        "explanation": "Ending the loop throws away the chance to recover. Claude can adjust if it gets an error result."
+      },
+      {
+        "id": "C",
+        "text": "Allow only one tool per turn with disable_parallel_tool_use so that the call order is predictable.",
+        "explanation": "Limiting parallel calls doesn't tell you which tool was called. The handler still has to be chosen by name."
+      },
+      {
+        "id": "D",
+        "text": "Look up each tool_use block's handler by name; answer unknown names with an is_error result.",
+        "explanation": "Correct. Dispatch by name from a handler map. An unknown name gets an error tool_result so that Claude can correct itself, and the loop keeps running under an iteration cap."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner"
+    ]
+  },
+  {
+    "id": "q-8.1-004",
+    "skillId": "8.1",
+    "difficulty": 1,
+    "stem": "A stats tool fails when Claude passes a misspelled player name such as \"Jaxon\". The handler currently returns the tool_result \"failed\" with is_error set to true, and Claude just apologizes to the user. Which result content would help Claude recover?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The full stack trace from the stats service, so Claude can work out the cause.",
+        "explanation": "A raw trace is noisy and may leak internals. It doesn't say what to do next."
+      },
+      {
+        "id": "B",
+        "text": "\"No player matches 'Jaxon'. Call search_players with a partial name, or ask the user.\"",
+        "explanation": "Correct. Instructive errors say what went wrong and what to try next, so Claude can recover without guessing."
+      },
+      {
+        "id": "C",
+        "text": "An empty string with is_error left unset, so that Claude isn't distracted by an error.",
+        "explanation": "Hiding the failure makes Claude think the call succeeded with no data, and it may then make up an answer."
+      },
+      {
+        "id": "D",
+        "text": "Nothing at all: skip the tool_result for that call and wait for the user's next turn.",
+        "explanation": "Every tool_use needs a matching tool_result. Leaving one out makes the next request fail with a 400."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"
+    ]
+  },
+  {
+    "id": "q-8.1-005",
+    "skillId": "8.1",
+    "difficulty": 2,
+    "stem": "An operations agent has a send_email tool. The system prompt says \"Always confirm with the user before sending\", yet in testing Claude sometimes sends without asking. Which design choices give real control over sending? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Make the confirmation rule louder with capitals and repeat it in the tool description.",
+        "explanation": "A prompt rule is a request, not a control. It can still be skipped or overridden by injected content."
+      },
+      {
+        "id": "B",
+        "text": "When the user declines, return a tool_result saying the user declined, so Claude can adapt.",
+        "explanation": "Correct. Every tool_use still needs a result, and telling Claude about the decline lets it propose an alternative."
+      },
+      {
+        "id": "C",
+        "text": "Let the email send immediately, and offer an undo link for the next sixty seconds.",
+        "explanation": "Sending can't be reliably undone, and the gate needs to come before the side effect, not after it."
+      },
+      {
+        "id": "D",
+        "text": "Drop the pending tool_use block from history if the user declines, as if it never happened.",
+        "explanation": "Editing history to remove the call breaks the conversation and hides the decision from Claude."
+      },
+      {
+        "id": "E",
+        "text": "Pause in the harness before send_email runs and show the pending call to a human for approval.",
+        "explanation": "Correct. Approval belongs in code, before execution, so that it can't be skipped by the model."
+      }
+    ],
+    "correct": [
+      "B",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner"
+    ]
+  },
+  {
+    "id": "q-8.1-006",
+    "skillId": "8.1",
+    "difficulty": 3,
+    "stem": "A billing team built its refund agent on the SDK Tool Runner. Compliance now requires human approval before issue_refund executes, and an engineer proposes rewriting everything as a manual loop to get that control. Which response best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Agree: the Tool Runner always runs tools automatically, so a manual loop is the only way to gate calls.",
+        "explanation": "This is a common misconception. The Tool Runner exposes each turn before tools run, and gating is a supported pattern."
+      },
+      {
+        "id": "B",
+        "text": "Keep the Tool Runner and gate in the refund tool's run function, returning a declined result.",
+        "explanation": "Correct. Approval gates work with the Tool Runner: gate inside the run function, or inspect the yielded message and intervene before execution."
+      },
+      {
+        "id": "C",
+        "text": "Make issue_refund a server tool so that Anthropic's infrastructure enforces the approval step.",
+        "explanation": "You can't turn your own function into a server tool, and approval is your application's responsibility."
+      },
+      {
+        "id": "D",
+        "text": "Keep the Tool Runner but tell Claude in the system prompt never to refund without approval.",
+        "explanation": "A prompt instruction is not an enforced gate. Compliance needs a check in code."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner"
+    ]
+  },
+  {
+    "id": "q-8.1-007",
+    "skillId": "8.1",
+    "difficulty": 2,
+    "stem": "A league-operations agent has grown to 38 tools, including get_player_stats, fetch_player_stats_v2, player_stats_lookup and separate create_trade, review_trade and approve_trade tools. Claude often picks the wrong one, and input token costs keep rising. Which redesign fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep every tool and add a system-prompt table explaining which of the similar tools to use when.",
+        "explanation": "This adds more tokens on top of the overlap. Removing the redundant tools addresses the cause."
+      },
+      {
+        "id": "B",
+        "text": "Set tool_choice to name the correct tool on every request, chosen by a keyword router.",
+        "explanation": "A brittle router duplicates Claude's job, and forced tool_choice is rejected on Claude Opus 5.5 and Sonnet 5.5."
+      },
+      {
+        "id": "C",
+        "text": "Split the tools across three separate system prompts and rotate them by day of the week.",
+        "explanation": "Rotating tool sets by date doesn't match tools to the task, and it changes the cached prefix."
+      },
+      {
+        "id": "D",
+        "text": "Merge the overlaps into fewer namespaced tools, such as a trade tool with an action parameter.",
+        "explanation": "Correct. Fewer, sharper tools reduce selection ambiguity and per-request tokens, and service prefixes make names unambiguous."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools"
+    ]
+  },
+  {
+    "id": "q-8.1-008",
+    "skillId": "8.1",
+    "difficulty": 3,
+    "stem": "A league data platform exposes about 300 tools across its stats, ticketing, merchandise and media services. Any single request needs only a handful of them, and sending every definition each time is costly and hurts selection. Which choices fit best? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a tool search tool and mark the other tools with defer_loading set to true.",
+        "explanation": "Correct. Tool search lets Claude discover relevant tools on demand without loading every definition up front."
+      },
+      {
+        "id": "B",
+        "text": "Set defer_loading on all tools, including the search tool, to minimize tokens.",
+        "explanation": "The search tool must not be deferred, and at least one tool must be loaded. Deferring all of them returns a 400."
+      },
+      {
+        "id": "C",
+        "text": "Paste all 300 definitions into the system prompt as text instead of the tools array.",
+        "explanation": "The tokens are the same or worse, and Claude can't call tools that are only described in prose."
+      },
+      {
+        "id": "D",
+        "text": "Prefix tool names with their service, such as stats_get_player and tickets_refund.",
+        "explanation": "Correct. Namespacing keeps selection unambiguous as the library grows, which matters especially with tool search."
+      },
+      {
+        "id": "E",
+        "text": "Use forced tool_choice on Claude Sonnet 5.5 to load just the needed tool each time.",
+        "explanation": "Claude Sonnet 5.5 rejects forced tool_choice with a 400, and tool_choice doesn't load definitions anyway."
+      }
+    ],
+    "correct": [
+      "A",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools"
+    ]
+  },
+  {
+    "id": "q-8.1-009",
+    "skillId": "8.1",
+    "difficulty": 2,
+    "stem": "A contract-extraction service defined an extract_terms tool and set tool_choice to that tool only so that it would always get JSON back; the tool is never executed. After moving to Claude Opus 5.5, every request fails with a 400. Which replacement fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Change tool_choice to type any, which still guarantees that a tool call is made.",
+        "explanation": "Claude Opus 5.5 rejects both any and tool for tool_choice."
+      },
+      {
+        "id": "B",
+        "text": "Keep the forced tool_choice and send a beta header that re-enables forced calls.",
+        "explanation": "No beta header restores forced tool use on these models. The documented paths are auto with strict tools, or structured outputs."
+      },
+      {
+        "id": "C",
+        "text": "Drop the tool and request the terms schema through output_config.format.",
+        "explanation": "Correct. When a forced call existed only to get JSON, structured outputs are the documented replacement."
+      },
+      {
+        "id": "D",
+        "text": "Prefill the assistant turn with a tool_use block so that the call is guaranteed.",
+        "explanation": "Prefilling the last assistant turn returns a 400 on these models, and a fake tool_use isn't a valid response shape."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-8.1-010",
+    "skillId": "8.1",
+    "difficulty": 1,
+    "stem": "An invoicing agent's create_invoice tool sometimes receives amount as the string \"12.50\" instead of a number, or leaves out currency entirely, which crashes the billing API. Which change guarantees that tool inputs match the schema?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Set strict to true on the tool, with required fields and additionalProperties set to false.",
+        "explanation": "Correct. Strict tool use constrains inputs to the schema, so wrong types and missing required fields can't occur."
+      },
+      {
+        "id": "B",
+        "text": "Add input_examples showing correctly typed amounts with an explicit currency field.",
+        "explanation": "Examples improve how Claude fills inputs, but they don't guarantee compliance."
+      },
+      {
+        "id": "C",
+        "text": "Add \"amount MUST be a number\" in capitals to the description of the amount field.",
+        "explanation": "A clearer description helps, but it is guidance, not a guarantee."
+      },
+      {
+        "id": "D",
+        "text": "Coerce every amount string to a float inside the handler and default currency to USD.",
+        "explanation": "Silently guessing a currency can produce wrong invoices. Fix the inputs at the source."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use"
+    ]
+  },
+  {
+    "id": "q-8.1-011",
+    "skillId": "8.1",
+    "difficulty": 2,
+    "stem": "A CRM agent's lookup_account tool returns the vendor API's raw response: about 5,000 tokens of nested JSON with internal database keys. After a few lookups the context fills up, and Claude sometimes cites the wrong account. What is the best fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Tell Claude in the system prompt to ignore any fields it doesn't need.",
+        "explanation": "The tokens are still sent and still crowd the context. The noise has to be removed at the source."
+      },
+      {
+        "id": "B",
+        "text": "Switch to a model with a larger context window to fit more lookups.",
+        "explanation": "More room postpones the problem, and the low-signal data still makes it harder to pick out what matters."
+      },
+      {
+        "id": "C",
+        "text": "Return only the fields Claude needs next, with stable, meaningful IDs.",
+        "explanation": "Correct. High-signal tool responses with semantic identifiers save context and make it easier for Claude to reason correctly."
+      },
+      {
+        "id": "D",
+        "text": "Add the full API reference to the tool description to explain each field.",
+        "explanation": "That adds even more tokens to every request and leaves the bloated responses as they are."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools"
+    ]
+  },
+  {
+    "id": "q-8.1-012",
+    "skillId": "8.1",
+    "difficulty": 1,
+    "stem": "A fantasy app's request includes the web_search tool, the code execution tool, the memory tool and a custom get_roster function. Which statements about where these tools run are correct? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "get_roster runs in the app; it returns the result as a tool_result.",
+        "explanation": "Correct. Custom tools are client tools: Claude requests them and your code executes them."
+      },
+      {
+        "id": "B",
+        "text": "The memory tool is run and stored on Anthropic's own servers.",
+        "explanation": "The memory tool is an Anthropic-schema client tool. Your application implements its storage."
+      },
+      {
+        "id": "C",
+        "text": "Code execution needs the app to provide its own sandbox to run in.",
+        "explanation": "Code execution is a server tool that runs in an Anthropic-hosted container."
+      },
+      {
+        "id": "D",
+        "text": "web_search runs on Anthropic's side, with results in the same response.",
+        "explanation": "Correct. Server tools run on Anthropic's infrastructure, and you write no handler for them."
+      },
+      {
+        "id": "E",
+        "text": "web_search failures must be returned by the app with is_error set.",
+        "explanation": "Server-tool errors come back inside the tool's result block. You never execute or report them yourself."
+      }
+    ],
+    "correct": [
+      "A",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools"
+    ]
+  },
+  {
+    "id": "q-8.1-013",
+    "skillId": "8.1",
+    "difficulty": 3,
+    "stem": "A lineup agent reads team news through a tool and can call set_lineup after the user approves it. In one session, a news article contained hidden text, and the approved call included player IDs that aren't on the user's roster. The input matched the strict schema. Which additional safeguard fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Rely on the user's approval, since approving the call already confirms that every input is acceptable.",
+        "explanation": "Users approve summaries, not every ID. Approval doesn't replace authorization checks on the actual inputs."
+      },
+      {
+        "id": "B",
+        "text": "Validate set_lineup inputs in code against the user's roster before it runs, even after approval.",
+        "explanation": "Correct. Treat tool inputs as untrusted model output. Business-rule checks in the harness block injected values that are valid in shape but not allowed."
+      },
+      {
+        "id": "C",
+        "text": "Tighten the strict schema so that player IDs must match the existing ID format exactly.",
+        "explanation": "The injected IDs were real, well-formed IDs. Schema shape can't express \"belongs to this user\"."
+      },
+      {
+        "id": "D",
+        "text": "Ask Claude in the system prompt to double-check every player ID before calling set_lineup.",
+        "explanation": "Claude is the component being manipulated here. The check has to happen in code."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks"
+    ]
+  }
+]

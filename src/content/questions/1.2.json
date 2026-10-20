@@ -1,0 +1,546 @@
+[
+  {
+    "id": "q-1.2-001",
+    "skillId": "1.2",
+    "difficulty": 1,
+    "stem": "A finance team wants an agent that reads CSV exports, runs Python scripts and writes Markdown reports. Company policy requires it to run on the team's own Kubernetes cluster, and the team doesn't want to implement file or shell tools itself. Which option fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The Claude Agent SDK, deployed in the team's own containers, using its built-in Read, Write and Bash tools.",
+        "explanation": "Correct. The Agent SDK supplies Claude Code's harness with built-in file and shell tools, and it is a library you host yourself, which matches the cluster requirement."
+      },
+      {
+        "id": "B",
+        "text": "The Tool Runner in the client SDK, since it drives the agent loop and comes with ready-made file and shell tools.",
+        "explanation": "The Tool Runner loops over tools you define. It has no built-in file or shell tools, so the team would still have to write them."
+      },
+      {
+        "id": "C",
+        "text": "A hand-written Messages API loop, with custom tool definitions for reading files and running shell commands.",
+        "explanation": "This works but means writing the harness and every tool, which is what the team wants to avoid."
+      },
+      {
+        "id": "D",
+        "text": "Managed Agents with a cloud sandbox, since its hosted container already includes bash and file operations.",
+        "explanation": "The hosted cloud sandbox runs on Anthropic's infrastructure, which conflicts with the requirement to run on the team's own cluster."
+      }
+    ],
+    "correct": ["A"],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/overview",
+      "https://code.claude.com/docs/en/agent-sdk/hosting"
+    ]
+  },
+  {
+    "id": "q-1.2-002",
+    "skillId": "1.2",
+    "difficulty": 1,
+    "stem": "A small fan-engagement startup wants agents that run for an hour or more in a sandbox with bash and file tools. It has no ops staff to run containers, and it doesn't want to write loop or session-persistence code. Which option fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The Claude Agent SDK on a rented VM, because it ships the full Claude Code harness and its built-in tools.",
+        "explanation": "The harness fits, but the startup would still operate the VM, the containers and session persistence, which it has no staff for."
+      },
+      {
+        "id": "B",
+        "text": "Managed Agents, where Anthropic runs the loop and a per-session sandbox and stores the session history.",
+        "explanation": "Correct. Managed Agents supplies both the harness and the deployment, suits long-running work, and keeps session state server-side."
+      },
+      {
+        "id": "C",
+        "text": "The Tool Runner on a serverless platform, since serverless platforms scale automatically with no ops work.",
+        "explanation": "The Tool Runner has no sandbox or built-in tools, and serverless timeouts and state handling would still be the startup's job."
+      },
+      {
+        "id": "D",
+        "text": "A manual Messages API loop that the startup's developers write once and then deploy as a background job.",
+        "explanation": "This requires writing the loop, the tools, the sandbox and the persistence, which is all the work the startup wants to avoid."
+      }
+    ],
+    "correct": ["B"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/managed-agents/overview",
+      "https://code.claude.com/docs/en/agent-sdk/hosting"
+    ]
+  },
+  {
+    "id": "q-1.2-003",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "A club's video-operations agent, built on the Agent SDK, must only ever write files under reports/. The system prompt says so, but in testing the agent occasionally overwrote a file in the playbook folder. The rule must hold every time. Which approach is best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Rewrite the system prompt rule in capital letters and repeat it at the end of every user message the app sends.",
+        "explanation": "Stronger wording may help, but a prompt only asks. A rule that must always hold needs enforcement outside the model."
+      },
+      {
+        "id": "B",
+        "text": "Add a PostToolUse hook that deletes any file written outside reports/ right after the write tool has finished.",
+        "explanation": "PostToolUse runs after the write, so the playbook file has already been overwritten. Deleting it afterwards destroys it rather than protecting it."
+      },
+      {
+        "id": "C",
+        "text": "Add a PreToolUse hook on Write and Edit that denies any file path outside reports/, and sandbox Bash writes too.",
+        "explanation": "Correct. A PreToolUse deny blocks the call before it runs and Claude sees the reason. Shell commands are a different tool, so they need their own control."
+      },
+      {
+        "id": "D",
+        "text": "Set temperature to 0 for the session so that the agent's choice of file paths becomes predictable and stable.",
+        "explanation": "Current models reject non-default sampling parameters, and predictable output still isn't an enforced guarantee."
+      }
+    ],
+    "correct": ["C"],
+    "sourceLinks": ["https://code.claude.com/docs/en/agent-sdk/hooks"]
+  },
+  {
+    "id": "q-1.2-004",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "An Agent SDK app registers a PreToolUse hook with the matcher \"Write|Edit\" that denies changes to .env files. In a test, the agent still created a .env file by running an echo command with output redirection. What explains this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Hooks only take effect when the session runs in bypassPermissions mode, so the default mode skipped the check.",
+        "explanation": "Hooks fire in every permission mode. Nothing about the default mode turns them off."
+      },
+      {
+        "id": "B",
+        "text": "Matchers are applied to the file path rather than the tool name, so the .env pattern never matched the command.",
+        "explanation": "Tool-hook matchers match the tool name. File paths have to be checked inside the callback using the tool input."
+      },
+      {
+        "id": "C",
+        "text": "Hook callbacks run asynchronously by default, so the shell command completed before the deny decision arrived.",
+        "explanation": "By default the agent waits for the hook to return. Only a hook that explicitly returns async output lets the agent move on."
+      },
+      {
+        "id": "D",
+        "text": "The matcher covers only Write and Edit. Bash is a separate tool, so it needs its own check or a sandbox.",
+        "explanation": "Correct. The docs warn that a Write|Edit hook doesn't run when Claude writes the same file through Bash. Match Bash as well, or sandbox it."
+      }
+    ],
+    "correct": ["D"],
+    "sourceLinks": ["https://code.claude.com/docs/en/agent-sdk/hooks"]
+  },
+  {
+    "id": "q-1.2-005",
+    "skillId": "1.2",
+    "difficulty": 1,
+    "stem": "A fantasy league app built on the Agent SDK has two PreToolUse hooks on its database tool. An audit hook always returns allow after logging the call, and a security hook returns deny when a query touches the payments table. Both fire on the same call. What happens?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The call is blocked, because when hooks disagree the most restrictive decision, deny, takes priority.",
+        "explanation": "Correct. Matching hooks run in parallel and the most restrictive result applies: deny beats defer, ask and allow."
+      },
+      {
+        "id": "B",
+        "text": "The call runs, because the hook registered first in the list decides and the audit hook was listed first.",
+        "explanation": "Registration order doesn't decide anything. Hooks run in parallel, so the outcome must not depend on order."
+      },
+      {
+        "id": "C",
+        "text": "The call runs, because an explicit allow from any hook overrides a deny returned by any other hook.",
+        "explanation": "It is the other way round. One hook's deny blocks the tool call regardless of other hooks' allow."
+      },
+      {
+        "id": "D",
+        "text": "The SDK cannot resolve conflicting answers, so it pauses the session and waits for the user to decide.",
+        "explanation": "There is a fixed precedence for conflicting decisions, so no extra prompt is needed to resolve them."
+      }
+    ],
+    "correct": ["A"],
+    "sourceLinks": ["https://code.claude.com/docs/en/agent-sdk/hooks"]
+  },
+  {
+    "id": "q-1.2-006",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "A fantasy football company is building a lineup agent whose only tools are two internal APIs: a league database lookup and an injury feed. It will run on the company's own servers, the agent must not have any shell or file access, and the team doesn't want to hand-write the tool loop. Which option fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The Claude Agent SDK, since it is the only Claude option in which the SDK runs the tool loop for you.",
+        "explanation": "The Tool Runner also runs the loop. The Agent SDK would bring built-in shell and file tools the agent must not have, which then need locking down."
+      },
+      {
+        "id": "B",
+        "text": "The client SDK's Tool Runner, which loops over the tools you define and runs on your own servers.",
+        "explanation": "Correct. The Tool Runner supplies the loop for custom tools only, with no built-in shell or file tools, and you host it yourself."
+      },
+      {
+        "id": "C",
+        "text": "Managed Agents, since a hosted harness means the company won't have to write any loop code at all.",
+        "explanation": "Managed Agents runs the loop on Anthropic's infrastructure and provides a sandbox with bash and files, which conflicts with both constraints."
+      },
+      {
+        "id": "D",
+        "text": "A hand-written Messages API loop, since custom tools always need a custom loop to execute them.",
+        "explanation": "Custom tools don't require a hand-written loop. The Tool Runner executes them, and the team wants to avoid writing the loop."
+      }
+    ],
+    "correct": ["B"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner",
+      "https://code.claude.com/docs/en/agent-sdk/overview"
+    ]
+  },
+  {
+    "id": "q-1.2-007",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "A bank's compliance policy forbids depending on beta API features in production. Its refund agent must also pause mid-loop for an approval that can take hours, save its state to the bank's database, and continue later on another server. Which approach fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The client SDK's Tool Runner, using its per-turn hooks to pause for approval and to persist the loop state.",
+        "explanation": "The Tool Runner is a beta helper, so it breaks the compliance policy even though its hooks could gate approvals."
+      },
+      {
+        "id": "B",
+        "text": "The Claude Agent SDK in bypassPermissions mode, so approvals never block the loop while it is running.",
+        "explanation": "Skipping approvals removes the required control, and the Agent SDK's file-based sessions don't match the custom persistence the bank needs."
+      },
+      {
+        "id": "C",
+        "text": "A hand-written loop on the Messages API that stores the message history and resumes it once approval arrives.",
+        "explanation": "Correct. A manual loop avoids beta dependencies and gives full control over unusual flows. The API is stateless, so the stored history can be resent from any server."
+      },
+      {
+        "id": "D",
+        "text": "Managed Agents, since its sessions persist server-side and can be resumed when the approval is finally given.",
+        "explanation": "Managed Agents is in beta, which the compliance policy forbids, even though its server-side sessions would handle the pause."
+      }
+    ],
+    "correct": ["C"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "https://platform.claude.com/docs/en/managed-agents/overview"
+    ]
+  },
+  {
+    "id": "q-1.2-008",
+    "skillId": "1.2",
+    "difficulty": 3,
+    "stem": "A SaaS vendor runs Agent SDK sessions for several NFL clubs in one shared container. One club's analyst noticed the agent following coding conventions from another club's CLAUDE.md. Which change best isolates the tenants?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Switch every tenant to the claude_code system prompt preset, since it is what decides which CLAUDE.md files load.",
+        "explanation": "CLAUDE.md loading is controlled by setting sources, not by the system prompt preset. The leak would continue."
+      },
+      {
+        "id": "B",
+        "text": "Add a system prompt line telling the agent to ignore any instructions that come from other clubs' projects.",
+        "explanation": "A prompt can't reliably undo context that has already been injected. Isolation must happen in configuration."
+      },
+      {
+        "id": "C",
+        "text": "Run every tenant in plan permission mode so the agent can read files but can never act on another tenant's rules.",
+        "explanation": "Plan mode limits edits, not what is loaded into context. The other club's CLAUDE.md would still shape behavior."
+      },
+      {
+        "id": "D",
+        "text": "Pass empty settingSources and give each tenant its own working directory, config directory and memory setting.",
+        "explanation": "Correct. The hosting guide's multi-tenant steps are empty setting sources, auto memory turned off, and a per-tenant config directory and cwd, so no tenant's files load for another."
+      }
+    ],
+    "correct": ["D"],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/hosting",
+      "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts"
+    ]
+  },
+  {
+    "id": "q-1.2-009",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "A team moved a coding workflow from claude -p to the Agent SDK and passed no systemPrompt option. The SDK agent calls tools correctly but no longer follows Claude Code's tool-usage and safety guidance the way the CLI did. What explains the difference, and what restores it?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Without systemPrompt the SDK uses a minimal prompt. Select the claude_code preset, adding append for team rules.",
+        "explanation": "Correct. The SDK's minimal default covers tool calling only, while claude -p uses the Claude Code prompt. The preset restores it, and append adds custom instructions."
+      },
+      {
+        "id": "B",
+        "text": "The SDK ignores CLAUDE.md files completely, so the guidance has to be moved into the prompt sent with each query.",
+        "explanation": "The SDK loads CLAUDE.md through setting sources, enabled by default. The missing content is the CLI's system prompt, not CLAUDE.md."
+      },
+      {
+        "id": "C",
+        "text": "The SDK runs with a smaller model by default. Set the model option to match the model that the CLI was running.",
+        "explanation": "The symptom is missing behavioral guidance, which comes from the system prompt. Changing the model wouldn't add it."
+      },
+      {
+        "id": "D",
+        "text": "The SDK starts in bypassPermissions mode. Switch it to default mode so that the safety guidance is enforced again.",
+        "explanation": "The SDK starts in default mode, not bypass. Permission modes control approvals, not the safety text in the system prompt."
+      }
+    ],
+    "correct": ["A"],
+    "sourceLinks": ["https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts"]
+  },
+  {
+    "id": "q-1.2-010",
+    "skillId": "1.2",
+    "difficulty": 3,
+    "stem": "A health-tech company likes Managed Agents but requires that agent tool execution and working files stay on its own infrastructure. An architect proposes a self_hosted environment. Which statement accurately describes what that arrangement provides?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The agent loop and model inference both move into the company's network, so no session data reaches Anthropic.",
+        "explanation": "Only tool execution moves. Claude still runs on Anthropic's side, and the agent loop stays there."
+      },
+      {
+        "id": "B",
+        "text": "Tool calls run on the company's worker, but the loop stays at Anthropic and tool results still flow there.",
+        "explanation": "Correct. A self-hosted environment moves execution, files and egress into the company's infrastructure, while results flow back to Anthropic's control plane so the model can act on them."
+      },
+      {
+        "id": "C",
+        "text": "The company's worker becomes the orchestrator, calling the Messages API directly and storing every session itself.",
+        "explanation": "The worker claims queued sessions and runs tool calls. Orchestration and session history remain with Managed Agents."
+      },
+      {
+        "id": "D",
+        "text": "It needs no worker process: Anthropic connects into the company network and runs the tools there over a tunnel.",
+        "explanation": "The company runs an environment worker that polls a work queue. MCP tunnels are a separate feature for reaching private MCP servers."
+      }
+    ],
+    "correct": ["B"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/managed-agents/self-hosted-sandboxes",
+      "https://platform.claude.com/docs/en/managed-agents/choosing-an-environment"
+    ]
+  },
+  {
+    "id": "q-1.2-011",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "A sports-betting analytics service calls agents.create on Managed Agents for every incoming request. The account now holds thousands of near-identical agents, and nobody can tell which configuration produced last week's reports. Which TWO changes fix this? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Create the agent once, store its ID, and start a new session that references it for each request.",
+        "explanation": "Correct. Agents are persisted configs meant to be created once. Each run is a session, not a new agent."
+      },
+      {
+        "id": "B",
+        "text": "When the prompt or tools change, update the existing agent so that sessions pin to a known version.",
+        "explanation": "Correct. Updating an agent creates a new version, and sessions record the version they ran, which makes past reports traceable."
+      },
+      {
+        "id": "C",
+        "text": "Delete each agent as soon as its session finishes, so that only the agents in use remain listed.",
+        "explanation": "This hides the clutter but keeps the wrong pattern, and it throws away the configuration history needed for traceability."
+      },
+      {
+        "id": "D",
+        "text": "Create a new environment for each request instead, and keep a single agent for occasional changes.",
+        "explanation": "Environments configure where sessions run. Creating one per request swaps one anti-pattern for another and doesn't help traceability."
+      },
+      {
+        "id": "E",
+        "text": "Move the system prompt into the first user message of each session, so the agent config never varies.",
+        "explanation": "This scatters the configuration across sessions, so there is no versioned record of which instructions produced a report."
+      }
+    ],
+    "correct": ["A", "B"],
+    "sourceLinks": ["https://platform.claude.com/docs/en/managed-agents/overview"]
+  },
+  {
+    "id": "q-1.2-012",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "A team's fan chatbot runs on the Agent SDK in containers that scale to zero when idle. Fans often come back days later and find the bot has forgotten the whole conversation, because each new container starts with an empty disk. Which change fixes this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Raise maxTurns so each session can run longer, and keep the container warm until the fan's conversation ends.",
+        "explanation": "A turn cap doesn't persist anything, and keeping containers warm for days defeats the scale-to-zero design."
+      },
+      {
+        "id": "B",
+        "text": "Switch the sessions to bypassPermissions so that the agent can freely write its own history to the local disk.",
+        "explanation": "Permissions aren't the problem. The local disk itself disappears when the container shuts down."
+      },
+      {
+        "id": "C",
+        "text": "Copy each fan's full conversation into CLAUDE.md at the end of every turn so it loads when the next container starts.",
+        "explanation": "CLAUDE.md is for stable project instructions and lives on the same lost disk. Stuffing every fan's history into it also leaks context between users."
+      },
+      {
+        "id": "D",
+        "text": "Configure a SessionStore that mirrors transcripts to durable storage, then resume by session ID when a fan returns.",
+        "explanation": "Correct. This is the hybrid pattern: ephemeral containers that hydrate from a SessionStore and resume the stored session, which the docs say is required for it."
+      }
+    ],
+    "correct": ["D"],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/hosting",
+      "https://code.claude.com/docs/en/agent-sdk/sessions"
+    ]
+  },
+  {
+    "id": "q-1.2-013",
+    "skillId": "1.2",
+    "difficulty": 1,
+    "stem": "A compliance lead at a sports-data company reviews the requirements for an Agent SDK agent. Which TWO requirements are best implemented as hooks rather than as instructions in the system prompt? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Block any tool call that would write to the production odds table before it executes.",
+        "explanation": "Correct. A PreToolUse hook can deny the call every time, while a prompt can only ask the model not to."
+      },
+      {
+        "id": "B",
+        "text": "Write an audit-log entry with the tool name and input after every tool call completes.",
+        "explanation": "Correct. A PostToolUse hook runs deterministically in your process for every call, without relying on the model and without using context."
+      },
+      {
+        "id": "C",
+        "text": "Keep the agent's written summaries short and free of jargon for a non-technical audience.",
+        "explanation": "Tone and length are guidance for the model's writing, which belongs in the prompt, not in a hook."
+      },
+      {
+        "id": "D",
+        "text": "Explain the company's house style for charts and tables in the reports the agent creates.",
+        "explanation": "Style knowledge shapes what the model writes, so it belongs in the system prompt, CLAUDE.md or a skill."
+      },
+      {
+        "id": "E",
+        "text": "Help the agent choose the right subagent by describing when each one should be used.",
+        "explanation": "Claude picks subagents from their descriptions, so this belongs in each subagent's description field."
+      }
+    ],
+    "correct": ["A", "B"],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/hooks",
+      "https://code.claude.com/docs/en/agent-sdk/agent-loop"
+    ]
+  },
+  {
+    "id": "q-1.2-014",
+    "skillId": "1.2",
+    "difficulty": 3,
+    "stem": "A club's medical staff wants an agent that analyzes player health records, and the club's legal team requires HIPAA Business Associate Agreement coverage. The architect is comparing Managed Agents with a self-hosted Agent SDK deployment. Which TWO statements are accurate? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Managed Agents stores session history and sandbox state server-side and isn't currently eligible for HIPAA BAA coverage.",
+        "explanation": "Correct. The Managed Agents overview states that, because it is stateful by design, it isn't currently eligible for ZDR or HIPAA BAA coverage."
+      },
+      {
+        "id": "B",
+        "text": "A self-hosted Agent SDK deployment keeps the loop, shell and files in the club's containers; model calls still go to the API.",
+        "explanation": "Correct. The SDK runs as a subprocess in your container and talks to the API over HTTPS, so session files and tool execution stay on your infrastructure."
+      },
+      {
+        "id": "C",
+        "text": "Choosing a self_hosted environment moves the Managed Agents loop into the club's network, so history never leaves it.",
+        "explanation": "A self-hosted environment moves only tool execution. The loop stays at Anthropic and tool inputs and outputs flow to its control plane."
+      },
+      {
+        "id": "D",
+        "text": "The Agent SDK is hosted by Anthropic, so it carries exactly the same data-retention constraints as Managed Agents.",
+        "explanation": "The Agent SDK is a library you deploy yourself. Only Managed Agents adds Anthropic-hosted deployment."
+      },
+      {
+        "id": "E",
+        "text": "The client SDK's Tool Runner provides a managed sandbox, so records can be processed there without any hosting.",
+        "explanation": "The Tool Runner is a loop helper with no sandbox or hosting. You supply and host every tool."
+      }
+    ],
+    "correct": ["A", "B"],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/managed-agents/overview",
+      "https://code.claude.com/docs/en/agent-sdk/hosting"
+    ]
+  },
+  {
+    "id": "q-1.2-015",
+    "skillId": "1.2",
+    "difficulty": 1,
+    "stem": "A desktop app built on the Agent SDK must show the user an approval dialog, with the exact command, before any Bash command runs. File reads should run without prompting. Which configuration fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "bypassPermissions mode, with a line in the system prompt telling the agent to confirm commands first.",
+        "explanation": "bypassPermissions runs allowed tools without asking, and a prompt line can't produce a real approval dialog."
+      },
+      {
+        "id": "B",
+        "text": "acceptEdits mode, since it auto-approves file edits and shows a dialog for each Bash command it gets.",
+        "explanation": "acceptEdits auto-approves edits and common filesystem commands. It doesn't render any UI; prompts still go through your approval callback."
+      },
+      {
+        "id": "C",
+        "text": "default mode, with a canUseTool callback that shows the dialog and returns the user's allow or deny.",
+        "explanation": "Correct. In default mode, calls that need approval go to your canUseTool callback, which can show the command and return the user's decision. Reads inside the working directory don't need approval."
+      },
+      {
+        "id": "D",
+        "text": "plan mode, which asks the user for approval before every tool call, including reads, during a session.",
+        "explanation": "Plan mode stops Claude editing source files so it can propose changes. It isn't a general approval flow for Bash."
+      }
+    ],
+    "correct": ["C"],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "https://code.claude.com/docs/en/agent-sdk/permissions"
+    ]
+  },
+  {
+    "id": "q-1.2-016",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "An overnight Agent SDK job sometimes runs for hours on open-ended prompts and runs up large bills. The ops team wants every run to stop at a known point and to be able to tell afterwards why it stopped. Which approach fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Rely on the SDK's built-in session timeout, which ends any session that runs for longer than one hour.",
+        "explanation": "The hosting docs list no top-level session timeout as a known limitation. Something else has to bound the run."
+      },
+      {
+        "id": "B",
+        "text": "Set maxTurns and maxBudgetUsd, then check the result subtype for error_max_turns or error_max_budget_usd.",
+        "explanation": "Correct. These options bound the loop, and the result message's subtype says which limit ended it. The session ID still allows a resume."
+      },
+      {
+        "id": "C",
+        "text": "Kill the container after a fixed wall-clock time and inspect the logs afterwards to see what went wrong.",
+        "explanation": "A hard kill loses the result message and may leave work half-done, so the team can't reliably tell why the run ended."
+      },
+      {
+        "id": "D",
+        "text": "Lower max_tokens on each model response, so every turn costs less and the overall run finishes sooner.",
+        "explanation": "A smaller per-response cap risks truncation and doesn't limit how many turns run, so total cost isn't bounded."
+      }
+    ],
+    "correct": ["B"],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "https://code.claude.com/docs/en/agent-sdk/hosting"
+    ]
+  }
+]

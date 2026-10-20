@@ -472,5 +472,260 @@
       "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
       "https://platform.claude.com/docs/en/build-with-claude/effort"
     ]
+  },
+  {
+    "id": "q-2.3-013",
+    "skillId": "2.3",
+    "difficulty": 1,
+    "stem": "A coaching app lets assistants photograph whiteboard play diagrams with their phones and ask Claude what each play is designed to do. The answers are good, but each request takes noticeably long because the photos are full-resolution 12-megapixel images. Which change best reduces the delay without hurting answer quality?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Convert each photo into a one-page PDF so it is processed as a document rather than as an image.",
+        "explanation": "PDF pages are also processed visually and billed as input. Wrapping the photo in a PDF adds conversion work and doesn't shrink what has to be sent and processed."
+      },
+      {
+        "id": "B",
+        "text": "Resize each photo in the app to roughly the model's maximum native resolution before sending it.",
+        "explanation": "Correct. Images larger than the model's native limit are downscaled by the API anyway, so the extra pixels only add upload size and latency. Resizing first keeps the detail Claude actually uses and cuts the payload."
+      },
+      {
+        "id": "C",
+        "text": "Turn on streaming so the image uploads in chunks while Claude begins to analyze it.",
+        "explanation": "Streaming applies to the response, not the request. It shows output sooner but doesn't make a large image upload any smaller or faster."
+      },
+      {
+        "id": "D",
+        "text": "Put the question text before the image so Claude can start drafting its answer sooner.",
+        "explanation": "Block order doesn't change the payload size. The docs also recommend placing images before the text that asks about them, so this would work against best practice."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/vision"
+    ]
+  },
+  {
+    "id": "q-2.3-014",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A film-study assistant lets analysts discuss the same twelve game-film screenshots across conversations that run 30 turns or more. The screenshots are sent as base64 image blocks, and as conversations grow, requests become very large and slow. The analysts still need Claude to look at the screenshots in later turns. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Rely on prompt caching, which stops the image bytes from being transmitted again after the first turn.",
+        "explanation": "Caching lowers the cost and processing time of a repeated prefix, but every request still carries the full content. It doesn't shrink a payload that resends twelve base64 images each turn."
+      },
+      {
+        "id": "B",
+        "text": "Send the screenshots only in the first turn, because the API keeps them available for the rest of the conversation.",
+        "explanation": "The Messages API is stateless. If later requests omit the images, Claude can no longer see them."
+      },
+      {
+        "id": "C",
+        "text": "Merge the twelve screenshots into one large collage so only a single image block is resent each turn.",
+        "explanation": "A collage larger than the model's native resolution is downscaled as one image, so each frame loses detail. The analysts need to see each screenshot clearly."
+      },
+      {
+        "id": "D",
+        "text": "Upload each screenshot once with the Files API and reference it by its file_id in every turn.",
+        "explanation": "Correct. A file_id reference keeps request payloads small no matter how many images accumulate in the history, while Claude still sees each image on every turn."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "https://platform.claude.com/docs/en/build-with-claude/files"
+    ]
+  },
+  {
+    "id": "q-2.3-015",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A sports-media company standardizes on Google Cloud and wants to call Claude through Vertex AI so usage appears on its existing cloud bill. The current first-party design sends highlight images as URL sources and runs a nightly job of 5,000 recap requests through the Message Batches API. What should the team address before committing to the move?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Some features the design relies on, including URL image sources and the Message Batches API, aren't offered there, so they must check availability per feature and plan alternatives.",
+        "explanation": "Correct. Feature availability differs by platform. On Google Cloud, images must be sent as base64 and the Message Batches API isn't available, so both parts of the design need a replacement before the move."
+      },
+      {
+        "id": "B",
+        "text": "Vertex AI requests still need an Anthropic API key alongside Google credentials, so the team must provision and rotate keys on both sides.",
+        "explanation": "Claude on Vertex AI authenticates with Google Cloud credentials. No Anthropic API key is involved."
+      },
+      {
+        "id": "C",
+        "text": "Nothing else changes, because they only need to point the first-party client's base_url at the Vertex AI endpoint and keep every request as it is.",
+        "explanation": "Each cloud platform has its own client class and auth. Changing base_url on the first-party client isn't the supported path, and it wouldn't make missing features appear."
+      },
+      {
+        "id": "D",
+        "text": "Prices, model availability and retirement dates on Vertex AI always match the first-party schedule, so the cost model can stay unchanged.",
+        "explanation": "Partner-operated platforms set their own pricing and lifecycle dates, and model availability varies by region. The cost model has to be rebuilt from the platform's own terms."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai",
+      "https://platform.claude.com/docs/en/build-with-claude/vision"
+    ]
+  },
+  {
+    "id": "q-2.3-016",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A league operations assistant answers staff questions about two sources: a 300-page collective bargaining agreement that changes once a year and is used in thousands of requests, and a player-availability service that updates every few minutes on game days. Which two data access patterns best fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Put a snapshot of the player-availability feed into the system prompt each time the service is deployed.",
+        "explanation": "A deploy-time snapshot goes stale within minutes on game day, so answers about availability would be wrong."
+      },
+      {
+        "id": "B",
+        "text": "Upload the agreement once through the Files API and reference its file_id in each request that needs it.",
+        "explanation": "Correct. A large, stable document used across many requests is the Files API's use case: upload once and reference it by ID instead of resending the bytes. Its content is billed as input tokens when used, and caching can reduce that further."
+      },
+      {
+        "id": "C",
+        "text": "Let the staff app send any file_id it chooses, so each user can attach their own league documents.",
+        "explanation": "Files are scoped to the workspace, not to a user. Accepting file IDs from clients would let one user read files that someone else uploaded. Keep file IDs server-side."
+      },
+      {
+        "id": "D",
+        "text": "Send the agreement in the first request of each user session, since the API keeps it available until the session ends.",
+        "explanation": "The Messages API keeps no session state. Content left out of a request is simply not visible to Claude in that request."
+      },
+      {
+        "id": "E",
+        "text": "Give Claude a tool that queries the availability service whenever a question depends on current status.",
+        "explanation": "Correct. Data that changes often, or of which only a slice is needed, is best fetched on demand through a tool, so every answer uses current values."
+      }
+    ],
+    "correct": [
+      "B",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/files",
+      "https://platform.claude.com/docs/en/build-with-claude/working-with-messages"
+    ]
+  },
+  {
+    "id": "q-2.3-017",
+    "skillId": "2.3",
+    "difficulty": 3,
+    "stem": "A cap-analysis endpoint runs on a current Claude model with adaptive thinking at high effort. Because answers are usually two short paragraphs, the developer set max_tokens to 1,500. On hard questions, some responses now end with stop_reason \"max_tokens\" and contain little or no answer text. What is the best fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a thinking budget_tokens value of 1,024 so the reasoning gets its own allowance separate from max_tokens.",
+        "explanation": "Fixed thinking budgets are rejected on current models, and even on older models budget_tokens had to fit inside max_tokens rather than adding to it."
+      },
+      {
+        "id": "B",
+        "text": "Set the thinking display option to omitted so the hidden reasoning no longer counts toward the limit.",
+        "explanation": "Display only controls whether thinking text is returned. The model still thinks, and those tokens are still billed and counted against max_tokens."
+      },
+      {
+        "id": "C",
+        "text": "Raise max_tokens to leave room for thinking plus the answer, or lower effort if this route doesn't need deep reasoning.",
+        "explanation": "Correct. Thinking tokens are output tokens and count against max_tokens, so hard questions used up the cap before the answer. Give the response more room (streaming if it gets large) or reduce effort for this route."
+      },
+      {
+        "id": "D",
+        "text": "Set temperature to 0 so the model reasons more directly and reaches its answer in fewer tokens.",
+        "explanation": "Temperature doesn't control thinking length, and non-default sampling values are rejected on current models."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+      "https://platform.claude.com/docs/en/build-with-claude/effort"
+    ]
+  },
+  {
+    "id": "q-2.3-018",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A fantasy-football advice chat runs on a current Claude model with adaptive thinking. Users see a long pause before the answer starts, and the developer notices the streamed thinking blocks contain empty text. Product wants the UI to show readable reasoning progress while Claude works. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Switch to a fixed budget_tokens configuration, which returns the model's full raw chain of thought.",
+        "explanation": "Fixed budgets are rejected on current models, and no thinking mode returns the raw chain of thought."
+      },
+      {
+        "id": "B",
+        "text": "Decode the signature field on each thinking block to recover the reasoning text that was hidden.",
+        "explanation": "The signature is an opaque verification value used when blocks are passed back. It doesn't contain readable reasoning."
+      },
+      {
+        "id": "C",
+        "text": "Tell Claude in the system prompt to write its reasoning in the visible answer inside thinking tags.",
+        "explanation": "This duplicates reasoning into billed answer text, mixes it into what users read, and isn't the supported mechanism for showing thinking."
+      },
+      {
+        "id": "D",
+        "text": "Request summarized thinking display so the streamed thinking blocks carry a readable summary.",
+        "explanation": "Correct. On current models the default display omits thinking text, which is why the blocks are empty. Opting in to the summarized display streams a readable summary of the reasoning."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/extended-thinking"
+    ]
+  },
+  {
+    "id": "q-2.3-019",
+    "skillId": "2.3",
+    "difficulty": 1,
+    "stem": "A team-photo app wants to tag sideline photos with the players who appear in them, and the developer plans to ask Claude to name each player from their face. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Have Claude read visible jersey numbers and team colors, then map them to the roster in application code.",
+        "explanation": "Correct. Claude doesn't identify people by name from their faces and declines such requests. Reading visible cues such as numbers and colors, then joining to roster data you control, gives a reliable tagging path."
+      },
+      {
+        "id": "B",
+        "text": "Send higher-resolution face crops so Claude can match each face to the players it learned about in training.",
+        "explanation": "Resolution isn't the obstacle. Naming people from facial features is a documented limitation, and Claude declines it."
+      },
+      {
+        "id": "C",
+        "text": "Include the team's headshot gallery in the prompt so Claude can match faces against it.",
+        "explanation": "Supplying reference photos doesn't change the limitation. Claude still won't identify people by their faces."
+      },
+      {
+        "id": "D",
+        "text": "Add a system prompt stating that the league has consent from every player, so face identification is allowed.",
+        "explanation": "A consent statement in the prompt doesn't lift the limitation, and the requests would still be declined."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/vision"
+    ]
   }
 ]

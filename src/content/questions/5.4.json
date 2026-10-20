@@ -1,0 +1,298 @@
+[
+  {
+    "id": "q-5.4-001",
+    "skillId": "5.4",
+    "difficulty": 1,
+    "stem": "After enabling prompt caching on a 40,000-token league rulebook, a finance analyst sees input_tokens drop to a few hundred per request and concludes the requests now process far less content. The dashboard only sums input_tokens. Which correction best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The analyst is right: caching compresses the rulebook, so far fewer tokens get processed now.",
+        "explanation": "Caching doesn't compress anything. The full rulebook is still processed from the cache."
+      },
+      {
+        "id": "B",
+        "text": "Cached tokens are free, so input_tokens is now the only input that is billed at all.",
+        "explanation": "Cache reads and cache writes are billed, at their own multipliers of the input price."
+      },
+      {
+        "id": "C",
+        "text": "Total input is input_tokens plus cache_creation_input_tokens plus cache_read_input_tokens.",
+        "explanation": "Correct. With caching, input_tokens covers only the uncached part after the last breakpoint. The dashboard must add all three fields."
+      },
+      {
+        "id": "D",
+        "text": "The rulebook now sits in the cache instead of the context window, so it no longer counts.",
+        "explanation": "Cached tokens still occupy the context window. Caching changes price and latency, not size."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "https://platform.claude.com/docs/en/manage-claude/usage-cost-api"
+    ]
+  },
+  {
+    "id": "q-5.4-002",
+    "skillId": "5.4",
+    "difficulty": 2,
+    "stem": "A scouting assistant sends a 15,000-token stable instruction block followed by a different scout question on each request. The developer put the cache_control breakpoint on the question block, and logs show a cache write on every request but no reads. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move the breakpoint to the end of the stable instruction block, before the varying question.",
+        "explanation": "Correct. A breakpoint after the varying question makes each request's prefix unique, so every request writes and none read. Putting it at the end of the shared part lets every request read it."
+      },
+      {
+        "id": "B",
+        "text": "Add breakpoints on both the instructions and the question, so either one can be read.",
+        "explanation": "The question block changes every time, so its breakpoint only adds writes. The fix is the shared-prefix breakpoint."
+      },
+      {
+        "id": "C",
+        "text": "Switch to the 1-hour cache duration so the question block stays cached for longer.",
+        "explanation": "Duration doesn't help when each prefix is unique. A different question never matches an earlier write."
+      },
+      {
+        "id": "D",
+        "text": "Shorten the instruction block below the minimum cacheable length to avoid write costs.",
+        "explanation": "This disables caching entirely and pays full price for the instructions on every request."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-5.4-003",
+    "skillId": "5.4",
+    "difficulty": 2,
+    "stem": "A coaching chatbot holds conversations that run to 40 or more turns. The developer placed a single cache breakpoint on the first user message, so later turns read only the system prompt and first message from cache. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Remove the breakpoint and resend the full conversation uncached on each and every turn.",
+        "explanation": "This pays full input price for the entire growing history on every turn."
+      },
+      {
+        "id": "B",
+        "text": "Place one breakpoint on every message in the conversation to cache each turn.",
+        "explanation": "There are at most four breakpoints per request, and marking every message isn't needed."
+      },
+      {
+        "id": "C",
+        "text": "Start a fresh conversation every ten turns so the cached prefix stays short.",
+        "explanation": "Resetting throws away context the user expects Claude to keep, and still pays full price for each reset."
+      },
+      {
+        "id": "D",
+        "text": "Put the breakpoint on the latest turn and move it forward with each new request.",
+        "explanation": "Correct. Moving the checkpoint forward lets each request read the whole prior conversation from cache and write only the new part. Automatic caching does this for you."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-5.4-004",
+    "skillId": "5.4",
+    "difficulty": 3,
+    "stem": "A nightly Message Batches job sends 2,000 scouting-report requests that share a 30,000-token league context, followed by a per-player section. The batch can take more than an hour to finish, and cache reads are rarer than expected. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Disable caching for the batch, because the batch discount and cache discounts can't be combined.",
+        "explanation": "The discounts stack. Caching and batch pricing can apply to the same request."
+      },
+      {
+        "id": "B",
+        "text": "Mark the shared context with a 1-hour cache duration so it survives the gaps between requests.",
+        "explanation": "Correct. Batch requests run concurrently and in any order over a long window, so cache hits are best-effort. The 1-hour duration keeps the shared context available across those gaps."
+      },
+      {
+        "id": "C",
+        "text": "Keep the 5-minute duration, because every cache read refreshes the entry and keeps it alive.",
+        "explanation": "Reads do refresh the entry, but with requests spread unevenly over hours, gaps longer than five minutes let it expire."
+      },
+      {
+        "id": "D",
+        "text": "Move the per-player section ahead of the shared context so the batch writes fewer caches.",
+        "explanation": "Putting varying content first makes every prefix unique, which removes the cache benefit entirely."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing"
+    ]
+  },
+  {
+    "id": "q-5.4-005",
+    "skillId": "5.4",
+    "difficulty": 2,
+    "stem": "A team generates detailed scouting notes for every college prospect each night; nobody reads them until morning. Every request repeats the same 20,000-token evaluation rubric, and the bill has doubled. Which two changes reduce cost without lowering quality? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Set max_tokens well below the typical note length to cap output spend.",
+        "explanation": "Truncated notes have to be regenerated, so the retries cost more and quality drops."
+      },
+      {
+        "id": "B",
+        "text": "Send the nightly requests through the Message Batches API.",
+        "explanation": "Correct. Work nobody waits for fits the Batch API, which costs half the standard price for input and output."
+      },
+      {
+        "id": "C",
+        "text": "Turn on fast mode so each note finishes sooner and uses less time.",
+        "explanation": "Fast mode costs more per token. It buys speed, not savings."
+      },
+      {
+        "id": "D",
+        "text": "Stop logging usage fields, since logging adds to the request size.",
+        "explanation": "Usage fields come back in the response and cost nothing. Without them you can't see where money goes."
+      },
+      {
+        "id": "E",
+        "text": "Cache the shared rubric so later requests read it at a discount.",
+        "explanation": "Correct. A large prefix repeated in every request is the classic caching case, and cache discounts stack with batch pricing."
+      }
+    ],
+    "correct": [
+      "B",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-5.4-006",
+    "skillId": "5.4",
+    "difficulty": 2,
+    "stem": "Product wants a monthly cost forecast for a new trade-analysis feature before launch. A spreadsheet multiplies the average prompt's word count by the input price and the average visible answer length by the output price. Which approach gives the most reliable forecast?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep the spreadsheet but use the median request size, since outliers distort averages.",
+        "explanation": "The expensive tail matters for budgets. Ignoring it understates cost, and the word-based inputs are still guesses."
+      },
+      {
+        "id": "B",
+        "text": "Use the context window size as the per-request input, assuming every request fills it.",
+        "explanation": "This wildly overstates input and says nothing about output, which costs more per token."
+      },
+      {
+        "id": "C",
+        "text": "Run real sample requests, log usage with thinking, and model cost per completed task.",
+        "explanation": "Correct. Real usage fields capture tokenizer effects and hidden thinking output. Costing whole tasks, retries and the tail included, gives a realistic forecast."
+      },
+      {
+        "id": "D",
+        "text": "Count only visible answer text as output, since thinking tokens aren't shown to users.",
+        "explanation": "Thinking is billed as output even when it isn't displayed, so this undercounts the most expensive tokens."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/pricing",
+      "https://platform.claude.com/docs/en/build-with-claude/token-counting"
+    ]
+  },
+  {
+    "id": "q-5.4-007",
+    "skillId": "5.4",
+    "difficulty": 3,
+    "stem": "When a new game file arrives, a highlights service immediately fires 50 parallel requests that share a 40,000-token cached prefix, each asking about a different quarter or player. Usage shows cache writes on almost every request and very few reads, though the prefix is identical. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Send one request first, wait for its response to begin, then fan out the remaining requests.",
+        "explanation": "Correct. A cache entry becomes available only after the first response begins. Requests sent at the same moment can't read an entry that doesn't exist yet, so warm the cache first."
+      },
+      {
+        "id": "B",
+        "text": "Give each parallel request its own cache breakpoint location so they write to different entries.",
+        "explanation": "Different breakpoints create more writes, not more reads. The problem is timing."
+      },
+      {
+        "id": "C",
+        "text": "Switch the requests to the 1-hour cache duration so the entries are kept for longer.",
+        "explanation": "Duration doesn't help when the entry doesn't exist yet. All 50 requests arrive before any write completes."
+      },
+      {
+        "id": "D",
+        "text": "Raise the account's rate limit so all fifty requests are processed in a single batch.",
+        "explanation": "Rate limits don't change cache timing, and more parallelism makes the simultaneous-write problem worse."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-5.4-008",
+    "skillId": "5.4",
+    "difficulty": 1,
+    "stem": "Finance wants to see Claude spending broken down by app and by environment (development, staging, production) across six product teams, without asking each team for spreadsheets. Which two steps best fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use the Usage and Cost Admin API to report usage and cost by workspace, API key and model.",
+        "explanation": "Correct. The Usage and Cost API reports usage and USD cost across the organization, broken down by dimensions such as workspace, API key and model. It needs an Admin API key."
+      },
+      {
+        "id": "B",
+        "text": "Give every team the organization's Admin API key so each one can export its own numbers.",
+        "explanation": "Admin keys carry organization-wide power. Spreading them widely is a security risk, and central reporting already covers the need."
+      },
+      {
+        "id": "C",
+        "text": "Ask each team to put its team name in the system prompt so the bill can be searched later.",
+        "explanation": "Prompt text doesn't appear in billing data. It only adds input tokens to every request."
+      },
+      {
+        "id": "D",
+        "text": "Give each app and environment its own workspace or API key so costs can be attributed.",
+        "explanation": "Correct. Separating workspaces or keys per app and environment makes the usage and cost breakdown map directly to owners."
+      },
+      {
+        "id": "E",
+        "text": "Sum response.usage from each team's local logs once a quarter and estimate the rest.",
+        "explanation": "Local logs are useful per app, but quarterly manual roll-ups are slow and incomplete for organization-wide attribution."
+      }
+    ],
+    "correct": [
+      "A",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/manage-claude/usage-cost-api"
+    ]
+  }
+]

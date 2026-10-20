@@ -106,7 +106,8 @@ The learner runs everything locally with their own `ANTHROPIC_API_KEY`. Data com
 - The 3 official sample items are seeded.
 - Phase 2 is done: the progress store, practice mode, the mock exam (weighted sampler, timer, flag/review, results report) and 12 original 2.3 items.
 - Phase 3 is done: all 25 lessons (`src/content/lessons/*.mdx`), checked against the docs on 2026-10-20.
-- Next step: Phase 4 (question bank).
+- Phase 4 is done: 303 items (60 multi-response; difficulty about 29/51/20%; keys balanced A–D; all 135 links verified with `content:links`).
+- Next step: Phase 5 (labs, starting with L1 and L4).
 
 ### Phase 0: Scaffold
 - `git init`. Vite + React + TS, Tailwind, React Router, Zod, Vitest + RTL, ESLint, MDX via `@mdx-js/rollup`
@@ -158,7 +159,7 @@ Facts in current docs that differ from older material. Use them for correct answ
   - Forced `tool_choice` (`any` or `tool`) is rejected on Opus 5.5, Sonnet 5.5 and Fable 5.1.
 - **Model IDs:** dateless IDs (`claude-sonnet-5-5`) are fixed snapshots, not "latest" pointers.
 - **Errors**
-  - A 429 caused by a spend cap has no `retry-after` and keeps failing.
+  - A usage tier's monthly spend cap returns a 429 with no `retry-after` that keeps failing. A spend limit the org sets itself returns a 400.
   - Errors can arrive mid-stream after an HTTP 200.
 - **Structured outputs:** don't combine them with citations (a 400). Validate enum values anyway.
 - **Claude Code**

@@ -1,0 +1,220 @@
+[
+  {
+    "id": "q-7.4-001",
+    "skillId": "7.4",
+    "difficulty": 1,
+    "stem": "A season-ticket support agent must call the club's ticketing API, which requires an API key. A developer suggests putting the key in the repository's CLAUDE.md so the agent always has it. The agent also reads fan-submitted documents. Where should the key live?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "In CLAUDE.md, because only people with repository access can read that file.",
+        "explanation": "CLAUDE.md is loaded into the model's context, where an injected document could get the key echoed back. It is also visible to everyone with repository access."
+      },
+      {
+        "id": "B",
+        "text": "Outside the agent, injected into requests by a proxy or MCP server it calls.",
+        "explanation": "Correct. Keeping credentials outside the agent's boundary means the agent can use the API without ever seeing the key, so an injection cannot leak it."
+      },
+      {
+        "id": "C",
+        "text": "In the system prompt, along with an instruction never to repeat it to anyone.",
+        "explanation": "Anything in context can leak through output, and an instruction not to repeat it is not a control against injection."
+      },
+      {
+        "id": "D",
+        "text": "In a Skill file, Base64-encoded so it isn't readable as plain text.",
+        "explanation": "Encoding is not encryption, and the Skill's contents can enter context like any other text. The key would still be exposed."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/secure-deployment"
+    ]
+  },
+  {
+    "id": "q-7.4-002",
+    "skillId": "7.4",
+    "difficulty": 1,
+    "stem": "A fan web app's JavaScript front end calls the Claude API directly from the browser, with the API key in the bundled code. A security review flags it before launch. What is the right fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Minify and obfuscate the bundle so the key is much harder to locate.",
+        "explanation": "Anything shipped to the browser can be extracted. Obfuscation slows an attacker down only slightly."
+      },
+      {
+        "id": "B",
+        "text": "Use a key with a low spend limit and keep it in the bundle as before.",
+        "explanation": "A spend limit caps the damage but still hands the key to every visitor, who can then use it for their own purposes."
+      },
+      {
+        "id": "C",
+        "text": "Store the key in the browser's localStorage after the first page load.",
+        "explanation": "localStorage is readable by page scripts and by the user. The key would still be on every client."
+      },
+      {
+        "id": "D",
+        "text": "Route Claude calls through your back end and keep the key in its environment.",
+        "explanation": "Correct. Keys must never ship to clients. The back end holds the key, loaded from its environment or a secrets manager, and can also authenticate and rate-limit users."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/manage-claude/authentication"
+    ]
+  },
+  {
+    "id": "q-7.4-003",
+    "skillId": "7.4",
+    "difficulty": 2,
+    "stem": "A media company uses one API key for engineers' local experiments and for its production highlights service. Last month a developer's runaway test script used up the spending allowance and production requests failed for hours. Which change best prevents a repeat?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Create separate dev and prod workspaces, each with its own keys and spend limits.",
+        "explanation": "Correct. Workspaces separate environments, each with its own keys, rate limits and spend limits, so a development mistake can't exhaust production's budget."
+      },
+      {
+        "id": "B",
+        "text": "Raise the organization's spend limit so the shared key never hits it again.",
+        "explanation": "A higher ceiling only delays the next incident and increases the cost of a runaway script. Dev and prod still share one budget."
+      },
+      {
+        "id": "C",
+        "text": "Add retries with exponential backoff to every production request.",
+        "explanation": "Retries help with transient errors. Once a spend limit is reached, requests keep failing until the limit changes, so backoff doesn't restore service."
+      },
+      {
+        "id": "D",
+        "text": "Rotate the shared key monthly so developers have to request it each time.",
+        "explanation": "Rotation is good hygiene, but dev and prod would still share one key and one budget, which is the actual problem."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/manage-claude/workspaces"
+    ]
+  },
+  {
+    "id": "q-7.4-004",
+    "skillId": "7.4",
+    "difficulty": 2,
+    "stem": "A club's nightly GitHub Actions job that generates scouting summaries used a personal API key belonging to an engineer. The job broke the day that engineer left the company. The team wants CI to authenticate without a long-lived secret that someone has to manage. What should they do?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Create a fresh personal key from another senior engineer's account and store it as a CI secret.",
+        "explanation": "A personal key acts as one person and stops working when they leave, so this repeats the same failure."
+      },
+      {
+        "id": "B",
+        "text": "Create a legacy workspace key, since no individual owner can ever leave it.",
+        "explanation": "Workspace keys are legacy, and they are still long-lived static secrets that someone has to store and rotate."
+      },
+      {
+        "id": "C",
+        "text": "Use Workload Identity Federation with GitHub's OIDC tokens and a service account.",
+        "explanation": "Correct. With WIF the job exchanges a short-lived OIDC token for an access token bound to a service account, so there is no static key to store, rotate or lose."
+      },
+      {
+        "id": "D",
+        "text": "Paste a new key straight into the workflow YAML so it travels with the pipeline.",
+        "explanation": "A key in a committed workflow file is exposed to everyone with repository access and stays in Git history."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/manage-claude/workload-identity-federation",
+      "https://platform.claude.com/docs/en/manage-claude/authentication"
+    ]
+  },
+  {
+    "id": "q-7.4-005",
+    "skillId": "7.4",
+    "difficulty": 3,
+    "stem": "An engineering team moved its Kubernetes inference service from a static API key to Workload Identity Federation, then deleted the old key. Right afterwards, every pod's requests started failing with authentication errors, although the federation rule is correct. What is the most likely cause?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Federated tokens become valid only after the old key has been rotated twice.",
+        "explanation": "No rotation step ties the old key to federation. Federation is configured with issuers and rules in the Console."
+      },
+      {
+        "id": "B",
+        "text": "A leftover ANTHROPIC_API_KEY in the pods takes precedence over federation.",
+        "explanation": "Correct. The SDKs check ANTHROPIC_API_KEY before the federation settings, so a stale variable shadows federation. The docs advise unsetting it everywhere the workload runs."
+      },
+      {
+        "id": "C",
+        "text": "Federation also requires the key to be passed in a workspace header.",
+        "explanation": "Federation replaces static keys. It does not need the old key in any header."
+      },
+      {
+        "id": "D",
+        "text": "Kubernetes tokens can't be federated, so the pods must use a static key.",
+        "explanation": "Kubernetes service-account tokens are among the supported identity sources for Workload Identity Federation."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/manage-claude/workload-identity-federation"
+    ]
+  },
+  {
+    "id": "q-7.4-006",
+    "skillId": "7.4",
+    "difficulty": 2,
+    "stem": "An engineer at a fantasy-sports company discovers that a production Claude API key was pushed to a public repository three days ago. Which two actions should the team take first? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Disable or delete the exposed key and deploy a replacement from the secrets manager.",
+        "explanation": "Correct. A leaked key must be revoked. Disabling is reversible and deleting is permanent, and the service keeps running on a new key loaded from secure storage."
+      },
+      {
+        "id": "B",
+        "text": "Review the workspace's usage for activity the team didn't make during those three days.",
+        "explanation": "Correct. Monitoring per-workspace usage shows whether the key was abused while exposed and how far the incident reaches."
+      },
+      {
+        "id": "C",
+        "text": "Force-push to remove the commit from history and keep using the same key.",
+        "explanation": "The key was public for three days and may already be copied. Rewriting history does not make it secret again."
+      },
+      {
+        "id": "D",
+        "text": "Wait for the key's expiration date, since a key that expires is safe to leave.",
+        "explanation": "Expiration limits how long a leaked key works, but it is no substitute for revoking a key you suspect has leaked."
+      },
+      {
+        "id": "E",
+        "text": "Add the configuration file to .gitignore so that future pushes leave it out.",
+        "explanation": "This helps prevent the next leak but does nothing about a key that is already public."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "https://platform.claude.com/docs/en/manage-claude/usage-cost-api"
+    ]
+  }
+]

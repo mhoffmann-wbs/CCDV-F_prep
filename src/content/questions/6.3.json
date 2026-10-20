@@ -1,0 +1,297 @@
+[
+  {
+    "id": "q-6.3-001",
+    "skillId": "6.3",
+    "difficulty": 1,
+    "stem": "A live scoreboard widget gets home_score, away_score and summary from Claude via output_config.format. One night the widget shows 31–17 for a game that ended 31–24. The JSON was perfectly valid. Which safeguard would have caught this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move the same fields to a strict tool so that schema compliance is enforced a second way.",
+        "explanation": "Strict tools also guarantee shape only. The JSON here already matched the schema, and the values were still wrong."
+      },
+      {
+        "id": "B",
+        "text": "Raise the effort level, because a valid schema with confident values signals a reliable answer.",
+        "explanation": "Well-formed, confident output can still be wrong. Effort may help reasoning, but it doesn't verify the result."
+      },
+      {
+        "id": "C",
+        "text": "Check the returned scores in code against the official box score before showing them.",
+        "explanation": "Correct. Structured outputs guarantee shape, not truth. Semantic validation against a trusted source catches valid-but-wrong values."
+      },
+      {
+        "id": "D",
+        "text": "Add \"double-check the final score\" to the prompt and trust the next output in full.",
+        "explanation": "A prompt nudge may reduce errors, but it isn't a check. A high-visibility number needs verification in code."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations"
+    ]
+  },
+  {
+    "id": "q-6.3-002",
+    "skillId": "6.3",
+    "difficulty": 2,
+    "stem": "A ticket-routing service on Claude Opus 5.5 parses JSON.parse(response.content[0].text). It fails intermittently with \"cannot read property text of undefined\". Logs show that the failing responses begin with a thinking block. What is the most robust fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Check stop_reason first, then read the text block found by type instead of by its position.",
+        "explanation": "Correct. Thinking or tool_use blocks can come before the text, so iterate the content blocks by type, and check stop_reason before trusting what you parse."
+      },
+      {
+        "id": "B",
+        "text": "Send thinking set to disabled so that the first content block is always the text block.",
+        "explanation": "Claude Opus 5.5 rejects disabled thinking with a 400 at every effort level. The parser should not depend on block order anyway."
+      },
+      {
+        "id": "C",
+        "text": "Wrap the parse in try/catch and repeat the request until content[0] turns out to be text.",
+        "explanation": "Unbounded retries waste money and latency and leave the positional assumption in place."
+      },
+      {
+        "id": "D",
+        "text": "Prefill the assistant turn with an opening brace so that the reply starts directly with JSON.",
+        "explanation": "Prefilling the last assistant turn returns a 400 on Claude 4.6 and later models."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-6.3-003",
+    "skillId": "6.3",
+    "difficulty": 2,
+    "stem": "A fantasy trade analyzer uses output_config.format with a JSON schema, and the team assumes that every response will now parse. In which situations can the response still fail to match the schema? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "The response is streamed to the client instead of being returned in one piece.",
+        "explanation": "Structured outputs work with streaming. The finished output still follows the schema."
+      },
+      {
+        "id": "B",
+        "text": "The response stops with stop_reason \"max_tokens\" before the JSON is complete.",
+        "explanation": "Correct. Truncated output can be incomplete and invalid. Retry with a higher max_tokens."
+      },
+      {
+        "id": "C",
+        "text": "The same schema was already compiled and cached by an earlier request that day.",
+        "explanation": "Grammar caching only removes the compile latency. It doesn't weaken the constraint."
+      },
+      {
+        "id": "D",
+        "text": "The input prompt is very long, for example a full season of game logs.",
+        "explanation": "Input length doesn't relax the output constraint. Long inputs are not one of the documented exceptions."
+      },
+      {
+        "id": "E",
+        "text": "The response stops with stop_reason \"refusal\" and returns HTTP 200.",
+        "explanation": "Correct. A refusal takes precedence over the schema, so the output may not match it even though the call succeeded."
+      }
+    ],
+    "correct": [
+      "B",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-6.3-004",
+    "skillId": "6.3",
+    "difficulty": 2,
+    "stem": "A support triage schema has a priority enum of \"Needs review\", \"High priority\" and \"Low priority\". The output always parses, yet a downstream switch statement occasionally falls through because Claude returned \"High Priority\". What is the best fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add \"copy enum values with exact capitalization\" in capitals to the system prompt.",
+        "explanation": "A prompt rule may reduce how often it happens, but casing isn't guaranteed. The consumer still has to tolerate it."
+      },
+      {
+        "id": "B",
+        "text": "Switch the extraction to a strict tool, which enforces exact enum casing.",
+        "explanation": "The casing caveat applies to strict tool use as well as JSON outputs."
+      },
+      {
+        "id": "C",
+        "text": "Set additionalProperties to false on the schema so that no other values are allowed.",
+        "explanation": "additionalProperties controls extra keys on objects, not the capitalization of enum strings."
+      },
+      {
+        "id": "D",
+        "text": "Compare enum values case-insensitively, and avoid values that differ only in case.",
+        "explanation": "Correct. Structured outputs don't guarantee enum capitalization, so the consumer should normalize case."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-6.3-005",
+    "skillId": "6.3",
+    "difficulty": 3,
+    "stem": "A developer adds \"minimum\": 0 and \"maximum\": 1 to a confidence field in a raw JSON schema sent in output_config.format, and the request now fails with a 400. The application still needs the 0–1 range enforced. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Send the schema through the deprecated output_format parameter, which accepted those constraints.",
+        "explanation": "output_format is deprecated and the schema limitations are the same. It doesn't add support for numerical constraints."
+      },
+      {
+        "id": "B",
+        "text": "Use an SDK schema helper that strips the bounds from the sent schema and validates them on the response.",
+        "explanation": "Correct. Validating SDK helpers remove unsupported constraints from what is sent, note them in the field description, and check the result against the original constraints."
+      },
+      {
+        "id": "C",
+        "text": "Delete the bounds and rely on the description \"a number from 0 to 1\" without checking it.",
+        "explanation": "Removing the bounds fixes the 400, but leaves the range unenforced. Something still has to validate it."
+      },
+      {
+        "id": "D",
+        "text": "Enable citations on the input documents, so Claude grounds the confidence value in the source.",
+        "explanation": "Citations are incompatible with output_config.format (a 400), and they don't enforce a numeric range."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-6.3-006",
+    "skillId": "6.3",
+    "difficulty": 1,
+    "stem": "An injury-report summarizer sometimes states that a player has been \"cleared for contact\" when the team's report says nothing of the kind. The summaries read fluently and confidently. Which prompt change best reduces these unsupported claims?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Ask Claude to use a more cautious tone throughout so readers know to double-check it.",
+        "explanation": "A softer tone hides the problem instead of removing it. The unsupported claim is still there."
+      },
+      {
+        "id": "B",
+        "text": "Raise max_tokens so Claude has enough room to describe every player completely.",
+        "explanation": "Output length has nothing to do with whether claims are grounded in the source."
+      },
+      {
+        "id": "C",
+        "text": "Switch to structured outputs so that each player's status is a validated field.",
+        "explanation": "A schema guarantees shape, not truth. A wrong status still fits the field."
+      },
+      {
+        "id": "D",
+        "text": "Require a supporting quote from the report for each claim, allowing \"not stated\".",
+        "explanation": "Correct. Grounding claims in direct quotes, removing any claim without one, and allowing Claude to say it doesn't know all reduce hallucinations."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations"
+    ]
+  },
+  {
+    "id": "q-6.3-007",
+    "skillId": "6.3",
+    "difficulty": 3,
+    "stem": "A draft-trade evaluator validates Claude's JSON with Zod, and about 2% of responses fail validation. Today the service retries every failure in a loop until it passes. Which changes make the pipeline more robust? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Check stop_reason before parsing, and retry max_tokens stops with a higher limit.",
+        "explanation": "Correct. Truncation is a common cause of invalid JSON, and it needs more room rather than the same request again."
+      },
+      {
+        "id": "B",
+        "text": "Fill any field that fails validation with a default value and pass the record on.",
+        "explanation": "Silently inventing values hides failures and puts fabricated data into downstream decisions."
+      },
+      {
+        "id": "C",
+        "text": "Prefill the assistant turn with the start of the JSON object to keep it on track.",
+        "explanation": "Prefill returns a 400 on current models. Use structured outputs to constrain the shape."
+      },
+      {
+        "id": "D",
+        "text": "Raise the retry limit so that the loop keeps going until every response passes.",
+        "explanation": "Unbounded retries cost money and can loop forever on an input that will never pass."
+      },
+      {
+        "id": "E",
+        "text": "Retry with the validation error included a bounded number of times, then flag it.",
+        "explanation": "Correct. Feeding back the specific error helps Claude correct it, and a cap with escalation keeps failures visible."
+      }
+    ],
+    "correct": [
+      "A",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-6.3-008",
+    "skillId": "6.3",
+    "difficulty": 2,
+    "stem": "A CRM import job writes Claude's structured output to CSV by taking the values in the order they appear. Its schema lists notes, name, email and age, with only name and email required. The notes column keeps receiving names. What is the best fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Map each value by its key name, or mark every property as required.",
+        "explanation": "Correct. Structured outputs place required properties first, then optional ones. Reading by key, or making all properties required, removes the dependence on position."
+      },
+      {
+        "id": "B",
+        "text": "Tell Claude in the prompt to keep the property order of the schema.",
+        "explanation": "Structured outputs always emit required properties before optional ones, whatever the prompt says. Positional parsing stays fragile."
+      },
+      {
+        "id": "C",
+        "text": "Prefill the response with the notes key so that it is emitted first.",
+        "explanation": "Prefill is incompatible with JSON outputs and returns a 400 on current models."
+      },
+      {
+        "id": "D",
+        "text": "Turn on citations so that every value is linked back to its field.",
+        "explanation": "Citations can't be combined with output_config.format, and they don't control property order."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  }
+]

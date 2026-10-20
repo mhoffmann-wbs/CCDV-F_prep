@@ -1,0 +1,585 @@
+[
+  {
+    "id": "q-5.1-001",
+    "skillId": "5.1",
+    "difficulty": 1,
+    "stem": "A broadcaster wants to budget for summarizing two seasons of Spanish-language radio commentary transcripts with Claude. An analyst estimated the token count by multiplying the word count by 1.3, a rule of thumb taken from another vendor's tokenizer. Finance needs a reliable estimate before approving the project. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep the word-count rule but add a 20% safety margin to cover differences between languages.",
+        "explanation": "A margin on top of a borrowed rule is still a guess. Token ratios vary by language and by model, so the error could be larger than any fixed margin."
+      },
+      {
+        "id": "B",
+        "text": "Count characters instead of words, since every Claude token covers about four characters of text.",
+        "explanation": "There is no fixed characters-per-token ratio. It depends on the language, the content and the model's tokenizer."
+      },
+      {
+        "id": "C",
+        "text": "Count a representative sample with the token counting endpoint for the model you'll use.",
+        "explanation": "Correct. Token counts are model-specific, so the reliable estimate comes from counting real samples with the same model you'll call, then scaling up."
+      },
+      {
+        "id": "D",
+        "text": "Use the context window size as the token estimate, since each request will be filled to the limit.",
+        "explanation": "The context window is a ceiling, not a measure of how many tokens the text produces. It says nothing about the corpus size."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/token-counting",
+      "https://platform.claude.com/docs/en/about-claude/glossary"
+    ]
+  },
+  {
+    "id": "q-5.1-002",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "A team moves its injury-report summarizer to a newer Claude model with the same prompts. Within a day, monitoring shows higher input token counts for identical requests, a few responses ending with stop_reason \"max_tokens\", and the monthly budget alert firing early. What is the most likely cause, and what should they do?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The newer model's tokenizer yields more tokens for the same text; recount on it and adjust max_tokens and budgets.",
+        "explanation": "Correct. Newer models can use a newer tokenizer that turns the same text into noticeably more tokens. Re-baseline with the token counting endpoint on the new model, then revisit max_tokens limits and budgets."
+      },
+      {
+        "id": "B",
+        "text": "The newer model keeps earlier requests in server-side memory, so each call silently carries the previous conversation as extra input.",
+        "explanation": "The Messages API is stateless. Input contains only what the request sends."
+      },
+      {
+        "id": "C",
+        "text": "Prompt caching is applied automatically on newer models, and the cache writes are being reported as normal input tokens.",
+        "explanation": "Caching is opt-in, and cache writes are reported in their own usage field. That wouldn't explain identical requests growing in input tokens."
+      },
+      {
+        "id": "D",
+        "text": "The newer model ignores max_tokens until the effort level is set to low, so its responses run longer than the configured cap.",
+        "explanation": "max_tokens is always the hard cap on output. Effort is soft guidance and doesn't switch the cap on or off."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/token-counting",
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
+    ]
+  },
+  {
+    "id": "q-5.1-003",
+    "skillId": "5.1",
+    "difficulty": 1,
+    "stem": "A scouting agent sends a 120,000-token scouting database with each request and budgets the rest of the context window for the user's question. Some long responses stop early with stop_reason \"model_context_window_exceeded\", although the database plus question fit comfortably. Besides the database and the question, which two things also take up space in the same context window? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "The tool definitions sent with the request",
+        "explanation": "Correct. Tool definitions are part of the input and use context-window space on every request that includes them."
+      },
+      {
+        "id": "B",
+        "text": "The model's pretraining knowledge about past seasons",
+        "explanation": "Knowledge learned in training lives in the model's weights, not in the context window of a request."
+      },
+      {
+        "id": "C",
+        "text": "The text and thinking Claude generates in this response",
+        "explanation": "Correct. Output, including thinking, is generated into the same window. A large input leaves less room for the response."
+      },
+      {
+        "id": "D",
+        "text": "Requests that other users sent with the same API key",
+        "explanation": "Each request is independent. Other users' requests never enter this request's context."
+      },
+      {
+        "id": "E",
+        "text": "A stored copy of earlier calls kept on the server",
+        "explanation": "The API stores no conversation between calls. Only what this request contains is in the window."
+      }
+    ],
+    "correct": [
+      "A",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-windows"
+    ]
+  },
+  {
+    "id": "q-5.1-004",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "To answer \"How does one team call plays in the red zone?\", an assistant sends the full season play logs for all 32 teams, about 600,000 tokens, in every request. The model has room for it, but answers often miss details that are clearly in that team's logs. Which change best improves accuracy?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move to a model with a larger context window so the logs take up a smaller share of the available space.",
+        "explanation": "More room doesn't fix the underlying problem. Recall degrades as context grows, and the irrelevant 31 teams would still be there."
+      },
+      {
+        "id": "B",
+        "text": "Retrieve only the relevant team's red-zone plays and send that focused slice with the question.",
+        "explanation": "Correct. Accuracy tends to drop as token count grows (context rot). Curating the input to what the question needs improves recall and also cuts cost."
+      },
+      {
+        "id": "C",
+        "text": "Turn on prompt caching for the logs so the model has more capacity left for attention to detail.",
+        "explanation": "Caching changes price and latency, not how much context the model processes. Cached tokens still occupy the window."
+      },
+      {
+        "id": "D",
+        "text": "Set temperature to 0 so the model concentrates on the most likely relevant passages in the logs.",
+        "explanation": "Sampling settings don't control what the model attends to, and non-default values are rejected on current models."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-windows"
+    ]
+  },
+  {
+    "id": "q-5.1-005",
+    "skillId": "5.1",
+    "difficulty": 1,
+    "stem": "A league's compliance team sends the same request twice and receives two differently worded game recaps. They insist that the official archive must show exactly the same text whenever a given recap is requested again. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Set temperature to 0, which makes every repeated request return exactly identical text.",
+        "explanation": "Even at temperature 0, outputs aren't guaranteed to be identical, and current models reject non-default sampling values."
+      },
+      {
+        "id": "B",
+        "text": "Set top_k to 1 so the model always takes the single most likely next token.",
+        "explanation": "Current models reject non-default top_k values, and greedy decoding still wouldn't guarantee identical output."
+      },
+      {
+        "id": "C",
+        "text": "Pass a fixed random seed with each request so generation is reproducible.",
+        "explanation": "The Messages API has no seed parameter for reproducible sampling."
+      },
+      {
+        "id": "D",
+        "text": "Store the approved recap when first generated and serve that copy on later requests.",
+        "explanation": "Correct. Model outputs are not fully deterministic. When an exact, repeatable text is required, generate once, approve it, and serve the stored result."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/glossary"
+    ]
+  },
+  {
+    "id": "q-5.1-006",
+    "skillId": "5.1",
+    "difficulty": 1,
+    "stem": "A team's older code sends temperature 0.2 and top_p 0.9 to keep play descriptions consistent. After switching to a current Claude model, every request returns a 400 error. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move temperature and top_p into output_config, where current models expect sampling settings.",
+        "explanation": "output_config holds settings such as effort and output format. It has no place for sampling parameters, which current models don't accept."
+      },
+      {
+        "id": "B",
+        "text": "Remove the sampling parameters and steer consistency with instructions, examples and validation.",
+        "explanation": "Correct. Current models reject non-default sampling values. Migration guidance is to drop them and steer the output through prompting, examples, structured outputs and validation."
+      },
+      {
+        "id": "C",
+        "text": "Keep top_p but drop temperature, because current models accept only one sampling parameter at a time.",
+        "explanation": "There is no one-parameter allowance. On current models non-default sampling values are rejected altogether."
+      },
+      {
+        "id": "D",
+        "text": "Pin the older model permanently so the sampling settings can stay as they are.",
+        "explanation": "This only postpones the problem. Older models are deprecated and retired on a schedule, and the team would miss newer models' improvements."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide",
+      "https://platform.claude.com/docs/en/about-claude/glossary"
+    ]
+  },
+  {
+    "id": "q-5.1-007",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "A fan asks a chatbot for the final score of a game that ended last night, and Claude confidently gives a plausible but wrong score. The bot sends only the fan's question and a short persona prompt. What is the best explanation and fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The effort level was too low; setting it to max lets the model recall more recent results.",
+        "explanation": "Effort changes how much the model reasons, not what it knows. No effort level adds facts that aren't in its training or its context."
+      },
+      {
+        "id": "B",
+        "text": "The model lost track of the result because the persona prompt was too long, so shortening it should restore recall.",
+        "explanation": "A short persona prompt isn't crowding anything out. The result was never available to the model in the first place."
+      },
+      {
+        "id": "C",
+        "text": "Generation predicts likely tokens from training and the request, so supply current results via a tool or retrieval.",
+        "explanation": "Correct. Generation predicts tokens from what the model learned and what's in the context. Last night's score is in neither, so the app must provide it, for example with a scores tool."
+      },
+      {
+        "id": "D",
+        "text": "The model searches the web on every request, so its search must have returned an outdated page about the game.",
+        "explanation": "Claude doesn't search the web unless the request enables a search tool. This bot sent no tools."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/glossary"
+    ]
+  },
+  {
+    "id": "q-5.1-008",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "An injury-report summarizer should always return three bullet points: player, status and expected return. In production the format drifts, sometimes prose, sometimes five bullets. The team wants the cheapest reliable fix that keeps the current model. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a few varied input/output examples in example tags that show the exact three-bullet format.",
+        "explanation": "Correct. Examples are one of the most reliable ways to pin down format and structure, and they can sit in the cached prefix to keep the cost low."
+      },
+      {
+        "id": "B",
+        "text": "Set temperature to 0 so the model stops varying its output format between requests.",
+        "explanation": "Current models reject non-default temperature values, and even where accepted, it wouldn't guarantee the format."
+      },
+      {
+        "id": "C",
+        "text": "Prefill the assistant turn with the first bullet character so the model has to continue the list.",
+        "explanation": "Assistant prefill is rejected on current models. Use instructions, examples or structured outputs instead."
+      },
+      {
+        "id": "D",
+        "text": "Move to the most capable model tier, since only larger models can follow formatting rules reliably.",
+        "explanation": "This is expensive and unnecessary. The format problem is about specification, which examples solve on the current model."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+    ]
+  },
+  {
+    "id": "q-5.1-009",
+    "skillId": "5.1",
+    "difficulty": 3,
+    "stem": "A drive-summary prompt includes three examples, all of them long touchdown drives that end with the phrase \"capped by a score\". Claude now describes three-and-out drives and turnovers in a touchdown style and sometimes adds \"capped by a score\" where nothing was scored. Which change best addresses this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Remove all the examples and rely on instructions alone, since examples always cause copying.",
+        "explanation": "Examples are valuable for format and tone. The issue is that these examples are too similar, not that examples are used at all."
+      },
+      {
+        "id": "B",
+        "text": "Add five more touchdown examples so the model sees the pattern more clearly and learns the boundary.",
+        "explanation": "More examples of the same kind strengthen the accidental pattern instead of showing how other drive types differ."
+      },
+      {
+        "id": "C",
+        "text": "Move the examples after the user's drive log so the model reads the real input first.",
+        "explanation": "Placement isn't the cause. The examples still imply that every drive ends in a score."
+      },
+      {
+        "id": "D",
+        "text": "Replace them with diverse examples, such as a punt, a turnover and a field goal, so no accidental pattern is implied.",
+        "explanation": "Correct. Examples should be relevant and diverse so Claude learns the intended structure rather than copying an accidental feature shared by every example."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+    ]
+  },
+  {
+    "id": "q-5.1-010",
+    "skillId": "5.1",
+    "difficulty": 1,
+    "stem": "A team is building a new feature that sorts incoming fan emails into four clearly defined categories: tickets, merchandise, media requests and complaints. They have no labeled examples yet. What is the best starting point?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Collect 50 labeled examples per category before sending the first test request.",
+        "explanation": "This delays the work without evidence it's needed. Current models often handle clear categories well with instructions alone."
+      },
+      {
+        "id": "B",
+        "text": "Start zero-shot with clear category definitions, measure results, then add examples where it struggles.",
+        "explanation": "Correct. Start with clear instructions, evaluate, and add a few targeted examples only where the results show a gap."
+      },
+      {
+        "id": "C",
+        "text": "Use the largest thinking budget the model allows so it reasons carefully about each email.",
+        "explanation": "Fixed thinking budgets are rejected on current models, and a simple four-way sort rarely needs deep reasoning."
+      },
+      {
+        "id": "D",
+        "text": "Send each email twice and keep a label only when both runs agree with each other.",
+        "explanation": "Doubling every call is premature. It costs twice as much before anyone has measured whether single-pass accuracy is a problem."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+    ]
+  },
+  {
+    "id": "q-5.1-011",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "A developer copies an older snippet that sends thinking with type \"enabled\" and budget_tokens 8000 to a current Claude model for a trade-analysis feature. The request returns a 400 error. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Lower budget_tokens to the 1,024-token minimum so the request passes validation.",
+        "explanation": "The value isn't the problem. Fixed thinking budgets are rejected on current models at any size."
+      },
+      {
+        "id": "B",
+        "text": "Move budget_tokens into output_config, where current models read their thinking limits.",
+        "explanation": "output_config takes effort and format settings. There is no thinking-budget field to move this into."
+      },
+      {
+        "id": "C",
+        "text": "Use adaptive thinking, or omit thinking where it's on by default, and steer depth with effort.",
+        "explanation": "Correct. Current models use adaptive thinking: the model decides how much to think, and effort guides it. That replaces the fixed budget."
+      },
+      {
+        "id": "D",
+        "text": "Set max_tokens below budget_tokens so the request no longer conflicts with the thinking settings.",
+        "explanation": "The rejection comes from the fixed budget itself. Changing max_tokens doesn't make budget_tokens valid on current models."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+      "https://platform.claude.com/docs/en/build-with-claude/effort"
+    ]
+  },
+  {
+    "id": "q-5.1-012",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "A routing endpoint classifies 2 million short support messages a day on a current Claude model. Evals show classification quality is the same at the lowest effort level as at the default, but production is running at the default and the endpoint is slow and costly. The model in use doesn't allow thinking to be turned off. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Set effort to low for this endpoint and keep checking the evals.",
+        "explanation": "Correct. Effort scales thinking, tool calls and text. Lowering it for an easy, high-volume route cuts latency and tokens, and the evals show quality holds."
+      },
+      {
+        "id": "B",
+        "text": "Enable fast mode to make each classification finish sooner.",
+        "explanation": "Fast mode raises output speed at a premium price. The goal here is lower cost as well as latency, and fast mode raises cost."
+      },
+      {
+        "id": "C",
+        "text": "Send a disabled thinking configuration so no reasoning is generated.",
+        "explanation": "On this model thinking can't be turned off, so the request would be rejected. Lower effort is the available lever."
+      },
+      {
+        "id": "D",
+        "text": "Cut max_tokens to 20 so the model can't spend tokens on reasoning.",
+        "explanation": "A tight hard cap risks truncated responses with no label, because thinking counts against max_tokens. Effort controls spend without that risk."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/effort"
+    ]
+  },
+  {
+    "id": "q-5.1-013",
+    "skillId": "5.1",
+    "difficulty": 3,
+    "stem": "A team sets effort to low on a stats-explainer endpoint and documents that responses \"can now never exceed about 300 tokens\". In production, a few answers to hard questions run well past that, and a downstream SMS gateway truncates them. Which correction to their understanding best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Low effort only applies when thinking is disabled, so it has no effect on this endpoint.",
+        "explanation": "Effort affects every output token, with or without thinking. It did lower spend here, just not to a fixed ceiling."
+      },
+      {
+        "id": "B",
+        "text": "Effort only applies to tool calls, so text length must be controlled with prompt instructions alone.",
+        "explanation": "Effort applies to text, tool calls and thinking alike. It is still soft guidance rather than a limit."
+      },
+      {
+        "id": "C",
+        "text": "Effort sets a fixed output ceiling, but the platform lets hard questions exceed it when needed.",
+        "explanation": "There is no fixed ceiling tied to effort that gets overridden. Effort never set a ceiling in the first place."
+      },
+      {
+        "id": "D",
+        "text": "Effort is soft guidance about how much to spend; max_tokens is the only hard cap, so set it for the SMS limit.",
+        "explanation": "Correct. Effort is a behavioral signal, and on hard problems Claude may still use more tokens. max_tokens is the hard limit on output, including thinking, so use it, together with length instructions, for a hard size constraint."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/effort"
+    ]
+  },
+  {
+    "id": "q-5.1-014",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "A live-game analysis feature on an Opus model streams long tactical breakdowns to paying subscribers. The text starts quickly, but it is generated more slowly than the broadcast moves, and the product team wants the same answer quality delivered faster. Budget is not a concern. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Switch to the smallest Haiku model, since it generates text the fastest of all the tiers.",
+        "explanation": "Haiku is faster but a different, less capable model. The constraint is the same answer quality."
+      },
+      {
+        "id": "B",
+        "text": "Send the breakdowns through the Message Batches API to get them processed in parallel.",
+        "explanation": "Batches are asynchronous and can take far longer to return. They suit work nobody is waiting for."
+      },
+      {
+        "id": "C",
+        "text": "Lower max_tokens so each breakdown finishes sooner and keeps pace with the broadcast.",
+        "explanation": "This cuts the analysis short or truncates it. It changes the content, not the generation speed."
+      },
+      {
+        "id": "D",
+        "text": "Turn on fast mode, which runs the same model at higher output speed for a premium price.",
+        "explanation": "Correct. Fast mode keeps the same model and intelligence and raises output tokens per second at premium pricing. It suits streamed output where start-up time is already fine."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/fast-mode"
+    ]
+  },
+  {
+    "id": "q-5.1-015",
+    "skillId": "5.1",
+    "difficulty": 3,
+    "stem": "An engineering lead is preparing a design review on adopting fast mode for a premium real-time coaching product. Which two statements about fast mode are accurate? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "It routes requests to a smaller distilled model, so answers are slightly less capable.",
+        "explanation": "Fast mode runs the same model on a faster inference configuration. Intelligence and capabilities don't change."
+      },
+      {
+        "id": "B",
+        "text": "It runs the same model with no change in intelligence, at a premium per-token price.",
+        "explanation": "Correct. Same model, same capabilities, faster output, and a higher price per token."
+      },
+      {
+        "id": "C",
+        "text": "It is available through the Message Batches API, where its discount stacks with batch pricing.",
+        "explanation": "Fast mode isn't available with the Batch API. It's meant for latency-sensitive work, not asynchronous jobs."
+      },
+      {
+        "id": "D",
+        "text": "Its gain is in output tokens per second, not in time to first token, so pair it with streaming.",
+        "explanation": "Correct. The speed-up targets output throughput. Streaming is what shows the gain to users, and it is also the lever for a slow first token."
+      },
+      {
+        "id": "E",
+        "text": "It shares the standard model's rate limit, so no separate capacity planning is needed.",
+        "explanation": "Fast mode has its own rate limit, separate from standard capacity, so it needs its own planning and fallback behavior."
+      }
+    ],
+    "correct": [
+      "B",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/fast-mode"
+    ]
+  },
+  {
+    "id": "q-5.1-016",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "A team's cost dashboard shows output tokens far higher than the length of the visible answers from its trade-analysis endpoint. In the raw responses, the thinking blocks contain empty text. Which two statements explain what they see? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Thinking is billed as output tokens even when its text isn't returned in the response.",
+        "explanation": "Correct. The model still thinks under every display setting, and those tokens are billed as output."
+      },
+      {
+        "id": "B",
+        "text": "Empty thinking blocks mean the model skipped thinking, so the extra tokens must be a billing error.",
+        "explanation": "Empty text reflects the display setting, not an absence of thinking. The tokens are real reasoning."
+      },
+      {
+        "id": "C",
+        "text": "The output_tokens field also includes the system prompt each time the request is sent.",
+        "explanation": "The system prompt is input. output_tokens counts only what the model generated."
+      },
+      {
+        "id": "D",
+        "text": "Thinking tokens are billed at the input rate, so they shouldn't change output totals.",
+        "explanation": "Thinking is generated output and is billed at output rates."
+      },
+      {
+        "id": "E",
+        "text": "On current models the default display hides thinking text, so empty thinking blocks are expected.",
+        "explanation": "Correct. Current models omit thinking text by default; you opt in to a summary. Empty blocks are normal and still represent billed reasoning."
+      }
+    ],
+    "correct": [
+      "A",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+      "https://platform.claude.com/docs/en/about-claude/pricing"
+    ]
+  }
+]

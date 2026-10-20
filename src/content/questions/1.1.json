@@ -1,0 +1,469 @@
+[
+  {
+    "id": "q-1.1-001",
+    "skillId": "1.1",
+    "difficulty": 1,
+    "stem": "An NFL club's media team wants a 150-word recap in house style for every game. The input is always the same structured box-score JSON, and the steps never change: pick the key stats, draft the recap, check length and style. Which architecture best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A code-driven prompt chain: one call drafts from the box score, then a programmatic gate checks length and style.",
+        "explanation": "Correct. Every step is known in advance, so a workflow is cheaper, faster and easier to test than an agent, and the gate catches drafts that miss the format."
+      },
+      {
+        "id": "B",
+        "text": "An autonomous agent with web search and file tools that decides for itself which steps each game recap needs.",
+        "explanation": "Over-engineered. Model-driven control flow adds cost, latency and unpredictability to a task whose flowchart can be drawn before it starts."
+      },
+      {
+        "id": "C",
+        "text": "A supervisor agent that hands stats, drafting and editing to three parallel subagents and then merges their output.",
+        "explanation": "The steps depend on each other and the input is small, so splitting them across subagents adds coordination overhead and tokens without any benefit."
+      },
+      {
+        "id": "D",
+        "text": "Two agents that critique and rewrite every recap in an open-ended loop until both of them agree it is ready to post.",
+        "explanation": "An uncapped multi-agent debate is unpredictable and expensive. A deterministic length and style check is enough for clear, fixed criteria."
+      }
+    ],
+    "correct": ["A"],
+    "sourceLinks": ["https://www.anthropic.com/research/building-effective-agents"]
+  },
+  {
+    "id": "q-1.1-002",
+    "skillId": "1.1",
+    "difficulty": 1,
+    "stem": "A data platform team wants Claude to investigate failed nightly ETL jobs. Past failures were caused by expired credentials, upstream outages, schema changes and full disks, and each investigation took a different path depending on what the logs showed. Which design is the best fit?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A fixed prompt chain that always reads the logs, then the scheduler state, then the upstream status page, in that order.",
+        "explanation": "A fixed order can't adapt when the first finding points somewhere else, and the stem says each investigation took a different path."
+      },
+      {
+        "id": "B",
+        "text": "An agent loop with tools to read logs, query the scheduler and check upstream status, bounded by a turn cap.",
+        "explanation": "Correct. The steps can't be known in advance and depend on what each tool reveals, which is what agents are for. The turn cap keeps the open-ended loop bounded."
+      },
+      {
+        "id": "C",
+        "text": "A single model call that receives the last 100 lines of the failed job's log and returns a likely root cause.",
+        "explanation": "One call over a fixed log slice can't check credentials, upstream services or disk state, so it misses causes outside those 100 lines."
+      },
+      {
+        "id": "D",
+        "text": "A router that sorts each failure into one of three predefined categories and then runs that category's fixed script.",
+        "explanation": "Routing works when the categories are known and stable. Here the failure modes are open-ended, so new causes would fall outside the predefined branches."
+      }
+    ],
+    "correct": ["B"],
+    "sourceLinks": ["https://www.anthropic.com/research/building-effective-agents"]
+  },
+  {
+    "id": "q-1.1-003",
+    "skillId": "1.1",
+    "difficulty": 2,
+    "stem": "A fantasy football platform wants an assistant that analyzes a user's roster and proposes trades with other league members. Once a trade is accepted by the league it cannot be reversed. Which design best addresses this constraint?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Give the agent the trade tool directly and add a system prompt line telling it to be careful before submitting trades.",
+        "explanation": "A prompt asks but doesn't guarantee. With an irreversible action, a mistaken or injected trade still executes."
+      },
+      {
+        "id": "B",
+        "text": "Use the most capable model available so that the agent's trade proposals are accurate enough to run without review.",
+        "explanation": "A stronger model lowers the error rate but doesn't add a recovery path. The cost-of-error criterion asks whether mistakes can be caught, not just how rare they are."
+      },
+      {
+        "id": "C",
+        "text": "Let the agent research and propose trades freely, but require explicit user approval before the trade tool executes.",
+        "explanation": "Correct. The open-ended analysis suits an agent, while the irreversible step gets a human approval gate, so errors are caught before they cost anything."
+      },
+      {
+        "id": "D",
+        "text": "Raise the agent's turn limit so it has room to double-check each trade on its own before it submits it to the league.",
+        "explanation": "More self-review turns don't create an external check. The agent can still submit a wrong trade, and nothing stops it."
+      }
+    ],
+    "correct": ["C"],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/building-effective-agents",
+      "https://code.claude.com/docs/en/agent-sdk/permissions"
+    ]
+  },
+  {
+    "id": "q-1.1-004",
+    "skillId": "1.1",
+    "difficulty": 2,
+    "stem": "In a scouting app built on the Agent SDK, a coach discusses a specific linebacker with the main agent for several turns. The main agent then delegates \"check the latest injury report for the player we discussed\" to a subagent, which returns a generic league-wide summary. What is the most likely cause, and the fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The subagent's context window was too small to hold the discussion. Assign it a model with a larger context window.",
+        "explanation": "Window size isn't the issue. The subagent never received the discussion at all, so a bigger window would still be empty of it."
+      },
+      {
+        "id": "B",
+        "text": "The subagent ran on a different model than the parent. Set its model to inherit so it shares the parent's memory.",
+        "explanation": "Inheriting the model changes which model runs, not what the subagent sees. Subagents never share the parent's conversation."
+      },
+      {
+        "id": "C",
+        "text": "The subagent ran in the background. Make it run in the foreground so it can read the coach's earlier messages live.",
+        "explanation": "Foreground or background only changes whether the parent waits for the report. Neither mode gives the subagent the parent's history."
+      },
+      {
+        "id": "D",
+        "text": "Subagents don't see the parent's conversation. Write the player's name, team and sources into the task prompt.",
+        "explanation": "Correct. A non-fork subagent sees only its own prompt and the delegation message, so every name, path and constraint must be written into the task."
+      }
+    ],
+    "correct": ["D"],
+    "sourceLinks": ["https://code.claude.com/docs/en/agent-sdk/subagents"]
+  },
+  {
+    "id": "q-1.1-005",
+    "skillId": "1.1",
+    "difficulty": 2,
+    "stem": "A procurement team is building an assistant that reviews 30 independent vendor contracts and produces one risk summary. An architect proposes a lead agent that hands each contract to its own subagent. Which TWO benefits justify this design? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Each contract is read in its own context window, so only a short risk report reaches the lead agent.",
+        "explanation": "Correct. Context isolation keeps the full text of 30 contracts out of the lead's context, which only grows by the reports."
+      },
+      {
+        "id": "B",
+        "text": "The contracts are independent, so subagents can review them in parallel and cut wall-clock time.",
+        "explanation": "Correct. Independent subtasks can run concurrently and finish in roughly the time of the slowest one."
+      },
+      {
+        "id": "C",
+        "text": "Subagents share the lead agent's memory, so the review criteria never need to be restated to them.",
+        "explanation": "Subagents start with a fresh context. The review criteria must be passed in the delegation prompt or the subagent's own prompt."
+      },
+      {
+        "id": "D",
+        "text": "Splitting the work across many agents lowers the total token spend compared with a single agent.",
+        "explanation": "Multi-agent designs usually use more tokens in total, since each agent pays for its own prompt and reasoning. The benefits are isolation and speed."
+      },
+      {
+        "id": "E",
+        "text": "Each subagent manages its own spend, so the overall query no longer needs any budget or concurrency limit.",
+        "explanation": "Every layer multiplies cost. Spend, depth and concurrency still need caps across the whole tree."
+      }
+    ],
+    "correct": ["A", "B"],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "https://www.anthropic.com/research/multi-agent-research-system"
+    ]
+  },
+  {
+    "id": "q-1.1-006",
+    "skillId": "1.1",
+    "difficulty": 2,
+    "stem": "A stadium ticketing service gets three kinds of support requests: refunds, seat transfers and general venue questions. Each kind has a well-documented procedure, its own tools and its own policy text, and mixing them in one prompt has caused policy mix-ups. Which workflow pattern fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Routing: classify each request first, then send it to a prompt and tool set built for that category.",
+        "explanation": "Correct. Routing separates distinct, well-defined categories so each branch gets focused instructions and only the tools it needs, which fixes the policy mix-ups."
+      },
+      {
+        "id": "B",
+        "text": "Orchestrator-workers: a central model breaks every request into subtasks at runtime and assigns workers.",
+        "explanation": "Orchestrator-workers suits tasks whose subtasks can't be predicted. These categories and procedures are known in advance."
+      },
+      {
+        "id": "C",
+        "text": "One autonomous agent that holds every tool and every policy, and decides on its own how to handle a request.",
+        "explanation": "This keeps all policies in one context, which is the cause of the mix-ups, and adds agent overhead to procedural work."
+      },
+      {
+        "id": "D",
+        "text": "Voting: three model calls answer every request independently and the majority response is sent back.",
+        "explanation": "Voting raises confidence on a single judgment but triples cost and does nothing to separate the conflicting policies."
+      }
+    ],
+    "correct": ["A"],
+    "sourceLinks": ["https://www.anthropic.com/research/building-effective-agents"]
+  },
+  {
+    "id": "q-1.1-007",
+    "skillId": "1.1",
+    "difficulty": 3,
+    "stem": "A league's competition committee wants every proposed rule change checked for conflicts across its 400-page rulebook. Which sections a proposal touches can't be known until the proposal is read, and some proposals touch one section while others touch a dozen. Which pattern fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Sectioning: always run five parallel workers, one for each of the rulebook's five main chapters, and merge them.",
+        "explanation": "Fixed sectioning works when the split is known in advance. Here it wastes calls on irrelevant chapters and can't go deeper where many sections are affected."
+      },
+      {
+        "id": "B",
+        "text": "Orchestrator-workers: a lead model reads the proposal, picks the affected sections at runtime and delegates them.",
+        "explanation": "Correct. Orchestrator-workers is the pattern for subtasks that depend on the input and can't be predefined, and it scales from one section to many."
+      },
+      {
+        "id": "C",
+        "text": "Prompt chaining: one call summarizes the proposal, a second checks the whole rulebook, and a third writes a memo.",
+        "explanation": "A fixed chain would push the entire rulebook through one step, which bloats context and doesn't adapt the work to each proposal's scope."
+      },
+      {
+        "id": "D",
+        "text": "Evaluator-optimizer: one call drafts a conflict report and a second critiques it until the report passes review.",
+        "explanation": "Evaluator-optimizer refines an output against criteria. It doesn't solve the core problem of deciding which sections to examine."
+      }
+    ],
+    "correct": ["B"],
+    "sourceLinks": ["https://www.anthropic.com/research/building-effective-agents"]
+  },
+  {
+    "id": "q-1.1-008",
+    "skillId": "1.1",
+    "difficulty": 1,
+    "stem": "A marketing team generates short ad copy that must meet clear, checkable rules: a character limit, required brand terms and no unverifiable claims. First drafts usually break one rule, and a human editor can point out exactly which. Which approach fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Set temperature to 0 on the generation call so that drafts become deterministic and stop breaking the rules.",
+        "explanation": "Current models reject non-default sampling parameters, and determinism wouldn't make a draft follow the rules anyway."
+      },
+      {
+        "id": "B",
+        "text": "Build a supervisor with five copywriter subagents that each write a draft, and have it pick the best of the five.",
+        "explanation": "More parallel drafts don't guarantee one passes every rule, and the design multiplies cost without any feedback on what is wrong."
+      },
+      {
+        "id": "C",
+        "text": "An evaluator-optimizer loop: one call drafts, another checks the rules and returns feedback, with an iteration cap.",
+        "explanation": "Correct. The criteria are clear and the feedback is actionable, which is exactly when an evaluator-optimizer loop adds value. The cap keeps it bounded."
+      },
+      {
+        "id": "D",
+        "text": "Turn the generator into an agent with web search so it can study competitor ads before it writes each draft.",
+        "explanation": "Research doesn't address rule compliance. The failure is breaking checkable rules, which calls for an evaluation step, not more autonomy."
+      }
+    ],
+    "correct": ["C"],
+    "sourceLinks": ["https://www.anthropic.com/research/building-effective-agents"]
+  },
+  {
+    "id": "q-1.1-009",
+    "skillId": "1.1",
+    "difficulty": 2,
+    "stem": "An accounts-payable team needs vendor name, invoice date and total pulled from each uploaded PDF invoice into JSON. An engineer proposes a five-agent hierarchy with a planner, an extractor, two validators and a formatter. Which review comment is most appropriate?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a sixth agent as an arbiter, so the two validators have a tie-breaker whenever they disagree on a field.",
+        "explanation": "This makes an already over-engineered design bigger. The task doesn't need multiple agents at all."
+      },
+      {
+        "id": "B",
+        "text": "Replace the hierarchy with one autonomous agent holding file tools, so it can decide which fields to extract.",
+        "explanation": "The fields are fixed, so the model doesn't need to decide anything. An agent loop is still more machinery than the task needs."
+      },
+      {
+        "id": "C",
+        "text": "Keep the hierarchy but move the planner to a cheaper model, since planning is the least demanding of the roles.",
+        "explanation": "This trims a little cost but keeps the unnecessary coordination, latency and failure points of five agents."
+      },
+      {
+        "id": "D",
+        "text": "This is single-step extraction: one call with structured outputs plus a code check does the job for far less.",
+        "explanation": "Correct. Start with the simplest tier that works. A single call with a schema handles fixed-field extraction, and code can validate the result."
+      }
+    ],
+    "correct": ["D"],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/building-effective-agents",
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-1.1-010",
+    "skillId": "1.1",
+    "difficulty": 3,
+    "stem": "A team's analytics group wants to rename its core PlayEvent model and change its fields across the codebase. Each edit depends on decisions made in earlier edits, such as how a renamed field is mapped in serializers and tests. A developer proposes four parallel subagents, each editing a quarter of the files. What is the best response?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use one agent working sequentially, because tightly coupled edits need shared context that parallel subagents lack.",
+        "explanation": "Correct. When every step depends on what the others decided, splitting the work across isolated contexts produces conflicting choices. One agent is simpler and more consistent."
+      },
+      {
+        "id": "B",
+        "text": "Keep the four subagents and raise the concurrency limit, so that all of them finish at about the same time.",
+        "explanation": "Speed isn't the problem. Each subagent still makes its own mapping decisions without seeing the others."
+      },
+      {
+        "id": "C",
+        "text": "Keep the four subagents but give each one the full conversation history of the other three as they work.",
+        "explanation": "Subagents don't see each other's histories, and piping transcripts between them defeats the context isolation that justified them."
+      },
+      {
+        "id": "D",
+        "text": "Run the four subagents twice each with voting, then keep whichever version of each file appears most often.",
+        "explanation": "Voting multiplies cost and can't reconcile choices that are inconsistent across files. It treats a coordination problem as a confidence problem."
+      }
+    ],
+    "correct": ["A"],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/multi-agent-research-system",
+      "https://code.claude.com/docs/en/agent-sdk/subagents"
+    ]
+  },
+  {
+    "id": "q-1.1-011",
+    "skillId": "1.1",
+    "difficulty": 2,
+    "stem": "A scouting department's Agent SDK app lets the main agent spawn subagents freely. One broad prompt grew into a deep tree of nested subagents, and that query's cost was many times the usual. Which change addresses this most directly?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a system prompt instruction asking the main agent to keep delegation to a minimum and watch its spending.",
+        "explanation": "A prompt steers but doesn't enforce. The docs advise setting hard limits as well, because Claude decides on its own when to delegate."
+      },
+      {
+        "id": "B",
+        "text": "Set a spend cap with maxBudgetUsd and limit subagent nesting depth and concurrency through the SDK settings.",
+        "explanation": "Correct. The SDK enforces the spend cap across the whole tree, including subagents, and the depth and concurrency limits stop runaway fan-out."
+      },
+      {
+        "id": "C",
+        "text": "Remove all subagent definitions and instead raise maxTurns, so that the main agent does every task itself.",
+        "explanation": "This drops the isolation benefits, and the built-in general-purpose subagent can still be spawned. A higher turn cap also adds no spend limit."
+      },
+      {
+        "id": "D",
+        "text": "Move the app to Managed Agents, where subagent threads are hosted by Anthropic and don't add token costs.",
+        "explanation": "Hosting changes who runs the loop, not who pays for tokens. Every agent's tokens are still billed."
+      }
+    ],
+    "correct": ["B"],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "https://code.claude.com/docs/en/agent-sdk/agent-loop"
+    ]
+  },
+  {
+    "id": "q-1.1-012",
+    "skillId": "1.1",
+    "difficulty": 1,
+    "stem": "An insurer is considering an autonomous agent to settle small property claims end to end. During discovery the team records five findings. Which TWO findings argue for staying with a workflow or a single call instead of an agent? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Every claim follows the same four documented steps, and the team has already drawn the full flowchart.",
+        "explanation": "Correct. If the steps can be specified in advance, the complexity criterion isn't met, and a code-driven workflow is cheaper and more predictable."
+      },
+      {
+        "id": "B",
+        "text": "Payouts are sent the moment a claim is approved, and there is no review step or way to reverse them.",
+        "explanation": "Correct. When errors can't be caught or recovered, the cost-of-error criterion fails, so autonomy isn't appropriate without redesign."
+      },
+      {
+        "id": "C",
+        "text": "Each settled claim saves several hours of adjuster time, which the business values highly.",
+        "explanation": "High value supports an agent rather than arguing against it. Value is one of the criteria an agent must meet."
+      },
+      {
+        "id": "D",
+        "text": "In internal evaluations, Claude handled similar document-review tasks with high accuracy.",
+        "explanation": "This shows viability, which supports the agent option. It isn't a reason to stay with a simpler tier."
+      },
+      {
+        "id": "E",
+        "text": "Each claim requires reading several documents, such as photos, estimates and a policy file.",
+        "explanation": "Reading several inputs is compatible with any tier. On its own it doesn't argue against an agent."
+      }
+    ],
+    "correct": ["A", "B"],
+    "sourceLinks": ["https://www.anthropic.com/research/building-effective-agents"]
+  },
+  {
+    "id": "q-1.1-013",
+    "skillId": "1.1",
+    "difficulty": 3,
+    "stem": "A sports network on Managed Agents designs a coordinator that delegates to section-editor agents, each of which is itself configured with a multiagent roster of fact-checker agents. Creating the coordinator agent fails with a validation error. Which explanation and fix are correct?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The roster lists too many agents at once. Split the section editors across two coordinators and run both in parallel.",
+        "explanation": "The roster limit is generous, and the failure comes from nesting, not count. Two coordinators would hit the same rule."
+      },
+      {
+        "id": "B",
+        "text": "The fact-checkers need their own sandboxes. Give each agent a separate environment so their threads don't collide.",
+        "explanation": "Agents in a multiagent session share the session's sandbox and filesystem by design. Environments aren't the cause of a create error."
+      },
+      {
+        "id": "C",
+        "text": "Delegation is only one level deep. Flatten it so the coordinator calls fact-checkers directly, or use a workflow run.",
+        "explanation": "Correct. An agent that has its own multiagent configuration can't be listed as another agent's subagent. Flattening the roster or using a dynamic workflow fits the limit."
+      },
+      {
+        "id": "D",
+        "text": "The nesting depth defaults to one level. Set CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH to 3 in the session environment.",
+        "explanation": "That variable controls subagent depth in the Agent SDK and Claude Code, not Managed Agents. Managed Agents rejects the nested configuration itself."
+      }
+    ],
+    "correct": ["C"],
+    "sourceLinks": ["https://platform.claude.com/docs/en/managed-agents/multiagent-orchestration"]
+  },
+  {
+    "id": "q-1.1-014",
+    "skillId": "1.1",
+    "difficulty": 2,
+    "stem": "A draft-prep agent compares ten prospects, reading about 200 college game logs for each one. Running it as a single agent, the context fills with log text and its comparisons get vaguer as the run goes on. Which TWO changes best fix this? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Give each prospect's log reading to a subagent that returns a short structured profile to the lead agent.",
+        "explanation": "Correct. The logs stay in each subagent's own context, so the lead agent compares ten compact profiles instead of 2,000 raw logs."
+      },
+      {
+        "id": "B",
+        "text": "Give the log-reading subagents read-only tools and a cheaper model, since the work is reading and summarizing.",
+        "explanation": "Correct. Least-privilege tools reduce risk, and reading-heavy work is a good fit for a cheaper model, which offsets the extra agents' cost."
+      },
+      {
+        "id": "C",
+        "text": "Pass the lead agent's full conversation into each subagent so every subagent has all of the scouting context.",
+        "explanation": "This copies the bloat into every subagent. Pass only the task-specific instructions each subagent needs."
+      },
+      {
+        "id": "D",
+        "text": "Have each subagent return its full transcript, so the lead agent can double-check every log the subagent read.",
+        "explanation": "Returning transcripts puts the raw logs back into the lead's context and cancels the isolation benefit."
+      },
+      {
+        "id": "E",
+        "text": "Keep a single agent but move it to a model with a larger context window so that all the logs still fit.",
+        "explanation": "A bigger window raises the limit but doesn't stop recall degrading as irrelevant tokens pile up."
+      }
+    ],
+    "correct": ["A", "B"],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents"
+    ]
+  }
+]

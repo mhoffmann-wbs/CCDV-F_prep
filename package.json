@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "content:status": "node scripts/content-status.ts",
-    "content:quality": "node scripts/question-quality.ts"
+    "content:quality": "node scripts/question-quality.ts",
+    "content:links": "node scripts/check-links.ts"
   },
   "dependencies": {
     "react": "^19.3.1",

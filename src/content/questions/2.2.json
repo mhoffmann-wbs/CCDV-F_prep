@@ -1,0 +1,296 @@
+[
+  {
+    "id": "q-2.2-001",
+    "skillId": "2.2",
+    "difficulty": 1,
+    "stem": "A sports network's recap job uses a Claude model that has just been marked Deprecated, with a retirement date three months away. Which response best fits a sound life-cycle process?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep running unchanged until the retirement date, then switch the model ID in production.",
+        "explanation": "After retirement, requests fail. Waiting leaves no time to evaluate the replacement or fix prompts."
+      },
+      {
+        "id": "B",
+        "text": "Change the model ID in production today, then watch for complaints from viewers.",
+        "explanation": "Swapping first and testing later means users find the regressions. Evaluate before rolling out."
+      },
+      {
+        "id": "C",
+        "text": "Ignore the notice, since a pinned model ID keeps working indefinitely after deprecation.",
+        "explanation": "Pinning fixes the weights, not the lifetime. Deprecated models still have a retirement date, after which they fail."
+      },
+      {
+        "id": "D",
+        "text": "Evaluate the replacement on the recap evals, adjust prompts, and migrate before retirement.",
+        "explanation": "Correct. The notice period exists for evaluating and migrating. Treating it as a small project avoids a forced, untested cutover."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
+    ]
+  },
+  {
+    "id": "q-2.2-002",
+    "skillId": "2.2",
+    "difficulty": 2,
+    "stem": "A company's internal knowledge assistant launched last month, and the project sponsor wants to close the project and reassign the team. Which response best reflects the systems life cycle for this kind of feature?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Plan for ongoing operation: monitoring, maintenance and evals on every change.",
+        "explanation": "Correct. Launch isn't the end. Operating and maintaining the system, including model migrations, is part of the life cycle."
+      },
+      {
+        "id": "B",
+        "text": "Close the project, since a deployed model ID never changes behavior and needs no further attention.",
+        "explanation": "Even with a stable ID, usage, data and dependencies change, and models are eventually retired."
+      },
+      {
+        "id": "C",
+        "text": "Close it and rebuild only when users report a serious failure.",
+        "explanation": "Waiting for failures turns maintenance into firefighting and skips the monitoring the life cycle requires."
+      },
+      {
+        "id": "D",
+        "text": "Move the assistant into a waterfall maintenance phase that allows no further changes after sign-off.",
+        "explanation": "Freezing an LLM system ignores model lifecycles and prompt fixes that will be needed."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/model-deprecations"
+    ]
+  },
+  {
+    "id": "q-2.2-003",
+    "skillId": "2.2",
+    "difficulty": 2,
+    "stem": "A QA engineer tested a revised prompt for a fantasy-advice bot on one sample question, liked the answer, and marked the change ready to ship. The product manager wants confidence that the change is an improvement. Which next step best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run the full eval set and compare the results against the current version.",
+        "explanation": "Correct. Outputs aren't deterministic, so quality must be measured across a representative set and compared with the baseline."
+      },
+      {
+        "id": "B",
+        "text": "Set temperature to 0 and re-run the same sample question to confirm the result is stable.",
+        "explanation": "Current models reject non-default sampling parameters, and one stable example still says nothing about other inputs."
+      },
+      {
+        "id": "C",
+        "text": "Run the sample question three more times and ship if all look good.",
+        "explanation": "Repeating one example tests consistency, not coverage. Regressions on other inputs would go unseen."
+      },
+      {
+        "id": "D",
+        "text": "Ship the change and rely on user complaints to signal whether the prompt has regressed.",
+        "explanation": "Using production users as the test suite finds problems only after they reach people."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.2-004",
+    "skillId": "2.2",
+    "difficulty": 2,
+    "stem": "A hospital network is choosing a delivery approach for a Claude-based discharge-summary drafter. Requirements are partly known, and the team expects to learn what \"good\" looks like by reviewing outputs with clinicians. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Waterfall, with every requirement signed off before any prompt is written.",
+        "explanation": "Sequential sign-offs absorb change slowly, while the team expects to discover quality criteria by iterating."
+      },
+      {
+        "id": "B",
+        "text": "An iterative approach with small slices, each measured against a growing eval set.",
+        "explanation": "Correct. Short cycles suit LLM features, where quality is found through iteration and checked with evals."
+      },
+      {
+        "id": "C",
+        "text": "A big-bang release after an internal hackathon, followed by a single round of feedback.",
+        "explanation": "One large release with one feedback round gives few chances to learn and correct."
+      },
+      {
+        "id": "D",
+        "text": "Skip a formal process and let each clinician adjust the prompt directly in production.",
+        "explanation": "Untracked edits by many users make behavior unpredictable and impossible to evaluate or roll back."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://agilemanifesto.org/principles.html",
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.2-005",
+    "skillId": "2.2",
+    "difficulty": 3,
+    "stem": "A league has approved a new version of its game-preview prompt after it passed the eval set. It now has to reach all 32 teams' apps during the season with minimal risk. Which TWO practices best fit the deployment? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Deploy to all 32 teams at once on a Sunday so the change lands during peak usage and is noticed quickly.",
+        "explanation": "A full rollout at peak exposes every user to an unknown failure at the worst moment."
+      },
+      {
+        "id": "B",
+        "text": "Release to one division first and watch quality, latency and error metrics before expanding.",
+        "explanation": "Correct. A canary release limits the blast radius and confirms in production what the evals predicted."
+      },
+      {
+        "id": "C",
+        "text": "Keep the previous prompt version deployable so it can be restored quickly if metrics drop.",
+        "explanation": "Correct. A ready rollback target turns a regression into a quick revert instead of an emergency fix."
+      },
+      {
+        "id": "D",
+        "text": "Skip monitoring for this release because the prompt already passed the eval set.",
+        "explanation": "Evals approximate production. Monitoring is how you catch what the eval set missed."
+      },
+      {
+        "id": "E",
+        "text": "Upgrade the model ID at the same time so the teams only see a single disruption.",
+        "explanation": "Combining changes makes any regression hard to attribute and roll back."
+      }
+    ],
+    "correct": [
+      "B",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.2-006",
+    "skillId": "2.2",
+    "difficulty": 1,
+    "stem": "A company is retiring an internal Claude-based HR assistant that has been replaced by a vendor product. Which decommissioning plan best fits the retire phase of the life cycle?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Turn off the user interface but leave the API keys active in case the old assistant is needed.",
+        "explanation": "Active keys for a retired system are an unnecessary security exposure."
+      },
+      {
+        "id": "B",
+        "text": "Delete the git repository, including the prompts and eval results, to remove all traces of it.",
+        "explanation": "Prompts and eval results can be needed for audits or future projects. Archive them rather than destroy them."
+      },
+      {
+        "id": "C",
+        "text": "Revoke its API keys, archive its prompts and eval results, and delete stored data as policy requires.",
+        "explanation": "Correct. Clean retirement closes access, preserves the record, and handles data under the retention policy."
+      },
+      {
+        "id": "D",
+        "text": "Leave the service running at low traffic indefinitely so no stakeholder is ever disrupted.",
+        "explanation": "Running an unused system keeps its cost and risk without any benefit, which is what retirement removes."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/model-deprecations"
+    ]
+  },
+  {
+    "id": "q-2.2-007",
+    "skillId": "2.2",
+    "difficulty": 3,
+    "stem": "An enterprise with dozens of services, several API keys and no central inventory receives a deprecation notice for a model. The platform lead needs to find which services still call it before the retirement date. Which first step is most reliable?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Search the main application repository for the model ID and update every match found.",
+        "explanation": "Model IDs can live in other repos, config stores or environment variables. One repo search will miss them."
+      },
+      {
+        "id": "B",
+        "text": "Wait for retirement and fix whichever services start failing.",
+        "explanation": "After retirement, requests fail. That approach turns the notice period into an outage."
+      },
+      {
+        "id": "C",
+        "text": "Ask Anthropic support to migrate the remaining traffic automatically to the replacement model.",
+        "explanation": "Model IDs are never changed under you. Each caller must be updated and evaluated deliberately."
+      },
+      {
+        "id": "D",
+        "text": "Export the Console usage report and review it by API key and model.",
+        "explanation": "Correct. The usage export breaks down usage by key and model, which reveals every caller still on the deprecated model."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/model-deprecations"
+    ]
+  },
+  {
+    "id": "q-2.2-008",
+    "skillId": "2.2",
+    "difficulty": 2,
+    "stem": "A sports-data company is adding Claude features to its existing DevOps pipeline. The team wants every change to a prompt, model ID or SDK version to be checked before it can deploy. Which TWO pipeline steps best fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run the eval suite with a pass threshold as a required gate on every such change.",
+        "explanation": "Correct. Evals check output quality against success criteria, which ordinary tests can't do for non-deterministic outputs."
+      },
+      {
+        "id": "B",
+        "text": "Run the eval suite only when the model ID changes, since prompt edits are low risk.",
+        "explanation": "Prompt and SDK changes can shift behavior just as much. Each one needs the gate."
+      },
+      {
+        "id": "C",
+        "text": "Skip unit tests for prompt-only changes because no application code has changed.",
+        "explanation": "Prompt changes can break parsing or schema assumptions that the unit and integration tests protect."
+      },
+      {
+        "id": "D",
+        "text": "Run unit and integration tests, including validation of the output schema, alongside the evals.",
+        "explanation": "Correct. Conventional tests catch integration and parsing breaks, and they complement evals rather than being replaced by them."
+      },
+      {
+        "id": "E",
+        "text": "Have one engineer manually spot-check a single output before each deployment.",
+        "explanation": "A single manual check isn't repeatable and samples far too little of the input space."
+      }
+    ],
+    "correct": [
+      "A",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  }
+]

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
 import App from '../App'
+import { EXAM_FORMAT } from '../content/blueprint'
 import { QUESTIONS } from '../content/questions'
 import { getProgress, resetProgress } from '../progress/store'
 
@@ -14,6 +15,10 @@ function renderAt(path: string) {
   )
 }
 
+function escapeRegExp(text: string) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 beforeEach(() => {
   localStorage.clear()
   resetProgress()
@@ -23,14 +28,18 @@ describe('practice', () => {
   it('gives immediate feedback and records the attempt', async () => {
     const user = userEvent.setup()
     renderAt('/practice?skill=7.1')
-    const official = QUESTIONS.find((q) => q.id === 'official-2')!
-    expect(screen.getByText(official.stem)).toBeInTheDocument()
+    // The session is shuffled, so find whichever question is showing.
+    const shown = QUESTIONS.filter((q) => q.skillId === '7.1').find((q) => screen.queryByText(q.stem))!
+    expect(shown).toBeDefined()
 
-    await user.click(screen.getByRole('radio', { name: /Raise the model's temperature/ }))
+    const wrong = shown.options.filter((o) => !shown.correct.includes(o.id)).slice(0, shown.selectCount)
+    for (const option of wrong) {
+      await user.click(screen.getByRole(shown.selectCount > 1 ? 'checkbox' : 'radio', { name: new RegExp(escapeRegExp(option.text)) }))
+    }
     await user.click(screen.getByRole('button', { name: 'Check answer' }))
 
-    expect(screen.getByText(/Temperature is irrelevant to prompt injection/)).toBeInTheDocument()
-    expect(getProgress().questions['official-2']).toMatchObject({ attempts: 1, correct: 0 })
+    expect(screen.getByText(wrong[0].explanation)).toBeInTheDocument()
+    expect(getProgress().questions[shown.id]).toMatchObject({ attempts: 1, correct: 0 })
   })
 
   it('limits multiple-response items to the stated number of selections', async () => {
@@ -55,11 +64,12 @@ describe('mock exam', () => {
     const user = userEvent.setup()
     renderAt('/mock')
     await user.click(screen.getByRole('button', { name: 'Kick off' }))
-    for (let i = 1; i < QUESTIONS.length; i++) {
+    const examLength = Math.min(QUESTIONS.length, EXAM_FORMAT.items)
+    for (let i = 1; i < examLength; i++) {
       await user.click(screen.getByRole('button', { name: 'Next' }))
     }
     await user.click(screen.getByRole('button', { name: 'Review' }))
-    expect(screen.getByText(new RegExp(`${QUESTIONS.length} item\\(s\\) unanswered`))).toBeInTheDocument()
+    expect(screen.getByText(new RegExp(`${examLength} item\\(s\\) unanswered`))).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Submit exam' }))
 
     expect(screen.getByText(/Estimated scaled score/)).toBeInTheDocument()

@@ -1,0 +1,262 @@
+[
+  {
+    "id": "q-7.2-001",
+    "skillId": "7.2",
+    "difficulty": 1,
+    "stem": "A team's fan chatbot relies on one carefully tuned system prompt for its whole guardrail strategy. Before a playoff marketing push, the CISO asks what should be added so that a single clever message can't defeat every protection at once. What is the best answer?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A longer system prompt that spells out every forbidden topic in more detail.",
+        "explanation": "Making the prompt longer still leaves a single advisory layer. Prompts guide behavior, but they don't enforce it."
+      },
+      {
+        "id": "B",
+        "text": "A copy of the system prompt repeated at the end of every user turn.",
+        "explanation": "Repeating the same instructions adds emphasis, not an independent layer. An attack that beats the prompt once can beat it twice."
+      },
+      {
+        "id": "C",
+        "text": "Input screening, output checks and tool limits enforced outside the model.",
+        "explanation": "Correct. Independent layers fail in different ways, so an attack has to beat all of them, and the strongest limits are enforced in code and infrastructure."
+      },
+      {
+        "id": "D",
+        "text": "A friendlier refusal message so that users are less inclined to argue.",
+        "explanation": "A better refusal script improves the experience but adds no protection against a determined attacker."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "https://code.claude.com/docs/en/agent-sdk/secure-deployment"
+    ]
+  },
+  {
+    "id": "q-7.2-002",
+    "skillId": "7.2",
+    "difficulty": 2,
+    "stem": "A ticketing support assistant screens every message with a moderation classifier. Under Sunday game-day load the classifier sometimes times out, and an engineer proposes letting messages through unscreened on timeout so fans don't wait. What should the design do?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Fail closed: hold or reject the message when screening errors, and alert on timeouts.",
+        "explanation": "Correct. Secure-by-design guardrails fail closed. A screen that silently switches off under load is exactly when attackers would strike, and alerts let the team fix capacity."
+      },
+      {
+        "id": "B",
+        "text": "Fail open on timeouts, but log each unscreened message so someone can review it next week.",
+        "explanation": "Reviewing a week later is detection, not prevention. Harmful requests would already have been answered."
+      },
+      {
+        "id": "C",
+        "text": "Turn off screening during games and switch it back on for the off-season.",
+        "explanation": "This removes the layer at the busiest and most visible time, which is the opposite of a safe default."
+      },
+      {
+        "id": "D",
+        "text": "Let the main model screen its own input whenever the classifier times out.",
+        "explanation": "Folding the screen into the main model removes the independent layer. The same model would judge input that may be trying to manipulate it."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/secure-deployment"
+    ]
+  },
+  {
+    "id": "q-7.2-003",
+    "skillId": "7.2",
+    "difficulty": 2,
+    "stem": "An internal HR assistant only answers benefits questions today, but it was given three tools: read_policy, update_salary and terminate_employee, the last two \"for future features.\" To reduce risk, the team plans to add a classifier that detects misuse of the write tools. What is the better first step?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add the classifier plus a system-prompt rule never to call the write tools.",
+        "explanation": "Both measures try to stop misuse of capability the assistant doesn't need. A filter or rule can fail, and the tools would still be there."
+      },
+      {
+        "id": "B",
+        "text": "Keep the tools but require Claude to explain its reasoning before each call.",
+        "explanation": "An explanation from the model is not a control. Injected or mistaken reasoning can justify the call just as easily."
+      },
+      {
+        "id": "C",
+        "text": "Keep the tools and log every call so misuse is caught after it happens.",
+        "explanation": "Logging supports monitoring, but by the time someone reads the log a salary may already have changed or an employee been removed."
+      },
+      {
+        "id": "D",
+        "text": "Remove the write tools until a feature needs them, leaving read_policy.",
+        "explanation": "Correct. Least privilege means removing capability the use case doesn't need. That beats screening for misuse of tools that shouldn't exist."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/"
+    ]
+  },
+  {
+    "id": "q-7.2-004",
+    "skillId": "7.2",
+    "difficulty": 2,
+    "stem": "A team's merchandise chatbot handles order questions in which fans often type home addresses and partial card numbers. Engineers want to keep complete raw transcripts in the shared logging platform indefinitely to make debugging easier. Which approach follows secure-by-design privacy practice?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep full transcripts but restrict log access to the engineering team.",
+        "explanation": "Access control helps, but the logs would still hold sensitive personal data forever, which widens the impact of any breach or insider misuse."
+      },
+      {
+        "id": "B",
+        "text": "Redact personal data before logging and set a retention period on transcripts.",
+        "explanation": "Correct. Privacy by design means collecting only what is needed, redacting before logging and limiting retention, while keeping enough data to debug."
+      },
+      {
+        "id": "C",
+        "text": "Keep raw transcripts but ask Claude to leave personal data out of its replies.",
+        "explanation": "The fans' own messages still contain the data. Instructing the model does nothing about what the logging pipeline stores."
+      },
+      {
+        "id": "D",
+        "text": "Disable logging entirely so that no personal data is ever stored anywhere.",
+        "explanation": "This removes the monitoring layer that guardrails depend on. Redaction and retention keep observability without hoarding personal data."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/"
+    ]
+  },
+  {
+    "id": "q-7.2-005",
+    "skillId": "7.2",
+    "difficulty": 3,
+    "stem": "A platform team runs Claude Code unattended on a shared build server in bypassPermissions mode so it never stops for approval. To keep it safe, they rely on a carefully written list of allow rules naming the only commands it should run. What is wrong with this design, and what is a better one?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Nothing is wrong, because allow rules limit bypass mode to the listed commands.",
+        "explanation": "Allow rules have no effect in bypassPermissions, so the list restricts nothing. Every other command runs without a prompt."
+      },
+      {
+        "id": "B",
+        "text": "The list is fine, but it should move into CLAUDE.md so Claude reads it each run.",
+        "explanation": "CLAUDE.md is guidance the model reads, not enforcement. It would make the list advisory rather than fix it."
+      },
+      {
+        "id": "C",
+        "text": "Allow rules don't restrict that mode; use dontAsk with allow and deny rules in an isolated container.",
+        "explanation": "Correct. In bypassPermissions, allow rules have no effect, though deny rules still apply. dontAsk denies anything not pre-approved, and isolation limits damage from what slips through."
+      },
+      {
+        "id": "D",
+        "text": "Switch to auto mode instead, since its classifier approves exactly the commands that the allow list names.",
+        "explanation": "Auto mode uses a classifier to review actions. It does not turn the allow list into an exclusive whitelist, so it does not enforce the intended boundary."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/permission-modes",
+      "https://code.claude.com/docs/en/permissions"
+    ]
+  },
+  {
+    "id": "q-7.2-006",
+    "skillId": "7.2",
+    "difficulty": 2,
+    "stem": "A youth-focused fan app has a written content policy: answer questions about stats, schedules and rules, and refuse betting advice. The policy currently exists only in the system prompt. Which two additions best enforce the same policy at other layers? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Screen incoming messages against the policy with a fast classifier model.",
+        "explanation": "Correct. An input screen checks the same policy before the request reaches the main model, which adds an independent layer."
+      },
+      {
+        "id": "B",
+        "text": "Check each reply against the policy before it is shown to the user.",
+        "explanation": "Correct. Output checks catch policy violations that got past the prompt and the input screen."
+      },
+      {
+        "id": "C",
+        "text": "Restate the policy in a second, longer system prompt for emphasis.",
+        "explanation": "This is still the model layer. More instructions do not add enforcement anywhere else."
+      },
+      {
+        "id": "D",
+        "text": "Give Claude a betting-odds tool so it recognizes gambling questions.",
+        "explanation": "Adding a capability the policy forbids widens what can go wrong, which is the opposite of least privilege."
+      },
+      {
+        "id": "E",
+        "text": "Rely on Claude's built-in safety training to refuse betting questions.",
+        "explanation": "General safety training doesn't encode this app's specific policy. Betting information isn't harmful in general, so the app must enforce its own rule."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks"
+    ]
+  },
+  {
+    "id": "q-7.2-007",
+    "skillId": "7.2",
+    "difficulty": 1,
+    "stem": "A league office's agent updates player contract records, and it currently runs under a shared administrator service account for every request. An audit flags this as a risk. Which two changes follow secure-by-design identity and access practice? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Give the agent its own workload identity with only the permissions it needs.",
+        "explanation": "Correct. A dedicated identity with least privilege limits what a compromised or mistaken agent can do and makes its actions traceable."
+      },
+      {
+        "id": "B",
+        "text": "Have the agent act with the requesting user's rights or narrower, checked in code.",
+        "explanation": "Correct. The agent should never be able to do more than the user it acts for, and that check must be enforced in code rather than by the model."
+      },
+      {
+        "id": "C",
+        "text": "Keep one administrator account across all agents to simplify the audit trail.",
+        "explanation": "Sharing an administrator identity maximizes the blast radius and makes it harder to attribute actions to a specific agent."
+      },
+      {
+        "id": "D",
+        "text": "Let Claude decide which permission level each incoming request deserves.",
+        "explanation": "Authorization decisions made by the model can be manipulated. Access levels must be decided by application code."
+      },
+      {
+        "id": "E",
+        "text": "Put the administrator password in the system prompt for occasional elevation.",
+        "explanation": "Secrets in the prompt can leak through output, and elevation on the model's say-so defeats least privilege."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/"
+    ]
+  }
+]

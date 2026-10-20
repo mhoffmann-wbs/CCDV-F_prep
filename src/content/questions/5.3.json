@@ -1,0 +1,298 @@
+[
+  {
+    "id": "q-5.3-001",
+    "skillId": "5.3",
+    "difficulty": 1,
+    "stem": "A stadium app routes every incoming fan message to one of six queues (tickets, parking, concessions and so on) before a human or bot handles it. It processes millions of short messages on game days, routing must add almost no delay, and evals show every tier classifies these messages accurately. Which model choice best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use the most capable tier, so routing quality stays high when unusual messages arrive.",
+        "explanation": "The evals already show every tier routes accurately. The top tier adds latency and cost without a measured gain."
+      },
+      {
+        "id": "B",
+        "text": "Use a Haiku-tier model, which is the fastest and cheapest tier for high-volume routing.",
+        "explanation": "Correct. Haiku fits classification and routing at high volume with tight latency, and the evals confirm it does the job."
+      },
+      {
+        "id": "C",
+        "text": "Use an Opus-tier model at maximum effort, so each message gets the deepest reasoning.",
+        "explanation": "Maximum effort on the larger tier adds the most latency and cost, for a task that doesn't need it."
+      },
+      {
+        "id": "D",
+        "text": "Use the tier with the largest context window, because game-day volume will be very high.",
+        "explanation": "Volume is about throughput and rate limits, not context-window size. Each message is short."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model"
+    ]
+  },
+  {
+    "id": "q-5.3-002",
+    "skillId": "5.3",
+    "difficulty": 2,
+    "stem": "A front office is building an agent that spends hours reading contracts, cap tables and scouting reports to propose multi-player trades. The task needs complex reasoning, and the team has no evals yet. They also want to keep costs reasonable once the agent works. Which strategy best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Start on the smallest tier and move up only when users complain about the trade proposals.",
+        "explanation": "Efficiency-first fits simple, high-volume work. For complex agentic reasoning, user complaints are a slow and costly way to find the capability gap."
+      },
+      {
+        "id": "B",
+        "text": "Pick the tier with the lowest price per token and keep it as long as the agent finishes its runs.",
+        "explanation": "Finishing a run isn't the same as producing good trades. Price per token ignores retries and the cost of bad output."
+      },
+      {
+        "id": "C",
+        "text": "Run every tier in production at once and let the agent choose its own model for each step.",
+        "explanation": "This multiplies cost and complexity before anything is measured, and caches don't carry across models."
+      },
+      {
+        "id": "D",
+        "text": "Start capability-first on Opus, build evals, then lower effort or tier while evals pass.",
+        "explanation": "Correct. For complex agentic work, get it working on a strong model first, then use evals to step effort or tier down where quality holds."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model"
+    ]
+  },
+  {
+    "id": "q-5.3-003",
+    "skillId": "5.3",
+    "difficulty": 2,
+    "stem": "A recap generator runs well on an Opus-tier model at its default effort, but the monthly bill is higher than planned. A team member proposes switching the whole feature to a Sonnet-tier model right away. Evals exist for the feature. What should the team try first?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Lower effort on the current model and re-run the evals to see if quality holds.",
+        "explanation": "Correct. Effort trades intelligence against latency and cost within one model, and the docs call it often a better lever than switching models. Measure it before changing tiers."
+      },
+      {
+        "id": "B",
+        "text": "Switch to the Sonnet-tier model right away, since per-token prices are lower on that tier.",
+        "explanation": "This may work, but it skips a cheaper experiment and changes many behaviors at once. Try lower effort and measure first."
+      },
+      {
+        "id": "C",
+        "text": "Cut max_tokens in half on every request so each recap uses fewer output tokens.",
+        "explanation": "A tighter hard cap risks truncated recaps and retries, which can raise cost per finished recap."
+      },
+      {
+        "id": "D",
+        "text": "Add a temperature setting of 0 so each recap is shorter and more focused.",
+        "explanation": "Temperature doesn't control length, and current models reject non-default sampling values."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "https://platform.claude.com/docs/en/build-with-claude/effort"
+    ]
+  },
+  {
+    "id": "q-5.3-004",
+    "skillId": "5.3",
+    "difficulty": 3,
+    "stem": "A team compares two tiers for drafting contract summaries. The smaller tier costs a fraction as much per token, but on the eval set about a third of its drafts fail validation and need a retry or a lawyer's fix. The larger tier rarely fails. Which approach best decides the choice?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Choose the smaller tier, because its per-token price is lower and retries are cheap anyway.",
+        "explanation": "Per-token price ignores retries, extra turns and the cost of human fixes, which may outweigh the savings."
+      },
+      {
+        "id": "B",
+        "text": "Choose the larger tier, because a more capable model is always the better choice for legal text.",
+        "explanation": "\"Always use the most capable model\" ignores cost and latency. The choice should come from measurement."
+      },
+      {
+        "id": "C",
+        "text": "Compare the cost per completed, validated summary for each tier, including retries and human fixes.",
+        "explanation": "Correct. Judge models by cost per completed task, including retries, extra turns and failure handling, not by price per token."
+      },
+      {
+        "id": "D",
+        "text": "Choose whichever tier has the larger context window, since contracts can be long documents.",
+        "explanation": "Context window size doesn't address the failure rate. Both tiers may fit the documents."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "https://platform.claude.com/docs/en/about-claude/pricing"
+    ]
+  },
+  {
+    "id": "q-5.3-005",
+    "skillId": "5.3",
+    "difficulty": 2,
+    "stem": "A team moves an older Haiku 4.5 integration to the newest Haiku model. The old code sends temperature 0.2 and ends the messages with an assistant turn containing \"{\" to force JSON output. Both now cause 400 errors. Which two changes should they make? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Remove the temperature setting and steer consistency with instructions and examples.",
+        "explanation": "Correct. Current models reject non-default sampling values. Prompting, examples and validation replace them."
+      },
+      {
+        "id": "B",
+        "text": "Add a date suffix to the model ID so the request pins the older request behavior.",
+        "explanation": "A model ID selects a model; it doesn't restore old request rules. The newest model still rejects these parameters."
+      },
+      {
+        "id": "C",
+        "text": "Keep the prefill but shorten it to a single space so validation accepts it.",
+        "explanation": "Any final assistant turn used as a prefill is rejected on current models, whatever its content."
+      },
+      {
+        "id": "D",
+        "text": "Replace the prefill with structured outputs that enforce the JSON schema.",
+        "explanation": "Correct. Structured outputs guarantee schema-valid JSON, which is what the prefill was approximating."
+      },
+      {
+        "id": "E",
+        "text": "Raise temperature to 1.0 so the request falls back to the older defaults.",
+        "explanation": "Sending sampling parameters is what triggers the error. The fix is to remove them, not to change the value."
+      }
+    ],
+    "correct": [
+      "A",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide",
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-5.3-006",
+    "skillId": "5.3",
+    "difficulty": 2,
+    "stem": "A broadcaster's compliance lead worries that because their code uses a model ID without a date, Anthropic could silently swap in a new model and change recap behavior mid-season. Which statement best addresses the concern?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The ID refers to a fixed snapshot; behavior changes when they change the ID, so track deprecation dates.",
+        "explanation": "Correct. Model IDs are pinned snapshots, not moving pointers. Nothing changes until the team changes the ID, but they must plan for the model's retirement date."
+      },
+      {
+        "id": "B",
+        "text": "The ID always points to the latest release, so they should add a date suffix to pin it in place.",
+        "explanation": "Current IDs aren't moving aliases, and constructing date suffixes for current models isn't valid."
+      },
+      {
+        "id": "C",
+        "text": "The ID is updated weekly, so they should run evals every Monday to catch behavior changes.",
+        "explanation": "No weekly swap happens. Evals belong at deliberate upgrade points."
+      },
+      {
+        "id": "D",
+        "text": "The ID never retires, so the team can keep the same model for as long as the product exists.",
+        "explanation": "Models are deprecated and retired on published schedules. Ignoring retirement dates risks an outage."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/models/overview",
+      "https://platform.claude.com/docs/en/about-claude/model-deprecations"
+    ]
+  },
+  {
+    "id": "q-5.3-007",
+    "skillId": "5.3",
+    "difficulty": 3,
+    "stem": "A league data team plans to move its player-comparison feature to a newer model release next month. Which two steps belong in a safe upgrade plan? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Reuse the old effort setting unchanged, since effort levels mean the same thing across releases.",
+        "explanation": "Effort defaults differ between models and levels can be recalibrated between releases, so the old setting may behave differently."
+      },
+      {
+        "id": "B",
+        "text": "Skip evals if the new model is in the same tier, since same-tier releases behave identically.",
+        "explanation": "Releases within a tier change defaults, parameters and behavior. Evals are how you find out."
+      },
+      {
+        "id": "C",
+        "text": "Recount tokens with the new model and revisit max_tokens limits and cost estimates.",
+        "explanation": "Correct. A newer tokenizer can produce more tokens for the same text, which affects caps and budgets."
+      },
+      {
+        "id": "D",
+        "text": "Keep the old request code as is, since API parameters don't change between model releases.",
+        "explanation": "Releases have removed options such as sampling parameters, prefill and thinking budgets. Request shapes must be checked against the migration guide."
+      },
+      {
+        "id": "E",
+        "text": "Re-run the evals and re-tune effort starting from the new model's default level.",
+        "explanation": "Correct. A safe upgrade reads the migration guide, updates request shapes, then measures quality and re-tunes effort on the new model."
+      }
+    ],
+    "correct": [
+      "C",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
+    ]
+  },
+  {
+    "id": "q-5.3-008",
+    "skillId": "5.3",
+    "difficulty": 1,
+    "stem": "A developer needs to know which models available to the organization support adaptive thinking and image input before choosing one for a new scouting feature. A blog post from last year lists some models. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use the list from last year's blog post, since model capabilities don't change after release.",
+        "explanation": "New models arrive and old ones retire. A year-old list can be wrong about what's available."
+      },
+      {
+        "id": "B",
+        "text": "Send a test request to each model with every feature enabled and see which ones fail.",
+        "explanation": "Trial and error wastes calls and confuses capability gaps with other errors."
+      },
+      {
+        "id": "C",
+        "text": "Query the Models API, which reports each model's capabilities, and check the models overview.",
+        "explanation": "Correct. The Models API returns current models with their capabilities, so the choice rests on live data rather than memory."
+      },
+      {
+        "id": "D",
+        "text": "Assume all models support every feature, since all current models share one request format.",
+        "explanation": "Older models, such as Haiku 4.5, support only the fixed-budget thinking mode. Support varies by model."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/models/overview"
+    ]
+  }
+]

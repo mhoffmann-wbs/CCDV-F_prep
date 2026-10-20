@@ -1,0 +1,297 @@
+[
+  {
+    "id": "q-4.1-001",
+    "skillId": "4.1",
+    "difficulty": 1,
+    "stem": "A Pick'em app moved from Claude Opus 4.8 to Claude Opus 5.5 and kept its old request body, including thinking set to disabled. Every request now fails with a 400 saying that thinking.type.disabled is not supported, and the client retries each one three times. What should the team do?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Raise max_retries to five so that more of the requests eventually get through.",
+        "explanation": "A 400 fails the same way on every attempt. Extra retries only add load and delay."
+      },
+      {
+        "id": "B",
+        "text": "Switch the retries to exponential backoff with jitter to spread the retry load out.",
+        "explanation": "Backoff is for transient errors such as 429 and 529. This request is invalid and never succeeds."
+      },
+      {
+        "id": "C",
+        "text": "Open a support ticket with the request ID before changing anything in the code.",
+        "explanation": "The message already names the invalid field. This is a request bug the team can fix right away."
+      },
+      {
+        "id": "D",
+        "text": "Remove the thinking setting, control depth through effort, and stop retrying 400s.",
+        "explanation": "Correct. Claude Opus 5.5 can't turn thinking off, so the request must change. Treat 400s as fix-the-request errors, not retryable ones."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  },
+  {
+    "id": "q-4.1-002",
+    "skillId": "4.1",
+    "difficulty": 2,
+    "stem": "Late in the month, every request from a company's internal assistant starts failing with 429 rate_limit_error. The responses carry no retry-after header, and the failures continue for hours despite exponential backoff and low traffic. What is the most likely cause, and the right response?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The API is overloaded for all users; keep backing off until capacity recovers again.",
+        "explanation": "General overload shows up as 529 overloaded_error and clears with backoff. This is a 429 that persists at low traffic."
+      },
+      {
+        "id": "B",
+        "text": "The org hit its tier's monthly spend cap; check the Console and stop retrying.",
+        "explanation": "Correct. A spend-cap 429 has no retry-after and keeps failing until access resumes, so backoff can't fix it."
+      },
+      {
+        "id": "C",
+        "text": "The API key was revoked; rotate the key and redeploy the assistant.",
+        "explanation": "A revoked or invalid key returns 401 authentication_error, not a 429."
+      },
+      {
+        "id": "D",
+        "text": "Requests are too large; split prompts into smaller chunks and retry.",
+        "explanation": "Oversized requests return 413 request_too_large. Splitting prompts wouldn't change a 429 at low traffic."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors",
+      "https://platform.claude.com/docs/en/api/rate-limits"
+    ]
+  },
+  {
+    "id": "q-4.1-003",
+    "skillId": "4.1",
+    "difficulty": 1,
+    "stem": "A Pick'em bot sometimes replies \"I don't have information about this week's opponent.\" The trace for one such request shows that the rendered prompt reads \"Opponent: \" with nothing after it, even though the template has an {{opponent}} placeholder. Where is the problem, and what is the fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Model output: add few-shot examples showing how to answer when an opponent is named.",
+        "explanation": "Claude answered correctly given what it saw. Examples can't supply data that never reached the prompt."
+      },
+      {
+        "id": "B",
+        "text": "Model output: add \"ALWAYS identify the opponent\" in capitals to the system prompt.",
+        "explanation": "Insisting would push Claude to guess an opponent, which is worse than the honest answer it gave."
+      },
+      {
+        "id": "C",
+        "text": "Integration: find why the template variable is empty and fix the data feed or rendering.",
+        "explanation": "Correct. The decisive question is whether the input Claude saw was correct. Here it wasn't, so the bug is in the application layer."
+      },
+      {
+        "id": "D",
+        "text": "Model output: switch to a more capable model that can infer the opponent from the context.",
+        "explanation": "No model can reliably know a missing fact. The fix belongs in the data pipeline."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-4.1-004",
+    "skillId": "4.1",
+    "difficulty": 2,
+    "stem": "A claims-processing team keeps struggling to explain bad answers reported days later. They are redesigning per-call logging for their Claude integration. Which items are most valuable to record for each call? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "The full API key used for the call, so failures can be reproduced exactly.",
+        "explanation": "Logging secrets is a security risk, and the key isn't needed to diagnose a request."
+      },
+      {
+        "id": "B",
+        "text": "Only the final text shown to the user, to keep log storage small.",
+        "explanation": "Without the input and metadata, nobody can tell whether the request or the model went wrong."
+      },
+      {
+        "id": "C",
+        "text": "The request ID from the request-id header or the error body.",
+        "explanation": "Correct. Every response carries a request ID, and support needs it to investigate a specific call."
+      },
+      {
+        "id": "D",
+        "text": "The temperature value, as the main cause of variable answers.",
+        "explanation": "Current models reject non-default sampling parameters, so this is not a useful diagnostic field."
+      },
+      {
+        "id": "E",
+        "text": "The full rendered request, plus stop_reason, usage and tool calls.",
+        "explanation": "Correct. Seeing exactly what Claude received and why it stopped lets you replay the call and tell integration bugs from output problems."
+      }
+    ],
+    "correct": [
+      "C",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  },
+  {
+    "id": "q-4.1-005",
+    "skillId": "4.1",
+    "difficulty": 3,
+    "stem": "A live game-day chat streams Claude's replies. During peak traffic, some replies stop mid-sentence. The logs show HTTP 200 for these calls, no exception, and no recorded stop_reason. The stream consumer only handles text deltas. What is the most likely gap?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The consumer ignores SSE error events that can arrive after a 200, such as an overload.",
+        "explanation": "Correct. When streaming, an error can arrive mid-stream after the 200. Handle error events in the consumer and retry the transient ones."
+      },
+      {
+        "id": "B",
+        "text": "max_tokens is too low; raise it so the replies have room to finish.",
+        "explanation": "A token-limit stop ends normally with stop_reason max_tokens. Here, no stop reason was recorded at all."
+      },
+      {
+        "id": "C",
+        "text": "Streaming is unreliable; switch to non-streaming requests with very large max_tokens.",
+        "explanation": "Long non-streaming requests risk timeouts, which is why streaming is recommended. The fix is to handle the stream's errors."
+      },
+      {
+        "id": "D",
+        "text": "The prompt should tell Claude to always finish its sentences before stopping.",
+        "explanation": "This isn't a model-output problem. The stream ended on an error that the code never read."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors",
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-4.1-006",
+    "skillId": "4.1",
+    "difficulty": 2,
+    "stem": "An inventory agent's second request fails with a 400: \"tool_use ids were found without tool_result blocks immediately after\". The trace shows that the harness sends a user message \"Here are the results:\" followed by a separate user message containing the tool_result blocks. What should be fixed?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The prompt: tell Claude to wait for all results before it makes another tool call.",
+        "explanation": "This is a request-structure error from the API, not a model behavior. No prompt change affects it."
+      },
+      {
+        "id": "B",
+        "text": "The retry policy: back off and resend, since 400s during tool loops are often transient.",
+        "explanation": "400s are not transient. The same malformed history fails every time."
+      },
+      {
+        "id": "C",
+        "text": "The harness: put the tool_result blocks first in the next user message, text after them.",
+        "explanation": "Correct. Tool results must immediately follow their tool_use blocks and come first in the user message's content."
+      },
+      {
+        "id": "D",
+        "text": "The tool settings: turn on disable_parallel_tool_use so that there is only one result to place.",
+        "explanation": "Even a single result has to come first. The harness ordering is the bug."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"
+    ]
+  },
+  {
+    "id": "q-4.1-007",
+    "skillId": "4.1",
+    "difficulty": 3,
+    "stem": "A research agent's harness appends a text block saying \"Please continue.\" after the tool_result blocks in every user message. Increasingly, Claude replies with an empty response and stop_reason end_turn right after receiving tool results. Which change best addresses the root cause?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Retry each empty response unchanged until Claude produces some text.",
+        "explanation": "Retrying the same request repeats the pattern. The docs advise against resending an empty response unchanged."
+      },
+      {
+        "id": "B",
+        "text": "Make the appended text more forceful, such as \"You MUST continue now.\"",
+        "explanation": "The appended text is itself the cause. Making it louder doesn't remove it."
+      },
+      {
+        "id": "C",
+        "text": "Raise max_tokens, because an empty reply means the output limit was hit.",
+        "explanation": "A token-limit stop is reported as max_tokens, not as end_turn with no content."
+      },
+      {
+        "id": "D",
+        "text": "Send the tool_result blocks on their own, with no text added after them.",
+        "explanation": "Correct. Text right after tool results teaches Claude to expect user input and end its turn. Send the results alone."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons"
+    ]
+  },
+  {
+    "id": "q-4.1-008",
+    "skillId": "4.1",
+    "difficulty": 2,
+    "stem": "A fantasy-league assistant's incident log lists five problems. Which ones point to the model's output, to be fixed with prompt, examples, schema or validation, rather than to the integration layer? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "The trace shows correct stats in the prompt and a 200 end_turn, but the ranking contradicts them.",
+        "explanation": "Correct. Claude saw the right input and the call succeeded, so the error is in the output. Improve the prompt and add a semantic check."
+      },
+      {
+        "id": "B",
+        "text": "A 400 invalid_request_error names tool_choice after the team upgraded to Claude Sonnet 5.5.",
+        "explanation": "An error naming a field is an integration problem: the request uses forced tool_choice, which the model rejects."
+      },
+      {
+        "id": "C",
+        "text": "The injury tool returned last week's report, and Claude repeated that stale status.",
+        "explanation": "Claude reported what the tool gave it. The data feed is the bug."
+      },
+      {
+        "id": "D",
+        "text": "Inputs were correct and calls returned end_turn, but summaries drift from the requested format.",
+        "explanation": "Correct. Valid input with off-format content is a model-output issue: tighten format instructions, add examples, or use structured outputs."
+      },
+      {
+        "id": "E",
+        "text": "Requests fail with 404 not_found_error after a model ID was typed with a dot.",
+        "explanation": "A wrong model ID is a configuration error in the request, not a problem with the model's answers."
+      }
+    ],
+    "correct": [
+      "A",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors",
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  }
+]

@@ -35,5 +35,407 @@
       "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542875%2FClaude+Certified+Developer+%E2%80%93+Foundations+Exam+Guide.pdf",
       "https://modelcontextprotocol.io/docs/learn/architecture"
     ]
+  },
+  {
+    "id": "q-8.3-001",
+    "skillId": "8.3",
+    "difficulty": 1,
+    "stem": "A broadcast research team pastes the same twelve-step procedure for building a pregame stat package into Claude Code every week. All the data already lives in the repository, so no new system access is needed. They want the procedure available on demand without loading it into every session. Which approach fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Build an MCP server that exposes each of the twelve steps as its own tool.",
+        "explanation": "MCP adds access to external systems. Nothing external is involved here, so a server adds code and deployment work without giving Claude anything it lacks."
+      },
+      {
+        "id": "B",
+        "text": "Paste the procedure into CLAUDE.md so that it is present in every session.",
+        "explanation": "CLAUDE.md loads in full every session, which is the opposite of the on-demand requirement. A procedure needed only sometimes belongs in a Skill."
+      },
+      {
+        "id": "C",
+        "text": "Capture the procedure as a Skill that loads when the task comes up or is invoked.",
+        "explanation": "Correct. Skills package reusable workflows. Only their name and description load up front, and the body loads when the task matches or a user invokes it."
+      },
+      {
+        "id": "D",
+        "text": "Define a custom tool whose description field holds the full twelve-step procedure.",
+        "explanation": "A tool description is meant to explain a callable capability, not to carry a playbook. It would also be sent with every request that includes the tool."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/features-overview",
+      "https://code.claude.com/docs/en/skills"
+    ]
+  },
+  {
+    "id": "q-8.3-002",
+    "skillId": "8.3",
+    "difficulty": 1,
+    "stem": "A sports-news app built on the Claude API must answer questions about trades announced in the last hour, using public web sources with citations. An engineer plans to write and maintain a custom scraping tool for this. What should the team do instead?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Enable the built-in web search tool instead of building and maintaining a scraper.",
+        "explanation": "Correct. The web search server tool gives Claude current web content with cited sources, so a generic need like this does not justify custom code."
+      },
+      {
+        "id": "B",
+        "text": "Build the scraper anyway, because server tools can only search Anthropic-hosted data.",
+        "explanation": "The web search tool searches the public web. Building a custom tool for a job a built-in already does just adds code to maintain."
+      },
+      {
+        "id": "C",
+        "text": "Upload a Skill with a scraping script, since API Skills can reach the open internet.",
+        "explanation": "Skills on the API run in a code-execution container with no network access, so a scraping script there cannot fetch anything."
+      },
+      {
+        "id": "D",
+        "text": "Load yesterday's headlines into the system prompt and let Claude infer today's news.",
+        "explanation": "Old headlines cannot reveal trades announced in the last hour. The requirement is live access, which pasted context cannot provide."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview"
+    ]
+  },
+  {
+    "id": "q-8.3-003",
+    "skillId": "8.3",
+    "difficulty": 2,
+    "stem": "An insurance company uploads a custom Skill that formats claim summaries, and references its skill_id in the container parameter of Messages API requests. The requests do not include any other tools, and the Skill is never applied. What is the most likely fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Upload the same Skill on claude.ai so that it syncs to the API workspace.",
+        "explanation": "Custom Skills do not sync between surfaces, and the API copy is already uploaded. Another upload elsewhere changes nothing here."
+      },
+      {
+        "id": "B",
+        "text": "Set disable-model-invocation to false in the Skill's frontmatter.",
+        "explanation": "That is a Claude Code frontmatter field, and false is already its default. It does not affect how the API runs Skills."
+      },
+      {
+        "id": "C",
+        "text": "Copy the Skill's instructions into the system prompt of each request.",
+        "explanation": "This might approximate the behavior, but it gives up progressive disclosure and any bundled scripts, and it does not fix the missing prerequisite."
+      },
+      {
+        "id": "D",
+        "text": "Add the code execution tool to the request so the Skill has a container.",
+        "explanation": "Correct. Skills on the API run inside the code execution tool's container, so requests that use Skills must include that tool."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview"
+    ]
+  },
+  {
+    "id": "q-8.3-004",
+    "skillId": "8.3",
+    "difficulty": 2,
+    "stem": "A fantasy platform's single back-end service needs Claude to call calc_projected_points, a function that already lives in the same codebase. No other application will use it, and the team already runs its own tool-use loop. Which approach is most appropriate?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Stand up a separate MCP server so the function can be deployed on its own.",
+        "explanation": "MCP pays off when several apps share a capability or another team owns it. With one app and one owner, it adds a service to run for no benefit."
+      },
+      {
+        "id": "B",
+        "text": "Define a custom tool with a JSON Schema and run it in the existing loop.",
+        "explanation": "Correct. One app needing one specific capability that it owns is the classic case for a custom tool executed in the application's own loop."
+      },
+      {
+        "id": "C",
+        "text": "Write a Skill that explains the formula so Claude computes points itself.",
+        "explanation": "Skills add know-how, not access to your code. Having Claude reproduce the calculation risks drift from the real function the service already has."
+      },
+      {
+        "id": "D",
+        "text": "Use the code execution tool to import the function from the repository.",
+        "explanation": "The code execution container is a sandbox on Anthropic's side. It cannot import modules from your private codebase."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview"
+    ]
+  },
+  {
+    "id": "q-8.3-005",
+    "skillId": "8.3",
+    "difficulty": 2,
+    "stem": "A retailer's data-platform team owns a sales warehouse that three different Claude applications must query. Analysts also report that Claude writes poor SQL because it doesn't know the team's table naming and join conventions. Which design addresses both problems?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Three custom tools, one per application, each with the conventions in its prompt.",
+        "explanation": "Duplicating the integration in three apps gives up a single, independently maintained implementation, and the conventions drift across three prompts."
+      },
+      {
+        "id": "B",
+        "text": "A Skill holding the warehouse credentials and query scripts for all three apps.",
+        "explanation": "Credentials never belong in a Skill, and a Skill does not give live access to a private warehouse. It is the right home for know-how, not for the connection."
+      },
+      {
+        "id": "C",
+        "text": "An MCP server for warehouse access, plus a Skill documenting schema and query patterns.",
+        "explanation": "Correct. MCP gives every app one shared, team-owned connection, and a Skill teaches Claude how to use it well. Combining the two is the recommended pattern."
+      },
+      {
+        "id": "D",
+        "text": "A long CLAUDE.md listing every table, which each application loads at startup.",
+        "explanation": "CLAUDE.md is a Claude Code memory file, not a way to connect API apps to a warehouse. It also loads in full every session, whether or not SQL is needed."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/features-overview",
+      "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture"
+    ]
+  },
+  {
+    "id": "q-8.3-006",
+    "skillId": "8.3",
+    "difficulty": 1,
+    "stem": "A stadium-operations team uses Claude Code in a repository that can run database migrations. Leadership requires that Claude never runs the migration command against the production database, with no exceptions. Someone suggests writing a safe-migrations Skill. Which extension actually meets the requirement?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A PreToolUse hook that blocks the production migration command before it runs.",
+        "explanation": "Correct. Hooks fire deterministically on every matching event, and a PreToolUse hook can block the call. A rule that must always hold belongs in a hook, not in instructions."
+      },
+      {
+        "id": "B",
+        "text": "A Skill whose description says it applies to every database migration task.",
+        "explanation": "A Skill is instructions that Claude interprets and might not load or follow. It is guidance, not enforcement."
+      },
+      {
+        "id": "C",
+        "text": "A rule written in capital letters at the very top of the project's CLAUDE.md.",
+        "explanation": "CLAUDE.md content is context Claude reads, so it is a request rather than a guarantee, however it is formatted."
+      },
+      {
+        "id": "D",
+        "text": "A dedicated migrations subagent with its own system prompt forbidding production.",
+        "explanation": "A subagent isolates context, but its system prompt is still an instruction. Nothing outside the model stops the command."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/features-overview",
+      "https://code.claude.com/docs/en/hooks"
+    ]
+  },
+  {
+    "id": "q-8.3-007",
+    "skillId": "8.3",
+    "difficulty": 3,
+    "stem": "A league-operations assistant on the Messages API sends 60 custom tool definitions with every request, although a typical request uses three or four. Input-token costs are rising and Claude increasingly picks the wrong tool. The team needs all 60 tools to stay available. Which change best addresses both problems?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Merge the 60 tools into one generic tool that accepts free-form instructions.",
+        "explanation": "A catch-all tool throws away the schemas that make tool calls precise and moves the selection problem into your own code."
+      },
+      {
+        "id": "B",
+        "text": "Move the tool definitions into a Skill so they load only when it triggers.",
+        "explanation": "Skills package instructions and scripts. They don't hold API tool definitions for your own tool-use loop, so this doesn't reduce what each request sends."
+      },
+      {
+        "id": "C",
+        "text": "Set temperature to 0 so that Claude chooses among the tools consistently.",
+        "explanation": "Current models reject non-default sampling parameters, and sampling settings would not shrink the tool definitions sent on every request."
+      },
+      {
+        "id": "D",
+        "text": "Keep a small core set loaded and defer the rest so tool search loads them on demand.",
+        "explanation": "Correct. With the tool search tool, deferred definitions load only when needed. That cuts context use and keeps selection accurate while all 60 tools stay available."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool"
+    ]
+  },
+  {
+    "id": "q-8.3-008",
+    "skillId": "8.3",
+    "difficulty": 2,
+    "stem": "A team's publish-depth-chart Skill runs a script that pushes roster changes to the club's public website. Last week Claude triggered it on its own when a coach only asked to review the depth chart. The team wants to keep the Skill but make sure it runs only when a person deliberately starts it. What should they change?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Make the Skill's description vaguer so that it matches fewer requests.",
+        "explanation": "A vaguer description makes matching less predictable, not safe. Claude could still invoke the Skill automatically."
+      },
+      {
+        "id": "B",
+        "text": "Set disable-model-invocation: true in the Skill's frontmatter.",
+        "explanation": "Correct. This field stops Claude from loading the Skill automatically, so it runs only when someone invokes it by name. The docs recommend it for workflows with side effects."
+      },
+      {
+        "id": "C",
+        "text": "Move the publish script into CLAUDE.md so Claude always sees the risk.",
+        "explanation": "Putting the procedure into always-loaded context makes it more prominent and does nothing to stop automatic use."
+      },
+      {
+        "id": "D",
+        "text": "Add the publish script to allowed-tools in the Skill's frontmatter.",
+        "explanation": "allowed-tools pre-approves tools while the Skill is active. That removes a safety prompt instead of adding one."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/skills"
+    ]
+  },
+  {
+    "id": "q-8.3-009",
+    "skillId": "8.3",
+    "difficulty": 3,
+    "stem": "A media company's Skill works well in Claude Code from the repository's .claude/skills folder. The team expects it to appear automatically in their Claude API application, and it doesn't. After they upload it to the API, its script, which calls an external stats service, fails. Which explanation covers both problems?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Skills sync between surfaces only after an admin turns on organization-wide sharing.",
+        "explanation": "There is no sharing switch that syncs Skills. Custom Skills are uploaded or installed separately on each surface, and this does not explain the failing network call."
+      },
+      {
+        "id": "B",
+        "text": "The Skill's name must carry a workspace prefix before other surfaces can discover it.",
+        "explanation": "No naming prefix controls availability across surfaces, and a name change would not let the script reach an external service."
+      },
+      {
+        "id": "C",
+        "text": "Custom Skills don't sync across surfaces, and API Skills run without network access.",
+        "explanation": "Correct. Each surface needs its own upload or install, and Skills on the API run in a code-execution container that cannot make external calls."
+      },
+      {
+        "id": "D",
+        "text": "The Skill's metadata exceeds the token budget, so other surfaces skip loading it.",
+        "explanation": "Metadata size does not explain why the Skill is missing from the API before upload, and it does not explain a failed outbound request."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview"
+    ]
+  },
+  {
+    "id": "q-8.3-010",
+    "skillId": "8.3",
+    "difficulty": 2,
+    "stem": "A platform team is extending Claude Code for 40 engineers. They need to add a large library of internal reference guides and connections to six internal services, while keeping the context each session uses at startup small. Which two choices meet both goals? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Package the reference guides as Skills, which load only their descriptions at startup.",
+        "explanation": "Correct. Skills use progressive disclosure: name and description load up front, and the body and bundled files load only when needed."
+      },
+      {
+        "id": "B",
+        "text": "Connect the services as MCP servers and rely on tool search to load schemas on demand.",
+        "explanation": "Correct. In Claude Code, tool search is on by default, so MCP tool definitions load when needed instead of all at startup."
+      },
+      {
+        "id": "C",
+        "text": "Move all the reference guides into CLAUDE.md, which is cached between sessions.",
+        "explanation": "CLAUDE.md loads in full into every session, so a large library there inflates startup context. That is the reverse of the goal."
+      },
+      {
+        "id": "D",
+        "text": "Ask engineers to paste the relevant guide into the prompt whenever they need it.",
+        "explanation": "This keeps startup context small but is manual and inconsistent. It does not package the library or connect any service."
+      },
+      {
+        "id": "E",
+        "text": "Turn the reference guides into hooks, which add nothing to context without output.",
+        "explanation": "Hooks run code at lifecycle events. They don't give Claude reference knowledge to apply, so they cannot replace the guides."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/features-overview",
+      "https://code.claude.com/docs/en/mcp"
+    ]
+  },
+  {
+    "id": "q-8.3-011",
+    "skillId": "8.3",
+    "difficulty": 2,
+    "stem": "A stadium's gate-operations team found a third-party Skill and a companion MCP server on a public marketplace that would automate ticket scanning reports. Both include scripts that will run with the team's access. Which two precautions are most appropriate before adopting them? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Audit the bundled scripts and any network calls they make before installing.",
+        "explanation": "Correct. The docs advise reviewing every file in a Skill for unexpected network calls or file access that don't match its stated purpose."
+      },
+      {
+        "id": "B",
+        "text": "Install them only from a source the team trusts, treating them like software.",
+        "explanation": "Correct. Skills and MCP servers run code with your access, so they deserve the same trust decision as any software you install."
+      },
+      {
+        "id": "C",
+        "text": "Rely on the Skill's description field to confirm that it behaves safely.",
+        "explanation": "The description is written by the author to help Claude match tasks. It is not evidence about what the scripts actually do."
+      },
+      {
+        "id": "D",
+        "text": "Put the ticketing API key in SKILL.md so the scripts can authenticate.",
+        "explanation": "Secrets in a Skill file are visible to the model and to anyone with the file. Credentials belong in the environment or a secrets manager."
+      },
+      {
+        "id": "E",
+        "text": "Run the session in bypassPermissions so the scripts never stall on prompts.",
+        "explanation": "Removing permission prompts for untrusted code widens the damage it could do. That increases risk instead of reducing it."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview"
+    ]
   }
 ]

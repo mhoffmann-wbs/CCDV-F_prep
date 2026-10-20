@@ -1,0 +1,220 @@
+[
+  {
+    "id": "q-7.3-001",
+    "skillId": "7.3",
+    "difficulty": 1,
+    "stem": "A team using Claude Code on a ticketing service must guarantee that Claude never modifies the repository's .env file through its file-editing tools, whatever a prompt or document says. Which control meets this requirement?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A PreToolUse hook on Edit|Write that denies any call whose file_path is .env.",
+        "explanation": "Correct. PreToolUse runs before the tool and can block it deterministically. The matcher selects the tools, and the script checks tool_input.file_path."
+      },
+      {
+        "id": "B",
+        "text": "A rule in CLAUDE.md stating that .env must never be edited under any circumstances.",
+        "explanation": "CLAUDE.md is context that Claude interprets. It is a request, not a guarantee."
+      },
+      {
+        "id": "C",
+        "text": "A PostToolUse hook on Edit|Write that restores .env from Git after each edit.",
+        "explanation": "PostToolUse runs after the edit has already happened. Restoring afterwards is cleanup, not prevention, and the edit was still made."
+      },
+      {
+        "id": "D",
+        "text": "A Skill describing the team's environment-file conventions and their risks.",
+        "explanation": "A Skill is instructions Claude may or may not load and follow. It cannot enforce a rule."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/hooks-guide",
+      "https://code.claude.com/docs/en/features-overview"
+    ]
+  },
+  {
+    "id": "q-7.3-002",
+    "skillId": "7.3",
+    "difficulty": 1,
+    "stem": "A developer writes a PreToolUse command hook for Bash that detects git push --force, prints a warning, and exits with code 1. In testing, the forced push still goes through. What explains this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "PreToolUse hooks can observe Bash calls, but they are not able to block them.",
+        "explanation": "PreToolUse is the event designed for blocking tool calls, including Bash. The problem is how the hook signals its decision."
+      },
+      {
+        "id": "B",
+        "text": "The warning has to go to stdout instead of stderr for the block to take effect.",
+        "explanation": "For a blocking exit, the reason goes on stderr. Where the warning was printed doesn't matter when the exit code doesn't block."
+      },
+      {
+        "id": "C",
+        "text": "Only exit code 2 blocks; other non-zero codes are non-blocking errors by default.",
+        "explanation": "Correct. Exit 2 is the blocking error. Any other non-zero code is treated as a non-blocking error by default, so the action proceeds."
+      },
+      {
+        "id": "D",
+        "text": "The hook must be registered under PostToolUse in order to see Bash commands.",
+        "explanation": "PostToolUse runs after the command, so it could never stop the push. PreToolUse is the right event."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/hooks"
+    ]
+  },
+  {
+    "id": "q-7.3-003",
+    "skillId": "7.3",
+    "difficulty": 2,
+    "stem": "A team protects a secrets/ directory with a PreToolUse hook whose matcher is Write|Edit and whose script denies paths under secrets/. Later they find that Claude created secrets/keys.txt by running a shell command that redirected echo output into the file. How should they close the gap?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Change the matcher to secrets/* so that it matches the protected path directly.",
+        "explanation": "Matchers filter on tool names, not file paths, so this pattern would match no tool and the hook would stop firing."
+      },
+      {
+        "id": "B",
+        "text": "Add a PostToolUse hook on Bash that immediately deletes any new file that appears under secrets/.",
+        "explanation": "This reacts after the write has happened. It is cleanup, not prevention, and the command may have done more than create a file."
+      },
+      {
+        "id": "C",
+        "text": "Add a note to CLAUDE.md telling Claude to use Edit rather than Bash for files.",
+        "explanation": "An instruction can be ignored or overridden by injected content. It doesn't enforce anything on the Bash path."
+      },
+      {
+        "id": "D",
+        "text": "Extend protection to the Bash tool too, for example with a Bash hook or sandbox write limits.",
+        "explanation": "Correct. A Write|Edit matcher never sees Bash calls, so shell writes need their own control, such as a Bash PreToolUse hook or filesystem limits in a sandbox."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/hooks",
+      "https://code.claude.com/docs/en/sandboxing"
+    ]
+  },
+  {
+    "id": "q-7.3-004",
+    "skillId": "7.3",
+    "difficulty": 2,
+    "stem": "A scouting-report agent built with the Agent SDK may write files only under reports/. When it tries to write anywhere else, the team wants the write stopped and Claude told why, so it can retry in the right folder on its own. Which hook design fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A PostToolUse callback that moves any misplaced report into reports/ afterwards.",
+        "explanation": "The write has already happened by the time PostToolUse runs, so the file briefly existed in the wrong place and Claude gets no clear signal to change its approach."
+      },
+      {
+        "id": "B",
+        "text": "A PreToolUse callback that returns a deny decision with a reason naming reports/.",
+        "explanation": "Correct. A PreToolUse deny stops the call before it runs, and permissionDecisionReason tells Claude why so it can adjust and retry correctly."
+      },
+      {
+        "id": "C",
+        "text": "A Stop hook that refuses to end the session until every file is under reports/.",
+        "explanation": "A Stop hook fires when Claude tries to finish. The stray writes would already have happened."
+      },
+      {
+        "id": "D",
+        "text": "A SessionStart hook that reminds Claude of the folder rule at the start.",
+        "explanation": "Context added at session start is a reminder, not enforcement. Nothing would stop a write outside reports/."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/hooks"
+    ]
+  },
+  {
+    "id": "q-7.3-005",
+    "skillId": "7.3",
+    "difficulty": 3,
+    "stem": "To cut prompts, a developer adds a PreToolUse hook that returns permissionDecision \"allow\" for every npm command. The organization's managed settings contain a deny rule for npm publish. Claude then tries to run npm publish in the developer's session. What happens?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The hook's allow wins, because PreToolUse hooks run before the permission rules.",
+        "explanation": "Hooks do run first, but a hook's decision doesn't bypass permission rules. Deny rules are still evaluated."
+      },
+      {
+        "id": "B",
+        "text": "Claude Code asks the developer to choose between the hook and the managed rule.",
+        "explanation": "There is no conflict-resolution prompt. Deny-first precedence decides the outcome."
+      },
+      {
+        "id": "C",
+        "text": "The deny rule still blocks the command, because a hook's allow can't override it.",
+        "explanation": "Correct. Deny and ask rules are evaluated regardless of what a PreToolUse hook returns, so a matching deny rule, including one in managed settings, blocks the call."
+      },
+      {
+        "id": "D",
+        "text": "The command runs, and a PostToolUse hook is needed to record the policy conflict.",
+        "explanation": "The command never runs, so there is nothing for a PostToolUse hook to see."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/permissions"
+    ]
+  },
+  {
+    "id": "q-7.3-006",
+    "skillId": "7.3",
+    "difficulty": 2,
+    "stem": "An infrastructure team wants Claude Code to be unable to run terraform destroy in their shared repository, and the protection must apply to every teammate who clones it, not only to the engineer who sets it up. Which two choices together achieve this? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "A PreToolUse hook on Bash that exits 2 with a reason on stderr when it sees terraform destroy.",
+        "explanation": "Correct. Exit code 2 from a PreToolUse hook blocks the call before it runs, and stderr gives Claude the reason."
+      },
+      {
+        "id": "B",
+        "text": "Register the hook in .claude/settings.json and commit that file to the repository.",
+        "explanation": "Correct. Project settings in .claude/settings.json are shared through version control, so every teammate gets the hook."
+      },
+      {
+        "id": "C",
+        "text": "A PostToolUse hook on Bash that posts an alert to the team's channel after a destroy.",
+        "explanation": "PostToolUse runs after the command. The alert arrives once the infrastructure is already gone."
+      },
+      {
+        "id": "D",
+        "text": "Register the hook in .claude/settings.local.json so it stays with the repository.",
+        "explanation": "settings.local.json is gitignored and personal, so teammates who clone the repository would not get the hook."
+      },
+      {
+        "id": "E",
+        "text": "A PreToolUse hook on Bash that exits 1 with a warning when it sees terraform destroy.",
+        "explanation": "Exit code 1 is a non-blocking error by default, so the command would still run."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/hooks"
+    ]
+  }
+]

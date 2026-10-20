@@ -1,0 +1,370 @@
+[
+  {
+    "id": "q-2.1-001",
+    "skillId": "2.1",
+    "difficulty": 1,
+    "stem": "A head coach asks for \"better scouting summaries\" from a new Claude feature. The project lead must turn this into an acceptance criterion the team can test before launch. Which criterion best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "At least 95% of stat claims match source data on a 200-game eval set.",
+        "explanation": "Correct. This criterion is specific and measurable and has a deadline, so it can become an eval and a pass/fail gate."
+      },
+      {
+        "id": "B",
+        "text": "Summaries should be high quality, accurate and fast enough to keep the coaching staff satisfied.",
+        "explanation": "These words describe goals, but nothing here can be measured or tested as written."
+      },
+      {
+        "id": "C",
+        "text": "Summaries must use the most capable Claude model available.",
+        "explanation": "This names a design choice, not an outcome. It doesn't say what a good summary is."
+      },
+      {
+        "id": "D",
+        "text": "Coaches should report that they like the new summaries better than the old manual versions.",
+        "explanation": "Opinion is useful feedback, but without a metric and test set it isn't a testable acceptance criterion."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.1-002",
+    "skillId": "2.1",
+    "difficulty": 1,
+    "stem": "An insurer is writing requirements for a claims-intake assistant built on Claude. The analyst must separate functional requirements from infrastructure (non-functional) ones. Which TWO of these are infrastructure requirements? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Extract the policy number, claim date and claim amount from each uploaded form.",
+        "explanation": "This describes what the system must do with the input, so it's a functional requirement."
+      },
+      {
+        "id": "B",
+        "text": "All model inference for claim data must run on US-based infrastructure.",
+        "explanation": "Correct. Where processing happens is a constraint on how the system runs, which makes it an infrastructure requirement."
+      },
+      {
+        "id": "C",
+        "text": "Flag any claim above the policy's coverage limit for human review.",
+        "explanation": "This is a behavior the system must perform, so it's functional."
+      },
+      {
+        "id": "D",
+        "text": "The first token of each assistant reply must appear within two seconds at the 95th percentile.",
+        "explanation": "Correct. Latency targets constrain how the system performs rather than what it does, so they're non-functional."
+      },
+      {
+        "id": "E",
+        "text": "Return each extracted claim as JSON that the existing claims system can ingest.",
+        "explanation": "The output format is part of what the system must produce, so it's a functional requirement."
+      }
+    ],
+    "correct": [
+      "B",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "https://platform.claude.com/docs/en/manage-claude/data-residency"
+    ]
+  },
+  {
+    "id": "q-2.1-003",
+    "skillId": "2.1",
+    "difficulty": 2,
+    "stem": "A league office is building a fan-feedback analyzer on the Claude API. A legal review adds a hard requirement: model inference on fan messages must happen only in the United States. Which design choice satisfies this requirement?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use a smaller model, since those are always served in the US.",
+        "explanation": "Model size doesn't determine where inference runs. Geography is controlled separately."
+      },
+      {
+        "id": "B",
+        "text": "Add a system-prompt instruction telling Claude to process fan messages only in the United States.",
+        "explanation": "The model has no control over where it is served. A prompt can't enforce data location."
+      },
+      {
+        "id": "C",
+        "text": "Set inference_geo to \"us\" on each request or as the workspace default.",
+        "explanation": "Correct. inference_geo controls where inference runs, and the default is global. The workspace geo separately governs data at rest."
+      },
+      {
+        "id": "D",
+        "text": "Enable zero data retention, which keeps all processing inside the customer's home region.",
+        "explanation": "ZDR is about retention, not location. It doesn't pin inference to a geography."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/manage-claude/data-residency"
+    ]
+  },
+  {
+    "id": "q-2.1-004",
+    "skillId": "2.1",
+    "difficulty": 2,
+    "stem": "A retail company's requirement for an email classifier reads: \"Lowest cost that achieves at least 95% accuracy on our labeled set.\" The engineering team defaults to the most capable model available. Which approach best fits the requirement?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use the most capable model to give the team a safety margin.",
+        "explanation": "The requirement asks for the cheapest model that passes, not the strongest. Extra capability adds cost the requirement doesn't call for."
+      },
+      {
+        "id": "B",
+        "text": "Evaluate candidate models on the labeled set and pick the cheapest that reaches 95%.",
+        "explanation": "Correct. Measuring candidates against the stated threshold and picking the least expensive passer meets both halves of the requirement."
+      },
+      {
+        "id": "C",
+        "text": "Use the smallest model available, since cost is the first constraint listed in the requirement.",
+        "explanation": "The cheapest model may miss the accuracy threshold. Both constraints have to hold."
+      },
+      {
+        "id": "D",
+        "text": "Pick a model from a public benchmark leaderboard rather than spending time on internal evals.",
+        "explanation": "Public benchmarks don't measure this company's emails. The requirement names its own labeled set."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.1-005",
+    "skillId": "2.1",
+    "difficulty": 2,
+    "stem": "A team designed a game-recap service around a newly launched API feature on the first-party Claude API. Late in planning, procurement states that all spend must go through the company's existing AWS account. Which next step best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Proceed as designed, since every Claude feature is available identically on all platforms.",
+        "explanation": "Feature availability differs by platform, so assuming parity risks building on something the required platform lacks."
+      },
+      {
+        "id": "B",
+        "text": "Keep the first-party API and defer procurement's constraint.",
+        "explanation": "Procurement is a hard constraint from the architecture. Deferring it means the design will be rejected later."
+      },
+      {
+        "id": "C",
+        "text": "Have one engineer pay for the first-party API with a personal key until procurement catches up.",
+        "explanation": "Personal billing violates the procurement requirement and creates security and ownership problems."
+      },
+      {
+        "id": "D",
+        "text": "Verify the feature exists on the AWS options before committing, and record why.",
+        "explanation": "Correct. A stated platform constraint usually decides the item. Verifying availability first and recording why keeps the design traceable."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock"
+    ]
+  },
+  {
+    "id": "q-2.1-006",
+    "skillId": "2.1",
+    "difficulty": 1,
+    "stem": "A bank's customer-facing chat assistant has this requirement: users must see the response begin within two seconds, even when answers run to several paragraphs. Which design lever most directly addresses it?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Stream the response so text appears as it is generated, rather than after it finishes.",
+        "explanation": "Correct. Streaming delivers the first tokens almost immediately, which directly addresses time to first visible output."
+      },
+      {
+        "id": "B",
+        "text": "Process the chat requests through the Message Batches API to lower their cost.",
+        "explanation": "Batches are asynchronous and suit work nobody is waiting on. They would make interactive latency far worse."
+      },
+      {
+        "id": "C",
+        "text": "Raise max_tokens so long answers are never cut off before they finish.",
+        "explanation": "A higher output cap doesn't make the response start sooner."
+      },
+      {
+        "id": "D",
+        "text": "Require the most capable model so answers are complete on the first attempt.",
+        "explanation": "A larger model is usually slower to respond. It doesn't help a time-to-first-output target."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-2.1-007",
+    "skillId": "2.1",
+    "difficulty": 3,
+    "stem": "A media monitoring firm expects peak traffic of many concurrent requests that share the same 50,000-token system prompt, followed by a short article each. Load tests show 429 errors from the input-tokens-per-minute limit. The firm wants to meet throughput without moving to a higher tier yet. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Raise concurrency so requests finish sooner and the per-minute window resets faster.",
+        "explanation": "The limit uses a continuously refilling token bucket, so more concurrency just consumes it faster and causes more 429s."
+      },
+      {
+        "id": "B",
+        "text": "Split each request into several smaller ones so no single request carries the full system prompt.",
+        "explanation": "Each split request would still need the instructions, so total input tokens stay the same or grow."
+      },
+      {
+        "id": "C",
+        "text": "Cache the shared system prompt, since cache reads mostly don't count toward that limit.",
+        "explanation": "Correct. With prompt caching, only uncached input tokens count toward ITPM on most models, so a large shared prefix stops consuming most of the limit."
+      },
+      {
+        "id": "D",
+        "text": "Raise max_tokens so that each response does more work and fewer requests are needed.",
+        "explanation": "Output length has no bearing on the input-tokens limit, and longer outputs consume output-token capacity instead."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/rate-limits",
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-2.1-008",
+    "skillId": "2.1",
+    "difficulty": 2,
+    "stem": "A sports-betting operator wants Claude to draft weekly odds commentary that a trading desk publishes. In a requirements workshop, the analyst wants questions whose answers will set the guardrail and human-review requirements. Which TWO questions best fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "What happens if a commentary contains a wrong number, and who is harmed by it?",
+        "explanation": "Correct. The consequence of a wrong output sets how much checking and guardrailing the system needs."
+      },
+      {
+        "id": "B",
+        "text": "Which Claude model version does the trading desk prefer to use for drafting?",
+        "explanation": "Model choice follows from requirements. A stakeholder preference doesn't define review or guardrail needs."
+      },
+      {
+        "id": "C",
+        "text": "Would the desk like the assistant to use the newest API features available?",
+        "explanation": "Feature novelty is a solution choice, not a requirement, and says nothing about risk."
+      },
+      {
+        "id": "D",
+        "text": "How many words should each commentary be on average across the season?",
+        "explanation": "Length is a functional detail of the output, not a driver of review or safety controls."
+      },
+      {
+        "id": "E",
+        "text": "Who must approve a commentary before publication, and within what time window?",
+        "explanation": "Correct. Approval ownership and timing directly define the human-in-the-loop requirement."
+      }
+    ],
+    "correct": [
+      "A",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.1-009",
+    "skillId": "2.1",
+    "difficulty": 2,
+    "stem": "A finance team needs five fields extracted from vendor invoices into JSON every day. The steps never change, and each invoice is a single document. A developer proposes an autonomous multi-agent system with planning and web browsing. Which design best fits the requirements?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Build the multi-agent system, since it can adapt if invoice formats change in the future.",
+        "explanation": "This adds cost, latency and failure modes for flexibility that the stated requirements don't ask for."
+      },
+      {
+        "id": "B",
+        "text": "Give an agent computer-use tools so it can open each invoice in a desktop viewer.",
+        "explanation": "Driving a GUI is slow and fragile when the document can be passed to the model directly."
+      },
+      {
+        "id": "C",
+        "text": "Use a single model call per invoice with structured outputs, and validate the JSON before storing it.",
+        "explanation": "Correct. A fixed, single-document extraction fits one call with a schema. That's the simplest design that meets the requirements."
+      },
+      {
+        "id": "D",
+        "text": "Fine-tune a custom model on past invoices before building anything else.",
+        "explanation": "This is heavy upfront work with no evidence that a prompted call with a schema falls short."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "https://www.anthropic.com/research/building-effective-agents"
+    ]
+  },
+  {
+    "id": "q-2.1-010",
+    "skillId": "2.1",
+    "difficulty": 3,
+    "stem": "A league office wants weekly recaps of all 300 games produced by the most capable model and also caps spending at a fixed weekly budget. A cost model shows that the two requirements can't both be met. Which next step best fits sound requirements practice?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Quietly switch to a cheaper model to meet the budget, since staying within cost is usually what matters.",
+        "explanation": "Silently dropping a stated requirement breaks traceability and surprises stakeholders later."
+      },
+      {
+        "id": "B",
+        "text": "Raise the conflict with stakeholders, let them prioritize, and record the decision.",
+        "explanation": "Correct. Requirement conflicts should be raised early and resolved by the owners, with the decision traced to data and recorded."
+      },
+      {
+        "id": "C",
+        "text": "Ship with the most capable model and ask for more budget once overspending has been demonstrated.",
+        "explanation": "Knowingly breaking a constraint and fixing it afterwards isn't requirements management."
+      },
+      {
+        "id": "D",
+        "text": "Drop the budget, because quality always outranks cost.",
+        "explanation": "No rule says quality always wins. Priorities belong to the stakeholders who own the outcome."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  }
+]

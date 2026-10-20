@@ -1,0 +1,437 @@
+[
+  {
+    "id": "q-2.6-001",
+    "skillId": "2.6",
+    "difficulty": 1,
+    "stem": "A team's CLAUDE.md says \"Never read .env files,\" yet during a debugging session Claude Code read `.env.production` anyway. The security lead needs a guarantee that holds for everyone working in the repository. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Rewrite the CLAUDE.md line in capital letters and move it to the top of the file.",
+        "explanation": "CLAUDE.md is context, not enforcement. Emphasis can make an instruction more likely to be followed but never guarantees it."
+      },
+      {
+        "id": "B",
+        "text": "Add the same instruction to each developer's CLAUDE.local.md so it appears twice.",
+        "explanation": "Repeating guidance in another context file is still guidance. It also depends on each developer creating the file."
+      },
+      {
+        "id": "C",
+        "text": "Add a Read deny rule for .env files to the committed project settings.",
+        "explanation": "Correct. Permission rules are enforced by the client whatever Claude decides, and the committed file applies to everyone on the team."
+      },
+      {
+        "id": "D",
+        "text": "Ask Claude to save the rule to its auto memory.",
+        "explanation": "Auto memory is machine-local guidance. It doesn't enforce anything or reach other developers."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/memory",
+      "https://code.claude.com/docs/en/permissions"
+    ]
+  },
+  {
+    "id": "q-2.6-002",
+    "skillId": "2.6",
+    "difficulty": 2,
+    "stem": "In a monorepo, the root CLAUDE.md says to use npm, while `packages/web/CLAUDE.md` says to use pnpm. A developer working in `packages/web` assumes the nearer file replaces the root one, but Claude sometimes still runs npm. What is happening, and what is the fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Both files load into context together, so remove the contradiction between them.",
+        "explanation": "Correct. CLAUDE.md files are concatenated rather than overridden. With two conflicting instructions, Claude may follow either, so the conflict itself must go."
+      },
+      {
+        "id": "B",
+        "text": "The nearest file overrides the root, so the npm calls must come from a cached session that needs restarting.",
+        "explanation": "There's no override between CLAUDE.md files. Restarting would load both again and reproduce the conflict."
+      },
+      {
+        "id": "C",
+        "text": "Move the pnpm rule into managed policy so it outranks the root file.",
+        "explanation": "Precedence by override applies to settings.json keys, not to CLAUDE.md content. Managed CLAUDE.md is concatenated too."
+      },
+      {
+        "id": "D",
+        "text": "Subdirectory files are never read, so the pnpm rule should be copied into an @import in the root file.",
+        "explanation": "Subdirectory CLAUDE.md files do load, on demand, when Claude works with files there. Importing would still leave both instructions in context."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/memory"
+    ]
+  },
+  {
+    "id": "q-2.6-003",
+    "skillId": "2.6",
+    "difficulty": 2,
+    "stem": "A team's committed `.claude/settings.json` sets the model to Sonnet. One analyst wants to use Opus for her own sessions in this repository without changing anything for her teammates. Where should she set the model?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "In ~/.claude/settings.json, which applies to all her projects.",
+        "explanation": "User settings sit below shared project settings in precedence, so the committed Sonnet value would still win in this repository."
+      },
+      {
+        "id": "B",
+        "text": "In the shared .claude/settings.json, and then simply not push the change to the remote.",
+        "explanation": "Editing a tracked file leaves a dirty working tree and risks an accidental commit that changes the model for everyone."
+      },
+      {
+        "id": "C",
+        "text": "In the repository's CLAUDE.md, with an instruction telling Claude to switch itself to Opus.",
+        "explanation": "CLAUDE.md is context for the model, not configuration. It can't change which model the session runs on."
+      },
+      {
+        "id": "D",
+        "text": "In .claude/settings.local.json, which outranks the shared file and stays local.",
+        "explanation": "Correct. Project local settings sit above shared project settings and are personal, so only her sessions change."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/settings"
+    ]
+  },
+  {
+    "id": "q-2.6-004",
+    "skillId": "2.6",
+    "difficulty": 3,
+    "stem": "Company managed settings deny `Bash(curl *)`. A developer adds an allow rule for `Bash(curl *)` to `~/.claude/settings.json` and also launches with `--settings` containing the same allow rule, but curl is still blocked. What explains this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The user settings file must have a syntax error, or the allow would win.",
+        "explanation": "Even a valid allow rule loses here. The behavior is by design, not caused by a broken file."
+      },
+      {
+        "id": "B",
+        "text": "Deny rules are checked first, and no user or --settings value overrides a managed one.",
+        "explanation": "Correct. Permission lists merge across scopes and are evaluated deny first. The managed deny matches, so the call is blocked whatever the lower scopes allow."
+      },
+      {
+        "id": "C",
+        "text": "Command-line settings rank above managed settings, so the developer must restart for --settings to apply.",
+        "explanation": "Managed settings are the highest level. A --settings value applies only to that session and never overrides a managed key."
+      },
+      {
+        "id": "D",
+        "text": "Allow rules only take effect in bypassPermissions mode, so the developer needs to switch modes.",
+        "explanation": "Allow rules apply in the normal modes, and deny rules block even in bypassPermissions."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/settings",
+      "https://code.claude.com/docs/en/permissions"
+    ]
+  },
+  {
+    "id": "q-2.6-005",
+    "skillId": "2.6",
+    "difficulty": 1,
+    "stem": "A developer adds a `// keep in sync with CI` comment to the project's `.claude/settings.json`. On the next start, Claude Code reports a Settings Error and none of the new permission rules apply. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Remove the comment, because settings files are strict JSON and comments make the file invalid.",
+        "explanation": "Correct. Settings files are strict JSON. A // comment or a trailing comma is a syntax error, so the file fails to load."
+      },
+      {
+        "id": "B",
+        "text": "Rename the file to settings.jsonc so that Claude Code parses comments correctly.",
+        "explanation": "Claude Code reads settings.json by name. A renamed file simply wouldn't be loaded."
+      },
+      {
+        "id": "C",
+        "text": "Change the comment to start with # instead of //, since JSON allows hash comments.",
+        "explanation": "JSON allows no comments of any style. A hash comment is just as invalid."
+      },
+      {
+        "id": "D",
+        "text": "Move the comment into a $comment key at the top level so the parser skips it.",
+        "explanation": "Adding an arbitrary key isn't the documented fix and may be flagged by schema validation. The simple fix is to keep comments out of the file."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/settings"
+    ]
+  },
+  {
+    "id": "q-2.6-006",
+    "skillId": "2.6",
+    "difficulty": 2,
+    "stem": "A logistics company's backend hardcodes `claude-sonnet-5-5` in 14 places. An engineer argues they should switch to a dated ID, because dateless IDs \"silently update to the latest weights.\" What is accurate, and what should the team do?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The engineer is right, so append a date suffix to the ID to lock the current weights in place.",
+        "explanation": "Current-generation IDs have no dated variant. The dateless ID is already the pinned snapshot."
+      },
+      {
+        "id": "B",
+        "text": "The engineer is right, so switch to a -latest alias and re-test often.",
+        "explanation": "That would introduce the very drift the engineer worries about, and the team would lose control over when the model changes."
+      },
+      {
+        "id": "C",
+        "text": "A dateless ID is a fixed snapshot, so keep it but centralize it in one config value.",
+        "explanation": "Correct. Anthropic never changes the weights behind an existing ID. The real problem is the ID scattered across 14 places instead of one deliberate setting."
+      },
+      {
+        "id": "D",
+        "text": "Dateless IDs change only between major versions, so pin the major version and accept minor updates.",
+        "explanation": "A model ID doesn't float within a major version. Each ID maps to a single fixed snapshot."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions"
+    ]
+  },
+  {
+    "id": "q-2.6-007",
+    "skillId": "2.6",
+    "difficulty": 2,
+    "stem": "A sports broadcaster is rolling Claude Code out to 200 analysts on Amazon Bedrock. In a pilot, the output style changed overnight because the `sonnet` alias began resolving to a newer model. The rollout must behave consistently until the team chooses to upgrade. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep using the sonnet alias, since aliases are stable and the change was a one-off event.",
+        "explanation": "Aliases resolve to the recommended model for the provider and change over time. That is exactly what happened in the pilot."
+      },
+      {
+        "id": "B",
+        "text": "Pin the model by setting ANTHROPIC_DEFAULT_SONNET_MODEL or a full model ID in settings before the rollout.",
+        "explanation": "Correct. Pinning makes the alias resolve to a fixed model, and the docs advise doing this before rolling out on Bedrock, Google Cloud or Foundry."
+      },
+      {
+        "id": "C",
+        "text": "Add a line to the project CLAUDE.md telling Claude which model version it should behave like.",
+        "explanation": "CLAUDE.md can't choose the model. It's context, not configuration."
+      },
+      {
+        "id": "D",
+        "text": "Ask each analyst to run /model at the start of every session and pick the right version.",
+        "explanation": "A manual step for 200 users is unreliable and doesn't give a consistent rollout."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/model-config"
+    ]
+  },
+  {
+    "id": "q-2.6-008",
+    "skillId": "2.6",
+    "difficulty": 2,
+    "stem": "A support-chat team edits its system prompt in a dashboard text box, and quality regressions are hard to trace because nobody knows which prompt produced which answer. Which TWO practices best fix the traceability gap? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep only the latest prompt text so that nobody gets confused by older versions.",
+        "explanation": "Discarding history removes the ability to compare versions or roll back, which makes regressions harder to trace."
+      },
+      {
+        "id": "B",
+        "text": "Change the prompt and the model in the same release to reduce the number of eval runs.",
+        "explanation": "Bundling two changes makes it impossible to attribute a regression to either one."
+      },
+      {
+        "id": "C",
+        "text": "Store prompts in git with explicit version identifiers and promote them through review.",
+        "explanation": "Correct. Versioning prompts like code gives a history, a diff and a rollback target for each change."
+      },
+      {
+        "id": "D",
+        "text": "Let each support agent tweak the prompt live in the dashboard to fix problems as they appear.",
+        "explanation": "Untracked live edits are the cause of the traceability gap, not a fix for it."
+      },
+      {
+        "id": "E",
+        "text": "Log the prompt version, model ID and key parameters with every request.",
+        "explanation": "Correct. Logging the full configuration per request lets any output be traced back to exactly what produced it."
+      }
+    ],
+    "correct": [
+      "C",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.6-009",
+    "skillId": "2.6",
+    "difficulty": 3,
+    "stem": "A fantasy platform upgraded to a new model ID and rewrote its system prompt on the same day. Lineup advice quality dropped, and the team can't tell which change caused it. They want future releases to be diagnosable and reversible. Which process best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Always change the model and prompt together, because a new model always requires prompt changes.",
+        "explanation": "A new model may need prompt changes, but shipping them blind together is what made this regression undiagnosable."
+      },
+      {
+        "id": "B",
+        "text": "Roll back only the prompt, since prompt edits are usually what causes quality regressions.",
+        "explanation": "Guessing at the cause doesn't make releases diagnosable. Either change could be responsible."
+      },
+      {
+        "id": "C",
+        "text": "Set temperature to 0 so outputs become deterministic.",
+        "explanation": "Current models reject non-default sampling parameters, and determinism wouldn't attribute the regression to one change."
+      },
+      {
+        "id": "D",
+        "text": "Version the configuration as one release and evaluate each change separately.",
+        "explanation": "Correct. Treating the configuration as a versioned release and evaluating each change separately makes regressions attributable and rollbacks quick."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
+    ]
+  },
+  {
+    "id": "q-2.6-010",
+    "skillId": "2.6",
+    "difficulty": 2,
+    "stem": "A team's shared Claude Code plugin lists its dependency as the bare string `\"stats-helper\"`. The dependency's maintainer tagged a breaking 3.0 release, and the team's plugin broke for everyone on their next update. Which change best prevents this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Declare the dependency with a semver range such as ~2.4.0 instead of a bare name.",
+        "explanation": "Correct. A version constraint installs the highest git tag that satisfies the range, so a breaking major release isn't picked up."
+      },
+      {
+        "id": "B",
+        "text": "Record the tested commit SHA of stats-helper in the project CLAUDE.md for Claude to respect.",
+        "explanation": "CLAUDE.md is model context. It has no effect on how plugin dependencies are resolved."
+      },
+      {
+        "id": "C",
+        "text": "Keep the bare string, since it locks the version from first install.",
+        "explanation": "A bare name follows whatever version the dependency's marketplace provides, which is how the break happened."
+      },
+      {
+        "id": "D",
+        "text": "Move stats-helper into the team's .claude/settings.local.json so each user pins it themselves.",
+        "explanation": "Local settings are personal and don't control a shared plugin's dependency resolution."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/plugins/dependencies"
+    ]
+  },
+  {
+    "id": "q-2.6-011",
+    "skillId": "2.6",
+    "difficulty": 3,
+    "stem": "A league's internal marketplace hosts a scouting plugin whose `plugin.json` depends on a charting plugin from a vendor's marketplace. When analysts install the scouting plugin, the dependency is skipped and the plugin fails to load. Which TWO statements are accurate? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Each analyst can allow the dependency by adding the vendor marketplace to their own ~/.claude/settings.json.",
+        "explanation": "The cross-marketplace allowlist lives in the root marketplace's marketplace.json, not in personal settings."
+      },
+      {
+        "id": "B",
+        "text": "Dependencies from another marketplace are refused by default unless explicitly allowlisted.",
+        "explanation": "Correct. This default stops one marketplace from silently installing code from a source nobody has reviewed."
+      },
+      {
+        "id": "C",
+        "text": "The vendor's marketplace must list the league marketplace as a trusted consumer of its plugins.",
+        "explanation": "Only the root marketplace's allowlist applies. The vendor marketplace doesn't need to list anyone."
+      },
+      {
+        "id": "D",
+        "text": "The league marketplace must list the vendor's marketplace in allowCrossMarketplaceDependenciesOn.",
+        "explanation": "Correct. The root marketplace, the one hosting the plugin being installed, controls which other marketplaces its plugins may depend on."
+      },
+      {
+        "id": "E",
+        "text": "Plugin dependencies are resolved from the npm registry, so the vendor must publish the chart plugin there.",
+        "explanation": "Version constraints resolve against git tags for git-backed plugin sources, not against npm by default."
+      }
+    ],
+    "correct": [
+      "B",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/plugins/dependencies"
+    ]
+  },
+  {
+    "id": "q-2.6-012",
+    "skillId": "2.6",
+    "difficulty": 1,
+    "stem": "A platform team wants every engineer in the company to get the same four Claude Code plugins without installing each one by hand, and to receive additions automatically. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Email engineers the four install commands and ask them to rerun the list whenever it changes.",
+        "explanation": "Manual installs drift as people miss updates, and nothing ensures everyone ends up with the same set."
+      },
+      {
+        "id": "B",
+        "text": "Publish a bundle plugin of the four and enable it in managed settings.",
+        "explanation": "Correct. A plugin with only a name and dependencies is a valid bundle, and enabledPlugins in managed settings deploys it to everyone."
+      },
+      {
+        "id": "C",
+        "text": "Paste the four plugins' instructions into each repository's CLAUDE.md so Claude follows them.",
+        "explanation": "CLAUDE.md text isn't a plugin. It loses the plugins' commands, hooks and versioning."
+      },
+      {
+        "id": "D",
+        "text": "Add the plugins to each engineer's local settings via a script.",
+        "explanation": "Local settings are personal and per-project, so a central change wouldn't reach everyone."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/plugins/dependencies"
+    ]
+  }
+]

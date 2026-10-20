@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-**`PLAN.md` is the build plan and sets the order of work.** It covers the skill-by-skill content map, the question-bank targets, the lab specs and the phases (§5 records what is done). Phases 0–3 are complete: the scaffold, the blueprint, the question schema, the content tests, the quiz engine (practice and mock exam), the progress store, all 25 lessons, the 3 official sample items and 12 original 2.3 items. Everything marked *planned* below doesn't exist yet. As parts get built, update this file so it describes what actually exists.
+**`PLAN.md` is the build plan and sets the order of work.** It covers the skill-by-skill content map, the question-bank targets, the lab specs and the phases (§5 records what is done). Phases 0–4 are complete: the scaffold, the blueprint, the question schema, the content tests, the quiz engine (practice and mock exam), the progress store, all 25 lessons, and the full question bank (303 items, which meets every per-skill target and includes the 3 official samples). Everything marked *planned* below doesn't exist yet. As parts get built, update this file so it describes what actually exists.
 
 ## Purpose
 
@@ -45,10 +45,15 @@ Use these, not third-party prep sites. If the guide gets a new version, update `
 - **Content is data.** Everything lives under `src/content/`, and the UI renders it generically. To add a lesson, question or lab, add data. Don't add new components for it.
   - `blueprint.ts`: 8 domains and 25 skills (ids like `"2.3"`), exact weights, Skilljar course mapping, lab mapping and exam-format constants. It also holds `questionTarget()` (pool size per skill) and `allocateItems()` (largest-remainder split of the 53 mock items). Mock-exam sampling, readiness scoring and the content tests all derive from this file.
   - `schema.ts`: the Zod `QuestionSchema`, with cross-field checks: `correct.length === selectCount`, correct ids must exist among the options, and `skillId` must be in the blueprint.
-  - `questions/domain-<n>.json`: one array per domain. They are loaded and validated through `import.meta.glob` in `questions/index.ts`. Ids are `q-<skillId>-NNN`, or `official-N` for the Exam Guide samples, which also carry `official: true`.
+  - `questions/<skillId>.json`: one array per skill. Per-skill files let several writers work in parallel without conflicts. They are loaded and validated through `import.meta.glob` in `questions/index.ts`. Ids are `q-<skillId>-NNN`, or `official-N` for the Exam Guide samples, which also carry `official: true`.
   - `lessons/<skillId>.mdx` (e.g. `2.5.mdx`, which is the reference template). Each file exports `meta` (validated by `LessonMetaSchema`: `skillId`, `updated`, `tldr`, `links[]` to official docs). The body has `## Key concepts`, `## Exam traps` and `## On the field` (an NFL example ending with a pointer to a lab), in that order, and `content.test.ts` enforces this. Skilljar course and lab links come from the blueprint, so don't repeat them in the MDX. MDX is compiled with `remark-gfm`, so tables work, but a bare `<` or `{` in prose breaks the build: wrap it in backticks. `/learn/:skillId` renders the lesson with Tailwind `prose`. `LearnPage` is lazy-loaded in `App.tsx` because the lessons are the bulk of the bundle. Don't import `content/lessons` from any eagerly loaded page.
   - *Planned:* `labs/L<n>.mdx`.
-- **`content.test.ts`** checks blueprint integrity (weights sum to 100, domain weights match the guide, allocation) and question-bank integrity (schema, file/domain match, unique ids). The question *targets* are not enforced by tests. Track them with `npm run content:status`.
+- **`content.test.ts`** checks blueprint integrity (weights sum to 100, domain weights match the guide, allocation) and question-bank integrity (schema, file/skill match, unique ids). It also runs the anti-giveaway checks in `questionQuality.ts`:
+  - no answer letter is the key in more than 40% of single-select items
+  - the key is the longest option in at most 40% of them
+  - no duplicate stems
+
+  These checks skip the official samples, which keep their published order. Explanations must never mention option letters, so options can be reordered to rebalance the keys. The question *targets* are not enforced by tests. Track them with `npm run content:status`.
 - **UI tests** (`src/pages/pages.test.tsx`) render `<App>` inside a `MemoryRouter` and run against the real question bank. Adding questions can change which item appears first, so write these tests to be independent of order.
 - *Planned:* **`labs/`** is a separate TS workspace that learners run themselves with their own `ANTHROPIC_API_KEY`, using bundled fictional NFL JSON fixtures. The web app never calls the Claude API and never stores keys.
 
@@ -66,8 +71,12 @@ npm run build           # tsc -b + production build
 npm run lint            # oxlint
 npm test                # Vitest (run once); npm run test:watch for watch mode
 npm run content:status  # question count per skill vs. target (Node runs the TS directly)
+npm run content:quality [-- <file.json> ...]  # key-letter balance and giveaway checks, per file or whole bank
+npm run content:links   # fetch every cited URL (needs network; not part of npm test)
 npx vitest run src/content/content.test.ts   # single file
 npx vitest run -t "blueprint"                # single test by name
 ```
+
+Link checks must look at the page, not only the status code: platform.claude.com serves missing pages as HTTP 200 with the generic title "Documentation | Claude Platform". `content:links` detects this, so run it after adding or changing any `sourceLinks` or lesson links.
 
 Vitest caches `import.meta.glob` results. If a newly added lesson or question file doesn't show up in tests, run `npx vitest --clearCache`.
