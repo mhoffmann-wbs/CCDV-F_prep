@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -7,12 +7,15 @@ import { EXAM_FORMAT } from '../content/blueprint'
 import { QUESTIONS } from '../content/questions'
 import { getProgress, resetProgress } from '../progress/store'
 
-function renderAt(path: string) {
-  return render(
+/** Renders the app at `path` and waits for the lazy-loaded page to replace the fallback. */
+async function renderAt(path: string) {
+  const result = render(
     <MemoryRouter initialEntries={[path]}>
       <App />
     </MemoryRouter>,
   )
+  if (screen.queryByText('Loading…')) await waitForElementToBeRemoved(() => screen.queryByText('Loading…'))
+  return result
 }
 
 function escapeRegExp(text: string) {
@@ -27,7 +30,7 @@ beforeEach(() => {
 describe('practice', () => {
   it('gives immediate feedback and records the attempt', async () => {
     const user = userEvent.setup()
-    renderAt('/practice?skill=7.1')
+    await renderAt('/practice?skill=7.1')
     // The session is shuffled, so find whichever question is showing.
     const shown = QUESTIONS.filter((q) => q.skillId === '7.1').find((q) => screen.queryByText(q.stem))!
     expect(shown).toBeDefined()
@@ -44,7 +47,7 @@ describe('practice', () => {
 
   it('limits multiple-response items to the stated number of selections', async () => {
     const user = userEvent.setup()
-    renderAt('/practice?skill=2.3')
+    await renderAt('/practice?skill=2.3')
     // Advance until the multi-select tool-results item is shown.
     for (let i = 0; i < 20 && !screen.queryByText('Select TWO.'); i++) {
       await user.click(screen.getAllByRole('radio')[0])
@@ -62,7 +65,7 @@ describe('practice', () => {
 describe('mock exam', () => {
   it('runs from intro to a score report with per-domain results', async () => {
     const user = userEvent.setup()
-    renderAt('/mock')
+    await renderAt('/mock')
     await user.click(screen.getByRole('button', { name: 'Kick off' }))
     const examLength = Math.min(QUESTIONS.length, EXAM_FORMAT.items)
     for (let i = 1; i < examLength; i++) {
@@ -81,7 +84,7 @@ describe('mock exam', () => {
 describe('learn', () => {
   it('renders a lesson with its sections and tracks read state', async () => {
     const user = userEvent.setup()
-    renderAt('/learn/2.5')
+    await renderAt('/learn/2.5')
     // The Learn route is code-split, so wait for it to load.
     expect(
       await screen.findByRole('heading', { level: 1, name: /2.5 Claude Application Design/ }),

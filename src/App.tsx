@@ -1,11 +1,12 @@
 import { lazy, Suspense } from 'react'
 import { Link, NavLink, Route, Routes } from 'react-router'
-import BlueprintPage from './pages/BlueprintPage'
-import MockExamPage from './pages/MockExamPage'
-import PracticePage from './pages/PracticePage'
 
-// Lessons are the bulk of the bundle, so the Learn section is code-split.
+// Every page is code-split: lessons and the question bank are the bulk of the bundle,
+// so the shell loads fast and each content chunk loads on first use.
+const BlueprintPage = lazy(() => import('./pages/BlueprintPage'))
 const LearnPage = lazy(() => import('./pages/LearnPage'))
+const PracticePage = lazy(() => import('./pages/PracticePage'))
+const MockExamPage = lazy(() => import('./pages/MockExamPage'))
 
 const NAV = [
   { to: '/', label: 'Playbook' },
