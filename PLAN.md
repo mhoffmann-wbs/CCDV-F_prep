@@ -107,7 +107,8 @@ The learner runs everything locally with their own `ANTHROPIC_API_KEY`. Data com
 - Phase 2 is done: the progress store, practice mode, the mock exam (weighted sampler, timer, flag/review, results report) and 12 original 2.3 items.
 - Phase 3 is done: all 25 lessons (`src/content/lessons/*.mdx`), checked against the docs on 2026-10-20.
 - Phase 4 is done: 303 items (60 multi-response; difficulty about 29/51/20%; keys balanced A–D; all 135 links verified with `content:links`).
-- Next step: Phase 5 (labs, starting with L1 and L4).
+- Phase 5 (partial): labs are in **Python** (uv). L1, L6 and L7 are done, the three with the most exam weight. L2–L5 and L8–L10 are still to do.
+- Phase 6 is done: Scoreboard dashboard, weak-area drill, dark mode and phone layout.
 
 ### Phase 0: Scaffold
 - `git init`. Vite + React + TS, Tailwind, React Router, Zod, Vitest + RTL, ESLint, MDX via `@mdx-js/rollup`
