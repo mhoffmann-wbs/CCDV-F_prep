@@ -1,0 +1,95 @@
+export const meta = {
+  skillId: '5.1',
+  updated: '2026-10-20',
+  tldr: 'Claude generates one token at a time inside a context window that holds everything, including its own output and thinking. Outputs are never fully deterministic, and current models reject sampling knobs, so you steer with prompts, examples, effort and validation. Adaptive thinking plus effort replaces fixed thinking budgets; fast mode buys output speed, not intelligence.',
+  links: [
+    { title: 'Glossary (tokens, temperature, context window)', url: 'https://platform.claude.com/docs/en/about-claude/glossary' },
+    { title: 'Context windows', url: 'https://platform.claude.com/docs/en/build-with-claude/context-windows' },
+    { title: 'Token counting', url: 'https://platform.claude.com/docs/en/build-with-claude/token-counting' },
+    { title: 'Thinking', url: 'https://platform.claude.com/docs/en/build-with-claude/thinking' },
+    { title: 'Effort', url: 'https://platform.claude.com/docs/en/build-with-claude/effort' },
+    { title: 'Fast mode', url: 'https://platform.claude.com/docs/en/build-with-claude/fast-mode' },
+    { title: 'Prompting best practices (examples)', url: 'https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices' },
+  ],
+}
+
+This skill (**5.2%**) tests whether your mental model of the model is right. Typical items: "two identical requests gave different answers, why?", "which setting cuts latency without losing quality?", "the request failed after we upgraded the model", or "the output format keeps drifting, what's the cheapest fix?"
+
+## Key concepts
+
+### 1. Tokens and next-token generation
+
+- Claude reads and writes **tokens**: words, sub-words, characters or bytes. How many characters a token covers depends on the model and the language. Newer models use a newer tokenizer that produces noticeably **more tokens for the same text** than older ones.
+- **Never estimate with another vendor's tokenizer.** Use the token counting endpoint (`POST /v1/messages/count_tokens`) with the same model you'll call. Counts are model-specific.
+- Generation is **autoregressive**: the model predicts the next token from everything before it, appends it, and repeats. Pretraining teaches next-word prediction; fine-tuning and RLHF turn that into an assistant that follows instructions.
+- Consequence: anything that should shape the answer must be **in the context before generation starts**. The model can't look anything up unless you give it a tool.
+
+### 2. The context window
+
+The context window is the model's working memory for **one request**, and it is separate from what the model learned in training.
+- **Everything counts:** system prompt, every message (including tool results, images and documents), tool definitions, **and the output**, including thinking.
+- If the **input alone** is too long, the request fails with a 400. On recent models, if the output then fills the window, generation stops with `stop_reason: "model_context_window_exceeded"`.
+- **Bigger isn't automatically better.** As the token count grows, recall and accuracy degrade ("context rot"). Curate what goes in (see 6.1).
+- Cached tokens still occupy the window. Caching changes the price, not the size.
+
+### 3. Sampling and non-determinism
+
+Sampling picks each token from a probability distribution. `temperature` controls how adventurous that choice is.
+- **Even at temperature 0, outputs are not fully deterministic.** Identical requests can produce different outputs, on the first-party API and on cloud providers alike.
+- **On current models, sampling parameters are effectively gone.** Non-default `temperature`, `top_p` or `top_k` values return a 400 error. Migration guides say to remove them and steer with prompting.
+- So you get consistency through **design**, not knobs: clear instructions, examples, structured outputs or strict tools for format, validation of the result, and evals that run each case more than once.
+
+### 4. Extended vs adaptive thinking, and effort
+
+| | Extended thinking (older models) | Adaptive thinking (current models) |
+|---|---|---|
+| Request | `thinking.type: "enabled"` with `budget_tokens` | `thinking.type: "adaptive"`, or omit it where thinking is on by default |
+| Who decides how much to think | You, with a fixed budget | The model, steered by **effort** |
+| On current models | Rejected with a 400 | The only mode |
+
+- **Effort** (`output_config.effort`: `low`, `medium`, `high`, `xhigh`, `max`, where supported) scales the whole response: thinking, tool calls and text. Lower effort means fewer, more consolidated tool calls and terser answers.
+- **Defaults differ by model** (some default to `high`, some to `medium`), so set effort explicitly and re-check it after a model change.
+- Effort is **soft guidance**. `max_tokens` is the **hard cap**, and thinking counts against it.
+- Some models let you turn thinking off; on others thinking is always on and **lower effort is the only lever**.
+- Thinking is billed as output tokens **even when the thinking text isn't returned**. On current models the default display hides it; you opt in to a summary. You never get the raw chain of thought.
+- Changing the top-level thinking or effort setting mid-conversation invalidates the prompt cache.
+
+### 5. Fast mode
+
+**Fast mode** (`speed: "fast"`) runs **the same model** on a faster inference configuration: higher output tokens per second (up to about 2.5x as of 2026-10), **no change in intelligence**, at premium per-token pricing.
+- It speeds up **output throughput, not time to first token**. Pair it with streaming to see the benefit.
+- It's available only on certain Opus models and platforms, has its **own rate limit**, and isn't available in the Batch API.
+- Falling back from fast to standard speed causes a **prompt cache miss**.
+
+| Need | Lever |
+|---|---|
+| Cheaper, faster, and the task is easy | Lower **effort** |
+| Same quality, faster streamed output, money is no object | **Fast mode** |
+| First words on screen sooner | **Streaming** (not fast mode) |
+| Hard ceiling on output length | `max_tokens` |
+
+### 6. Zero-, one- and few-shot prompting
+
+- **Zero-shot:** instructions only. Start here; current models follow clear instructions well.
+- **One-shot / few-shot (multishot):** add examples of input and desired output. Examples are among the most reliable ways to pin down **format, tone and structure**.
+- Make examples **relevant** (mirror real inputs), **diverse** (cover edge cases, so Claude doesn't copy an accidental pattern), and **structured** (wrap them in `<example>` tags, several inside `<examples>`, so they aren't mistaken for instructions).
+- Examples cost input tokens on every call. Put them in the cached prefix.
+
+## Exam traps
+
+- **"Set temperature to 0 to make it deterministic."** It never fully was, and on current models non-default sampling values are rejected.
+- **Sending `budget_tokens` to a current model.** It returns a 400. Use adaptive thinking and effort.
+- **Choosing fast mode to fix "nothing appears for 20 seconds".** That's time to first token. Streaming fixes it.
+- **Treating effort as a hard budget.** Only `max_tokens` is a hard limit, and thinking eats into it.
+- **"Use the biggest context window and include everything."** More context costs more and can lower accuracy.
+- **Estimating tokens from word counts or another tokenizer**, especially after a model upgrade.
+
+## On the field
+
+**Gridiron Assistant: the play-by-play summarizer.** The summarizer turns a drive's play log into a three-sentence recap. Problems in testing:
+
+- The recap format drifts (bullets one day, prose the next). The team tries `temperature: 0`, and the request fails with a 400 on the current model. *Fix:* remove the sampling parameter and add three diverse examples in `<examples>` tags (a touchdown drive, a three-and-out, a drive ending in a turnover).
+- A teammate copies an old snippet with `budget_tokens` and gets another 400. *Fix:* adaptive thinking with `low` effort, because summarizing a drive isn't hard reasoning.
+- Long overtime logs sometimes end with `stop_reason: "max_tokens"`. *Fix:* count tokens with `count_tokens` for the actual model and leave room for thinking in `max_tokens`.
+
+Try it in **Lab L1** (play-by-play summarizer): measure token counts, then compare effort levels on the same game.

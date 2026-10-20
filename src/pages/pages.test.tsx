@@ -72,7 +72,10 @@ describe('learn', () => {
   it('renders a lesson with its sections and tracks read state', async () => {
     const user = userEvent.setup()
     renderAt('/learn/2.5')
-    expect(screen.getByRole('heading', { level: 1, name: /2.5 Claude Application Design/ })).toBeInTheDocument()
+    // The Learn route is code-split, so wait for it to load.
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /2.5 Claude Application Design/ }),
+    ).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Exam traps' })).toBeInTheDocument()
     expect(screen.getByRole('table')).toBeInTheDocument()
 

@@ -1,0 +1,76 @@
+export const meta = {
+  skillId: '6.1',
+  updated: '2026-10-20',
+  tldr: 'Context is a finite attention budget, and quality drops as it fills with stale material. Keep it small on purpose: prune tool output at the source, clear old tool results, compact long histories into summaries, and isolate noisy work in subagents or separate workflow steps so only the result comes back.',
+  links: [
+    { title: 'Effective context engineering for AI agents (Anthropic Engineering)', url: 'https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents' },
+    { title: 'Context windows', url: 'https://platform.claude.com/docs/en/build-with-claude/context-windows' },
+    { title: 'Context editing', url: 'https://platform.claude.com/docs/en/build-with-claude/context-editing' },
+    { title: 'Compaction overview', url: 'https://platform.claude.com/docs/en/build-with-claude/compaction' },
+    { title: 'Agent SDK: how the agent loop works (context window)', url: 'https://code.claude.com/docs/en/agent-sdk/agent-loop' },
+  ],
+}
+
+Context engineering questions describe a long-running agent that **gets worse over time**: it forgets an early instruction, repeats work, slows down, or costs too much. You pick the technique that fixes the stated cause. Know which tool **prunes**, which **summarizes**, which **persists** and which **isolates**.
+
+## Key concepts
+
+### 1. Why context needs managing
+
+- The context window holds **everything** for each request: system prompt, tool definitions, the full history, every tool input and every tool output. The API is stateless, so you resend it all each turn.
+- A large window (up to 1M tokens on recent models) is a limit, not a target. As context grows, the model's attention spreads thinner and recall of specific details degrades. Anthropic calls this **context rot**.
+- **Bloat** is irrelevant tokens piling up (a 5,000-line log read once and never needed again). **Drift** is the agent losing track of its goal or early constraints as they get buried, or as a summary drops them. Bloat raises cost and latency; both lower quality.
+
+### 2. Prune tool output at the source
+
+The cheapest token is one that never enters context.
+- Design tools to return **only what the next step needs**: filtered fields, paginated results, a summary plus an ID to fetch details.
+- Truncate large outputs in the handler and say so ("showing 20 of 340 plays").
+- Prefer **just-in-time retrieval**: keep lightweight references (paths, IDs) in context and load details with a tool when needed.
+- Programmatic tool calling runs several tool calls inside code execution, so only the final output reaches context.
+
+### 3. Context editing vs. compaction vs. memory
+
+| Technique | What it does | Use when |
+|---|---|---|
+| **Context editing** (beta) | **Clears** old tool results (and optionally their inputs) or old thinking blocks, replacing them with a placeholder. You set a `trigger`, how many recent tool uses to `keep`, and `exclude_tools` | Old tool results are stale but the conversation itself is still needed |
+| **Compaction** (beta) | **Summarizes** older turns into a compaction block written server-side. It can run on demand or when input tokens reach a threshold | The conversation will approach the window limit and you want to continue it |
+| **Memory** | **Persists** notes outside the window (memory tool files, a progress file, a database) | State must survive a reset, a compaction or a new session |
+
+Details that matter:
+- With threshold compaction, append the **full** `response.content` back to history. Extracting only the text loses the compaction block.
+- Summaries lose detail. Put **durable rules** where they are re-injected every request (system prompt, CLAUDE.md in Claude Code and the Agent SDK) rather than only in the first user message. In the Agent SDK you can also tell the compactor what to preserve via CLAUDE.md, and archive the transcript first with a `PreCompact` hook.
+- Clearing tool results **invalidates the prompt cache** from that point. Clear a meaningful amount at once (`clear_at_least`) rather than a little every turn.
+- Structured note-taking (a `NOTES.md` or progress file the agent updates) is a simple, robust guard against drift on long tasks.
+
+### 4. Context isolation
+
+Instead of shrinking one big context, keep separate contexts small.
+- **Subagents:** each runs in a **fresh** context window. Its file reads and tool calls stay there; only its final report returns. The parent's context grows by a summary, not a transcript.
+- **Multi-step workflows:** each step gets only the inputs it needs (step 1's structured output, not its conversation).
+- **Fresh sessions per task** and per user. Never share histories across users.
+- Scope tools per agent: every definition costs context on every request (tool search defers the rest).
+
+## Exam traps
+
+- **"Use a bigger context window"** as the fix for degrading quality. More room doesn't fix rot; removing irrelevant tokens does.
+- **Confusing context editing with compaction.** Editing *clears* specific old content; compaction *summarizes* the history.
+- **Relying on compaction for must-keep instructions.** A summary can drop an early constraint. Keep it in the system prompt, CLAUDE.md or memory.
+- **Treating subagents as shared memory.** They don't see the parent's history, and the parent sees only their final report.
+- **Appending only the text of a compacted response.** The compaction block must go back into history.
+- **Returning raw dumps from tools** and hoping the model ignores the noise. Prune at the source.
+
+## On the field
+
+**Gridiron Assistant: week 17 and the agent is slipping.** The scouting agent has run all season in one long conversation. Lately it re-reads play-by-play files it already analysed, and it forgot the coach's week-1 instruction to "flag every 4th-down tendency".
+
+*Diagnosis:* bloat (dozens of full play-by-play dumps still in history) plus drift (the early instruction is buried, and a summary dropped it).
+
+*Fixes, in order:*
+1. Make `get_play_by_play` return only the drives that match the query, not the whole game.
+2. Turn on context editing to clear old tool results, keeping the last few.
+3. Move the 4th-down rule into the system prompt so it is present on every request and survives compaction.
+4. Let the **film** subagent read the logs in its own context and hand the supervisor a one-page summary.
+5. Keep a `scouting_notes.md` in memory so next week's session starts from notes, not from a replay of the season.
+
+Try it in **Lab L4** (tool-output pruning in the lineup assistant) and **Lab L6** (subagent isolation and memory in the scouting agent).

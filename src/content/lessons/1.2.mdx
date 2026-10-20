@@ -1,0 +1,90 @@
+export const meta = {
+  skillId: '1.2',
+  updated: '2026-10-20',
+  tldr: 'Ask two questions: who supplies the harness (the loop and context management) and who supplies the deployment (where it runs)? A manual loop gives you neither, the Tool Runner and the Agent SDK give you a harness you host yourself, and Managed Agents gives you both. Use hooks, not prompts, for anything that must always or never happen.',
+  links: [
+    { title: 'Agent SDK overview', url: 'https://code.claude.com/docs/en/agent-sdk/overview' },
+    { title: 'Agent SDK: how the agent loop works', url: 'https://code.claude.com/docs/en/agent-sdk/agent-loop' },
+    { title: 'Agent SDK: hooks', url: 'https://code.claude.com/docs/en/agent-sdk/hooks' },
+    { title: 'Hosting the Agent SDK', url: 'https://code.claude.com/docs/en/agent-sdk/hosting' },
+    { title: 'Managed Agents overview', url: 'https://platform.claude.com/docs/en/managed-agents/overview' },
+    { title: 'Tool Runner (client SDKs)', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner' },
+  ],
+}
+
+This is the **heaviest skill in Domain 1 (5.3%)**. Questions give a team's constraints (data stays in their VPC, no ops team, needs built-in file tools, must block certain actions) and ask which build or deployment option fits.
+
+## Key concepts
+
+### 1. Four ways to build an agent
+
+Ask two questions: **who supplies the harness** (loop plus context management) and **who supplies the deployment** (where it runs)?
+
+| Approach | You write | Harness | Deployment | Tools |
+|---|---|---|---|---|
+| **Manual loop** (Messages API) | The whole `while stop_reason == "tool_use"` loop | You | You | Only the ones you define |
+| **Tool Runner** (client SDK beta helper) | Just the tool functions | SDK | You | Only the ones you define |
+| **Claude Agent SDK** | A prompt plus options to `query()` | SDK (Claude Code's harness) | You | Built-in Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch, plus MCP and subagents |
+| **Managed Agents** (beta) | An agent config, then sessions | Anthropic | Anthropic (or a self-hosted sandbox) | Hosted toolset (bash, files, web), MCP, skills, plus your custom tools |
+
+Watch the names: the **Tool Runner** is a helper in the regular client SDK (`@anthropic-ai/sdk`); the **Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`) is Claude Code packaged as a library.
+
+### 2. Custom loops and harnesses
+
+A **harness** is everything around the model: loop, tool execution, permissions, context management, retries, logging. A minimal manual loop:
+1. Send `messages` plus `tools`.
+2. If `stop_reason` is `tool_use`, run **every** `tool_use` block and return **all** `tool_result` blocks in **one** user message (use `is_error: true` for failures).
+3. Append and repeat until `end_turn`. Add a turn cap so it can't run forever.
+
+Hand-write it for unusual control flow or to avoid a beta dependency; otherwise the Tool Runner's per-turn hooks still give you approval gates and error interception.
+
+### 3. The Claude Agent SDK
+
+- `query()` runs Claude Code as a **subprocess** that owns a shell, a working directory and session files on local disk, so hosting it means running stateful containers.
+- Key options: `allowedTools`, `permissionMode` (such as `acceptEdits`, `plan`, `bypassPermissions`), `canUseTool` for runtime approval, `agents`, `mcpServers`, `hooks`, `maxTurns`, `maxBudgetUsd`.
+- **System prompt:** without a `systemPrompt` option you get a **minimal default** (tool calling only, no Claude Code safety guidance). Choose the `claude_code` preset (optionally with `append`) for CLI-like behavior.
+- **`settingSources`:** omitting it loads user, project and local settings, CLAUDE.md and `.claude/` skills, agents and commands, just like the CLI. Pass `[]` for an isolated, fully programmatic agent (recommended for multi-tenant servers).
+- **Sessions:** capture `session_id`, then `resume` it, `continue` the latest, or **fork** to branch.
+
+### 4. Deployment: self-hosted vs. Anthropic-hosted
+
+| | Self-hosted (Agent SDK, Tool Runner, manual loop) | Anthropic-hosted (Managed Agents) |
+|---|---|---|
+| Agent loop runs | In your process | On Anthropic's orchestration layer |
+| Tools execute | In your container | In a per-session cloud container, or in a **self-hosted sandbox** your worker runs |
+| You operate | Containers, scaling, session persistence, secrets, observability | Your client code: create an agent once, start sessions, stream events |
+| Fits when | Full control, your own runtime | No loop or infra code, long-running sessions, versioned configs |
+
+Managed Agents essentials: an **agent** is a persisted, **versioned** config (model, prompt, tools, MCP servers, skills). Create it **once**, then start a **session** per run, pinned to a version. Credentials live in **vaults**. Careful: with a `self_hosted` environment only **tool execution** moves to your infrastructure; the loop still runs at Anthropic.
+
+### 5. Hooks for deterministic actions
+
+A prompt *asks*; a **hook** *guarantees*. Hooks are callbacks in your process that fire at fixed points in the loop and use no context.
+
+| Hook | Fires | Typical use |
+|---|---|---|
+| `PreToolUse` | Before a tool runs | Block or rewrite a call (`permissionDecision: "deny"`, `updatedInput`) |
+| `PostToolUse` | After a tool returns | Audit, append context, replace output |
+| `Stop` | When the agent finishes | Validate the result, save state |
+| `PreCompact` | Before compaction | Archive the full transcript |
+
+- A **matcher** such as `"Write|Edit"` limits which tools trigger the hook. A Bash command that writes the same file is a different tool, so match it too (or sandbox it).
+- When several hooks disagree, **deny wins**. A hook returning `allow` does **not** override a deny or ask permission rule.
+
+## Exam traps
+
+- **Confusing the Tool Runner with the Agent SDK.** Only the Agent SDK ships built-in file and shell tools.
+- **Thinking the Agent SDK is hosted.** It is a library you deploy. Only Managed Agents adds Anthropic-hosted deployment.
+- **Creating a Managed Agent on every request.** Create once, store the ID, start sessions; update the agent to get a new version.
+- **Enforcing a hard rule with the system prompt.** "Never delete files" belongs in a `PreToolUse` hook or a deny rule.
+- **Assuming the SDK starts empty.** By default it loads filesystem settings and CLAUDE.md; set `settingSources: []` when isolation matters.
+
+## On the field
+
+**Gridiron Assistant: the scouting agent goes to production.** You build it with the Agent SDK because it reads play-by-play files and writes Markdown reports, and the built-in Read, Grep and Write tools cover that.
+
+The coach worries the agent might overwrite the playbook. Adding "only write to `reports/`" to the prompt is a request, not a guarantee. So you register a `PreToolUse` hook with matcher `"Write|Edit"` that returns `permissionDecision: "deny"` with a reason whenever `file_path` is outside `reports/`. Claude sees the denial and adjusts.
+
+Then IT says nobody can run containers. **Managed Agents** gives you a hosted loop and per-session sandbox, with versioned configs so last week's reports stay reproducible.
+
+Try it in **Lab L6** (scouting report agent), including the hook that blocks writes outside `reports/`.

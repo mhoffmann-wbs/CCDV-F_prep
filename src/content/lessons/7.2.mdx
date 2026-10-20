@@ -1,0 +1,56 @@
+export const meta = {
+  skillId: '7.2',
+  updated: '2026-10-20',
+  tldr: 'Guardrails come in layers: define a content policy, screen input, constrain the model, check the output, and enforce limits in code and infrastructure. Design for safety from the start: collect as little data as possible, give the model the least privilege it needs, and treat the prompt as guidance, not as the enforcement layer.',
+  links: [
+    { title: 'Mitigate jailbreaks and prompt injections', url: 'https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks' },
+    { title: 'Securely deploying AI agents', url: 'https://code.claude.com/docs/en/agent-sdk/secure-deployment' },
+    { title: 'Claude Code: permissions', url: 'https://code.claude.com/docs/en/permissions' },
+    { title: 'OWASP Top 10 for LLM applications', url: 'https://owasp.org/projects/top-10-for-large-language-model-applications' },
+  ],
+}
+
+Expect *"which combination of controls"* and *"what should the design include"* questions. The answer is almost always **several independent layers**, with the strongest guarantees enforced **outside** the model.
+
+## Key concepts
+
+### 1. Content policy
+
+Write down what your app may and may not do: topics, actions, tone, and how to refuse. Then express that policy in three places:
+- **The system prompt**, which states the boundaries and gives a refusal script.
+- **Classifiers or screens** that check input and output against the same policy.
+- **Operational responses**: monitor refusals, and throttle or ban repeat offenders.
+
+### 2. Layered guardrails
+
+| Layer | Examples | Fails how |
+|---|---|---|
+| **Input** | Harmlessness or injection screen with a small, fast model, size limits, PII redaction | Novel attacks get through |
+| **Model** | System-prompt policy, untrusted-content isolation, structured outputs | Instructions are advisory |
+| **Tools** | Least-privilege tool set, strict schemas, authorization checks in code, human approval for risky actions | Over-broad tools do damage |
+| **Output** | Validation against a schema, leak and PII filters, moderation before display | Filters miss paraphrases |
+| **Infrastructure** | Sandbox or container, egress allowlist, credentials injected by a proxy, rate and spend limits | Misconfiguration |
+| **Monitoring** | Logs, traces, alerts, regular red-teaming | Nobody looks at it |
+
+Because each layer fails differently, an attack has to beat **all** of them at once.
+
+### 3. Secure by design
+
+- **Privacy**: collect and send only the data you need, redact before logging, set retention, and keep tenants isolated.
+- **IAM**: authenticate users in your app. The agent acts with the user's rights or narrower, and each workload gets its own identity (see 7.4).
+- **Least privilege**: few tools, read-only where possible, only the directories and endpoints it needs, and no secrets the model can see.
+- **Safe defaults**: deny by default, ask a human for anything irreversible, and fail closed when a guardrail errors.
+
+## Exam traps
+
+- **One perfect prompt as the whole guardrail strategy.** Prompts guide behavior, but they don't enforce it.
+- **Adding filters without removing excess capability.** Removing a tool the use case doesn't need beats screening its misuse.
+- **Fail-open guardrails**: "if the classifier times out, let the request through."
+- **Logging raw transcripts full of PII "for debugging"** in the name of observability.
+- **Granting broad permissions** (such as bypass mode) to "avoid prompts" in production.
+
+## On the field
+
+**Fan chat, layered.** Fan messages pass an injection and abuse screen first. The model gets a policy prompt ("stats, schedules and rules only; refuse betting advice") and two **read-only** tools. Replies are checked for leaked prompt text and personal data before display. The container can reach only the stats API, through a proxy that injects credentials. A dashboard tracks refusal spikes per user. When an injection gets past the first screen, it still finds no write tool, no secret and no open egress.
+
+Try it in **Lab L8** (fan chat guardrails).

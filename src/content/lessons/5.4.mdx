@@ -1,0 +1,75 @@
+export const meta = {
+  skillId: '5.4',
+  updated: '2026-10-20',
+  tldr: 'Know where every token goes and what it costs: read the usage fields on each response, roll them up (or use the Usage and Cost API), model cost per completed task, cap output with max_tokens, and make prompt caching work by keeping a stable prefix and moving the cache checkpoint forward as a conversation grows. Batch anything nobody is waiting for.',
+  links: [
+    { title: 'Prompt caching', url: 'https://platform.claude.com/docs/en/build-with-claude/prompt-caching' },
+    { title: 'Pricing', url: 'https://platform.claude.com/docs/en/about-claude/pricing' },
+    { title: 'Token counting', url: 'https://platform.claude.com/docs/en/build-with-claude/token-counting' },
+    { title: 'Usage and Cost API', url: 'https://platform.claude.com/docs/en/manage-claude/usage-cost-api' },
+    { title: 'Rate limits (cache-aware ITPM)', url: 'https://platform.claude.com/docs/en/api/rate-limits' },
+  ],
+}
+
+A small skill (**2.8%**) with very practical questions: "the bill doubled, where do we look?", "why isn't the cache hitting?", or "where should the cache breakpoint go in a long chat?"
+
+## Key concepts
+
+### Token budgeting
+
+- **Input** = system prompt, tools, history, documents. **Output** = text, tool calls, and **thinking**. Output tokens cost several times more than input tokens.
+- Estimate before sending with the **token counting** endpoint, using the model you'll call. Recount after model upgrades: newer tokenizers produce more tokens for the same text.
+- **`max_tokens`** is the hard cap per response (thinking included). Too low truncates output, and the retry costs more. **Effort** is the soft lever for how much the model spends. Task budgets (beta) give an agent an advisory budget for a whole loop.
+
+### Usage tracking
+
+Every response has a `usage` object. Log it per request, tagged with feature and user:
+
+| Field | Meaning |
+|---|---|
+| `input_tokens` | Uncached input **after the last cache breakpoint** |
+| `cache_creation_input_tokens` | Input written to the cache this request |
+| `cache_read_input_tokens` | Input served from the cache |
+| `output_tokens` | Everything generated, including thinking |
+
+Total input = the three input fields added together. For organization-wide views, the **Usage and Cost Admin API** reports usage by model, workspace, API key and service tier, and costs in USD. It needs an Admin API credential, not a normal key. Separate workspaces per app or environment make attribution easy.
+
+### Cost modeling
+
+Cost = input tokens × input price + output tokens × output price, adjusted by multipliers that **stack** (as of 2026-10):
+
+| Lever | Effect |
+|---|---|
+| Cache write | 1.25x input price (5-minute TTL) or 2x (1-hour TTL) |
+| Cache read | 0.1x input price on most models, lower on some newer ones |
+| Message Batches API | 50% off input and output |
+| US-only data residency | 1.1x |
+| Fast mode | Premium price on supported models |
+
+Model the **cost per completed task**, including retries and extra turns, and look at the expensive tail, not only the median.
+
+### Caching techniques
+
+- **Prefix order matters.** The request renders `tools`, then `system`, then `messages`. Put what never changes first and volatile content last.
+- **Breakpoints:** up to 4 `cache_control` markers per request, or top-level automatic caching, which places one for you.
+- **Cache checkpointing in conversations:** put the breakpoint on the **latest turn** and move it forward each request. Earlier checkpoints stay valid read points, so each turn reads the whole prior conversation from cache.
+- **Shared prefix, varying question:** put the breakpoint at the end of the shared part, not after the question. Otherwise every request writes a new entry and nothing is read.
+- **TTL:** each read refreshes the entry. Use 5 minutes when requests arrive steadily, and 1 hour when gaps run longer (batches, users who reply after 20 minutes).
+- **Silent invalidators:** timestamps or IDs in the system prompt, unsorted JSON, per-user tool lists, switching model, effort or fast mode mid-conversation. Prefixes under the model's minimum length don't cache at all, with no error.
+- **Bonus:** on most models, cache reads don't count toward the input-tokens-per-minute rate limit, so caching also raises throughput.
+
+## Exam traps
+
+- **Reading `input_tokens` as total input** when caching is on. It's only the uncached tail.
+- **Putting the breakpoint after the per-request question**, which guarantees zero reads.
+- **Assuming caching shrinks the context window.** It changes price, not size.
+- **Lowering `max_tokens` to cut cost** and getting truncated, retried output instead.
+- **Ignoring thinking tokens** in the cost model. They're billed as output even when hidden.
+
+## On the field
+
+**Gridiron Assistant: the recap bill.** The weekly recap job resends a 20,000-token league context (rules, team glossaries, style guide) with each of 16 games, plus a per-game box score.
+
+Logging `usage` shows `cache_read_input_tokens: 0` on every request. The cause: the system prompt starts with "Week 7 recaps, run at 09:14:02". You move the run time into the user turn, put the breakpoint at the end of the league context, and use the 1-hour TTL because the batch can take longer than 5 minutes. Reads now cover the shared context, and the batch discount stacks on top. Your cost report compares cost per finished recap across Haiku, Sonnet and Opus.
+
+Try it in **Lab L2**: cache the shared league context, batch the games, and build the cost report.

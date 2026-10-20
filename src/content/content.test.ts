@@ -98,6 +98,10 @@ describe('lessons', () => {
       .map((f) => [f, readFileSync(join(lessonDir, f), 'utf8')]),
   )
 
+  it('every blueprint skill has a lesson', () => {
+    expect(SKILLS.filter((s) => !LESSONS.has(s.id)).map((s) => s.id)).toEqual([])
+  })
+
   it('each file is named after the skill its meta declares', () => {
     for (const path of Object.keys(lessonSources)) {
       const fileId = path.match(/^(\d\.\d)\.mdx$/)?.[1]

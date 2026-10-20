@@ -1,0 +1,88 @@
+export const meta = {
+  skillId: '8.1',
+  updated: '2026-10-20',
+  tldr: 'Know where each tool runs (client vs. server), write detailed descriptions that say when to call a tool, dispatch tool_use blocks by name and return every result in one user message, report failures with is_error, gate side effects behind approval, and keep the tool set small and focused.',
+  links: [
+    { title: 'Tool use overview', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview' },
+    { title: 'Define tools', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools' },
+    { title: 'Handle tool calls', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls' },
+    { title: 'Parallel tool use', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use' },
+    { title: 'Strict tool use', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use' },
+    { title: 'Tool Runner (SDK)', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner' },
+  ],
+}
+
+Expect agent scenarios: Claude calls the wrong tool or none, the loop errors out, a tool fails, or an action needs a human's OK. You choose the fix in the tool definition, the harness or the approval flow.
+
+## Key concepts
+
+### 1. Client vs. server tools
+
+| | Client tools | Server tools |
+|---|---|---|
+| Examples | Your own functions; Anthropic-schema tools like `bash`, `text_editor`, memory | `web_search`, `web_fetch`, `code_execution`, tool search |
+| Who executes | **Your application** | **Anthropic's infrastructure** |
+| Flow | Response has `stop_reason: "tool_use"`; you run it and send a `tool_result` | Results arrive in the same response; you write no handler |
+| Errors | You return `is_error: true` | Come back as an error object inside the result block, with HTTP 200 |
+
+Server-tool loops can stop with `pause_turn`. Send the turn back to resume.
+
+### 2. Tool descriptions and definitions
+
+The description is **by far the biggest lever** on tool performance.
+- Aim for **at least 3–4 sentences**: what the tool does, **when to use it and when not to**, what each parameter means, and what it does *not* return.
+- Use specific, **namespaced names** (`stats_get_player`, `lineup_set`) once you have several services.
+- **Consolidate** related operations into one tool with an `action` parameter instead of many near-duplicates.
+- Add **`input_examples`** for complex inputs (each must validate against the schema).
+- **Return high-signal results:** stable IDs and only the fields Claude needs next, not raw API dumps.
+- Schemas with `enum`, `required` and `strict: true` are covered in 2.5.
+
+### 3. Agentic harness dispatch
+
+The manual loop, which the SDK **Tool Runner** automates for you:
+1. Call the API with `tools`. If `stop_reason` is `tool_use`, append the **full** `response.content` as the assistant turn.
+2. For each `tool_use` block, look up the handler **by `name`** in a dispatch map and run it with `input`. An unknown name gets an `is_error` result, not a crash.
+3. Send **all** `tool_result` blocks, each with its matching `tool_use_id`, in **one** user message. Results come first in that message, and any text after them.
+4. Repeat until `stop_reason` is `end_turn`, with an iteration cap.
+
+- **Parallel calls** are on by default: run them concurrently. Splitting their results across messages teaches Claude to stop calling in parallel. `disable_parallel_tool_use: true` allows at most one call per turn.
+- With `eager_input_streaming`, inputs aren't validated server-side, so validate them yourself.
+
+### 4. Error handling in tools
+
+- On failure, return a `tool_result` with `"is_error": true` and an **instructive** message: what went wrong and what to try next ("Player ID not found; call `stats_search_player` with the name first"), not just "failed".
+- `strict: true` prevents schema-invalid calls altogether.
+- Never drop a failed call: every `tool_use` needs a matching result, or the next request is a 400.
+
+### 5. Controlling tool use
+
+- `tool_choice` `auto` (the default) and `none` work everywhere. **`any` and `tool` (forced use) return a 400 on Claude Opus 5.5, Sonnet 5.5 and Fable 5.1.** There, use `auto`, name the tool in the prompt, add `strict: true`, and check that a call was made. Forcing a call just to get JSON? Use structured outputs.
+
+### 6. Approval patterns
+
+- Classify tools by risk. **Read-only** tools (`get_player_stats`) run freely. **Side-effecting** ones (`set_lineup`, send, pay, delete) need a gate.
+- Gate **in your harness**, before execution: show the pending call to a human. On a decline, return a `tool_result` saying so, and Claude adjusts. The Tool Runner supports gating too.
+- Treat tool inputs as **untrusted model output**: validate them even after approval.
+
+### 7. Tool set construction
+
+- **Fewer, sharper tools** beat many overlapping ones. Every definition costs input tokens on every call, and overlap confuses selection.
+- Expose only what the task needs. For large libraries, use **tool search** with `defer_loading: true`.
+
+## Exam traps
+
+- **Forcing `tool_choice: any`** on Claude Opus 5.5 or Sonnet 5.5. It returns a 400. Use `auto` with a prompt instruction and `strict: true`.
+- **Fixing wrong-tool selection with more system prompt rules** when the real gap is a one-line tool description.
+- **Throwing on a tool error** or omitting its result. Return `is_error: true` with a useful message.
+- **Returning parallel results in separate messages**, or putting text before the `tool_result` blocks.
+- **Writing an `is_error` handler for web search.** Server-tool errors arrive in the result block. You don't execute server tools.
+- **Relying on "please confirm first" in the prompt** for destructive actions. Approval belongs in code.
+
+## On the field
+
+**Gridiron Assistant: the fantasy lineup assistant.** You give Claude `get_player_stats`, `get_injury_status` and `set_lineup`. Early tests show three problems:
+- Asked "Should I start Jackson?", Claude answers from memory. *Fix:* the descriptions now say "Call this for any question about current-season performance or game status; this data is not in your training."
+- A lookup for a misspelled name crashes the loop. *Fix:* return `is_error: true` with "No player matches 'Jaxon'; ask the user to confirm the spelling."
+- Claude benches a player without asking. *Fix:* `set_lineup` pauses for user approval in the harness. On "no", it returns "User declined this lineup change" and Claude proposes an alternative.
+
+Try it in **Lab L4** (fantasy lineup assistant with a manual tool loop and approval).

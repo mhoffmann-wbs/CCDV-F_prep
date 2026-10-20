@@ -1,0 +1,60 @@
+export const meta = {
+  skillId: '7.3',
+  updated: '2026-10-20',
+  tldr: 'Hooks are deterministic code that runs at lifecycle events. To stop a destructive action, use a PreToolUse hook with a matcher. Block with exit code 2 (the reason on stderr) or with JSON permissionDecision "deny". PostToolUse runs after the tool and cannot undo it. A hook deny holds even in bypass mode.',
+  links: [
+    { title: 'Claude Code: hooks reference', url: 'https://code.claude.com/docs/en/hooks' },
+    { title: 'Claude Code: hooks guide', url: 'https://code.claude.com/docs/en/hooks-guide' },
+    { title: 'Agent SDK: hooks', url: 'https://code.claude.com/docs/en/agent-sdk/hooks' },
+  ],
+}
+
+Expect *"guarantee that X never happens"* scenarios. The answer is a **hook** (or a permission rule), not an instruction in CLAUDE.md or a Skill. Also expect questions on picking the right event and the right way to block.
+
+## Key concepts
+
+### 1. Why hooks
+
+CLAUDE.md and Skills are **requests** that Claude interprets. A hook fires on its event **every time**, without the model deciding. That makes hooks the right tool for guardrails: blocking `rm -rf`, protecting `.env`, keeping writes inside one folder. Hooks cost no context unless they return output.
+
+### 2. Events that matter for safety
+
+- **`PreToolUse`**: runs **before** a tool call and **can block it**. This is the main guardrail event.
+- **`PostToolUse`**: runs **after** the tool. It can give Claude feedback (lint errors, for example) but **can't undo** the action.
+- Others: `UserPromptSubmit` (can block a prompt), `PermissionRequest`, `Stop` (can keep Claude working, for example until tests pass), `SessionStart`, `PreCompact`.
+
+### 3. How a hook blocks
+
+Command hooks receive the event as JSON on **stdin** (`tool_name`, `tool_input`, …).
+- **Exit 0**: no objection. Stdout may carry JSON for structured control.
+- **Exit 2**: block, with the reason on **stderr**. For `PreToolUse`, Claude receives the reason and can adjust.
+- **Any other exit code**: a non-blocking error, and the action **proceeds**. Don't use `exit 1` to block.
+- **JSON for PreToolUse**: `hookSpecificOutput.permissionDecision` is `allow`, `deny`, `ask` or `defer`, with a `permissionDecisionReason`.
+
+```json
+{ "hookSpecificOutput": { "hookEventName": "PreToolUse",
+  "permissionDecision": "deny", "permissionDecisionReason": "Writes must stay in reports/" } }
+```
+
+A `deny` from a hook blocks the call **in every permission mode, including bypassPermissions**. An `allow` doesn't override deny rules in settings. When several hooks disagree, `deny` wins.
+
+### 4. Where hooks live
+
+- **Settings files**: `~/.claude/settings.json`, `.claude/settings.json` (shared with the team), `.claude/settings.local.json`, and managed policy settings. Plugins (`hooks/hooks.json`) and Skill or subagent frontmatter can also define hooks.
+- **Matchers** filter on the tool name: `"Edit|Write"`, `"Bash"`, `"mcp__github__.*"`. They don't match file paths, so check `tool_input.file_path` inside the hook.
+- **Agent SDK**: pass callbacks in `options.hooks` (`PreToolUse: [{ matcher, hooks: [fn] }]`) that return the same JSON shape.
+- Hooks merge across all sources, and admins can restrict them to managed hooks only (`allowManagedHooksOnly`).
+
+## Exam traps
+
+- **CLAUDE.md "never edit .env"** as the answer to a guarantee requirement. Use a `PreToolUse` hook.
+- **Using `PostToolUse` to prevent damage.** By then the tool has already run.
+- **Blocking with exit 1.** That's a non-blocking error, and the action proceeds.
+- **Matching on a path in the matcher.** Matchers see tool names, so `Write|Edit` won't catch a Bash `echo > .env` either. Cover Bash too, or sandbox it.
+- **Forgetting that hooks are code running as you.** Review hooks from repos and plugins before trusting them.
+
+## On the field
+
+**Scouting agent stays in its lane.** The L6 agent may write reports only under `reports/`. A `PreToolUse` hook with matcher `Write|Edit` reads `tool_input.file_path`. Anything outside `reports/` gets `permissionDecision: "deny"` with a reason, so Claude retries in the right folder. A second hook on `Bash` denies `rm -rf` and `git push --force`. In L7, the same pattern goes into `.claude/settings.json`, so every teammate gets it.
+
+Try it in **Lab L6** (scouting report agent) and **Lab L7** (Claude Code on the repo).

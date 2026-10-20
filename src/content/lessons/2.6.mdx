@@ -1,0 +1,95 @@
+export const meta = {
+  skillId: '2.6',
+  updated: '2026-10-20',
+  tldr: 'Know where each piece of configuration lives and which one wins: CLAUDE.md files are concatenated context, settings.json scopes follow a strict precedence, model IDs are pinned snapshots while aliases move, prompts need versions like code, and plugin dependencies resolve against semver ranges and git tags.',
+  links: [
+    { title: 'Claude Code: how Claude remembers your project (CLAUDE.md)', url: 'https://code.claude.com/docs/en/memory' },
+    { title: 'Claude Code: settings files and precedence', url: 'https://code.claude.com/docs/en/settings' },
+    { title: 'Claude Code: model configuration and pinning', url: 'https://code.claude.com/docs/en/model-config' },
+    { title: 'Model IDs and versioning', url: 'https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions' },
+    { title: 'Model deprecations', url: 'https://platform.claude.com/docs/en/about-claude/model-deprecations' },
+    { title: 'Claude Code: plugin dependencies', url: 'https://code.claude.com/docs/en/plugins/dependencies' },
+  ],
+}
+
+Configuration questions are usually "which file or setting should change?" or "why didn't my change take effect?" Expect a team, a repo and a surprise: a teammate's setting overrides yours, a model alias moved under you, or a plugin pulled in a dependency nobody reviewed.
+
+## Key concepts
+
+### 1. CLAUDE.md files: context, layered
+
+CLAUDE.md is plain Markdown that Claude Code loads at session start. It shapes behavior but **enforces nothing**: to block an action, use a permission rule or a `PreToolUse` hook.
+
+| Scope | Location | Shared with |
+|---|---|---|
+| Managed policy | OS-level path set by IT (for example `/etc/claude-code/CLAUDE.md` on Linux) | Everyone on the machine. Can't be excluded. |
+| User | `~/.claude/CLAUDE.md` | Only you, all projects |
+| Project | `./CLAUDE.md` or `./.claude/CLAUDE.md` | The team, through git |
+| Local | `./CLAUDE.local.md` (add it to `.gitignore`) | Only you, this project |
+
+- Files are **concatenated, not overridden**. Ancestor directories load at launch, ordered from the filesystem root down to your working directory, so the most specific file is read last. CLAUDE.md files in subdirectories load on demand, when Claude touches files there.
+- If two instructions conflict, Claude may follow either one. Remove contradictions instead of relying on order.
+- `@path/to/file` imports another file (relative to the importing file, up to four hops deep). Imports organize a file but don't shrink its context cost.
+- `.claude/rules/*.md` splits instructions by topic. A rule with `paths` frontmatter (globs) loads only when Claude works on matching files.
+- Keep each file short (the docs suggest under 200 lines). Move multi-step procedures into skills, which load only when used.
+- `/init` drafts a project CLAUDE.md from the codebase. If one exists, it suggests improvements instead of overwriting.
+- Claude Code can also read an `AGENTS.md`, but by default only when there's no CLAUDE.md in the working directory or above it.
+
+### 2. settings.json: scopes and precedence
+
+Highest precedence first:
+
+1. **Managed settings** (`managed-settings.json`, MDM, or server-managed from the console). Nothing below can override a managed key.
+2. **Command line** (`claude --settings <file-or-json>`), for that session only.
+3. **Project local**: `.claude/settings.local.json`. Personal and kept out of git.
+4. **Shared project**: `.claude/settings.json`. Committed for the team.
+5. **User**: `~/.claude/settings.json`.
+
+Rules worth memorizing:
+- **List keys merge across scopes.** `permissions.allow` from user, project and managed files all apply together. A few model-list keys (such as `fallbackModel`) are exceptions and take the whole value from one level.
+- Permission rules are checked in the order **deny, then ask, then allow**, and the first match wins. A deny rule anywhere beats an allow rule anywhere.
+- Environment variables aren't a level in this stack. They pair with specific keys: an exported `ANTHROPIC_MODEL` beats the `model` key from any file.
+- Settings files are **strict JSON**. A comment or trailing comma is a Settings Error. Add the `$schema` line for editor validation, and run `/status` to see which files loaded.
+- Some committed keys (for example `permissions.allow` and most `env` values) only apply after each teammate trusts the folder.
+
+### 3. Model version pinning
+
+**On the Claude API, every model ID is a pinned snapshot.** From the 4.6 generation on, IDs are dateless (`claude-opus-5-5`, `claude-sonnet-5-5`), and a dateless ID is **not** an evergreen pointer: Anthropic never changes the weights behind an existing ID, and an update ships under a new ID. Older models have dated IDs (`claude-sonnet-4-5-20250929`) plus convenience aliases (`claude-sonnet-4-5`) that point to the latest dated snapshot.
+- Weights are fixed per ID, but the serving infrastructure around them can change, so small behavior differences on a stable ID are possible.
+- **Lifecycle:** Active, then Legacy, then Deprecated (still works, has a retirement date), then Retired (requests fail). Anthropic gives at least 60 days' notice for publicly released models. Bedrock and Google Cloud set their own retirement schedules.
+- **Claude Code aliases move.** `opus`, `sonnet` and `haiku` resolve to the recommended version for your provider, and that changes over time and differs by provider. To pin, use the full model name, or set `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, `ANTHROPIC_DEFAULT_HAIKU_MODEL` (and `ANTHROPIC_DEFAULT_FABLE_MODEL`). The docs tell you to pin **before** rolling out on Bedrock, Google Cloud or Foundry.
+- Keep the model ID in **one config value** that you change deliberately, after re-running your evals. Never scatter it through the code.
+
+### 4. Prompt versioning
+
+A prompt is code that ships to production, so version it like code.
+- Store system prompts and templates in git, not in a dashboard text box. Give each one an explicit version and **log the prompt version, model ID and key parameters with every request**, so any output can be traced to its exact configuration.
+- Treat prompt + model + parameters + tool schemas as **one release unit**. A model change can need prompt changes too.
+- Change one thing at a time, run the eval set, then promote. Keep the previous version ready for rollback.
+- Managed Agents store agent configurations as versioned objects: the `version` starts at 1 and increments when an update changes the config. Passing the expected `version` on update gives optimistic concurrency (a mismatch returns 409).
+
+### 5. Plugin dependencies
+
+A plugin declares other plugins it needs in the `dependencies` array of `.claude-plugin/plugin.json`.
+- An entry is a string (`"audit-logger"`, or `"name@marketplace"`), which tracks whatever version the marketplace provides, or an object with `name`, a semver `version` range (`~2.1.0`, `^2.0`) and an optional `marketplace`.
+- A constraint installs the **highest git tag that satisfies the range**. Tags follow `<plugin-name>--v<version>` and `claude plugin tag` creates them. Pre-releases don't match unless you opt in.
+- Dependencies from **another marketplace are refused by default**, unless the root marketplace lists that marketplace in `allowCrossMarketplaceDependenciesOn`. This stops one marketplace from silently installing code from a source you haven't reviewed.
+- A plugin with only a `name` and `dependencies` is a valid **bundle**, so a platform team can ship a standard plugin set. Admins deploy it to everyone through `enabledPlugins` in managed settings.
+
+## Exam traps
+
+- **"Put the rule in CLAUDE.md"** when the requirement is enforcement. Use `permissions.deny`, managed settings or a hook.
+- **Thinking the closest CLAUDE.md replaces the others.** They're all concatenated. Precedence-by-override applies to settings.json, not to CLAUDE.md.
+- **Committing personal settings.** Personal overrides belong in `.claude/settings.local.json` or `CLAUDE.local.md`, not the shared files.
+- **Treating a dateless model ID as "latest".** `claude-sonnet-5-5` is a fixed snapshot. Only older-generation aliases and Claude Code's `opus`/`sonnet`/`haiku` aliases move.
+- **Assuming a user setting can beat a managed one.** Nothing in user, project, local or `--settings` overrides a managed key.
+- **Unpinned dependencies in a shared plugin.** A bare dependency name follows the marketplace; constrain it with a range you've tested.
+
+## On the field
+
+**Gridiron Assistant: the Tuesday surprise.** Your team's game-preview command worked all season. After a laptop refresh, previews come out in a different style and one reviewer's machine suddenly lets Claude run `git push` without asking.
+
+*Diagnosis:* the CI job and the refreshed laptops used the `sonnet` alias, which now resolves to a newer model, and the push permission came from that reviewer's own `~/.claude/settings.json` allow list, which merges with the project's.
+*Fix:* pin `ANTHROPIC_DEFAULT_SONNET_MODEL` (or the full model ID) in the project's `env` settings and re-run the preview evals before any bump. Put `"Bash(git push *)"` in the committed project `permissions.deny`, which beats any allow. Tag the prompt as `game-preview@v7` and log it with each request, and give the team plugin a `~1.4.0` constraint on its stats-helper dependency.
+
+Try it in **Lab L7** (CLAUDE.md hierarchy, settings.json permissions, packaging as a plugin) and **Lab L10** (model version pinning and prompt versioning).

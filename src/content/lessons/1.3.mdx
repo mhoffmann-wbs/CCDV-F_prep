@@ -1,0 +1,73 @@
+export const meta = {
+  skillId: '1.3',
+  updated: '2026-10-20',
+  tldr: 'Every agent is a tool-use loop plus decisions about what to delegate, what to remember and what to keep in context. Frameworks such as Strands, LangGraph and PydanticAI package those decisions; use one when its abstraction matches your problem, and a plain loop when it would only hide what is happening.',
+  links: [
+    { title: 'Building effective agents (Anthropic Engineering)', url: 'https://www.anthropic.com/engineering/building-effective-agents' },
+    { title: 'Tool use: handle tool calls', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls' },
+    { title: 'Memory tool', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool' },
+    { title: 'Strands Agents', url: 'https://strandsagents.com/' },
+    { title: 'LangGraph overview', url: 'https://docs.langchain.com/oss/python/langgraph/overview' },
+    { title: 'Pydantic AI', url: 'https://pydantic.dev/docs/ai/overview/' },
+  ],
+}
+
+Questions here are about **mechanics and fit**: *"The loop stops after one tool call. What is wrong?"*, *"The agent forgets yesterday's work. What should store it?"* or *"Which framework abstraction suits this team?"* Expect at least one item that tests whether a framework is needed at all.
+
+## Key concepts
+
+### 1. The tool-use loop
+
+Claude never runs your tools. It **requests** them; your code executes them and sends results back.
+- Drive the loop on `stop_reason`: `tool_use` means run tools and continue; `end_turn` means done; `max_tokens` means the response was cut off (raise the limit or handle the partial); `pause_turn` means a long server-tool turn paused, so send the conversation back to let it continue; `refusal` means the model declined.
+- **Parallel tool calls:** one response can contain several `tool_use` blocks. Run them (concurrently if safe) and return **all** `tool_result` blocks in a **single** user message, each matched by `tool_use_id`.
+- **Errors are results.** Return a failed call as a `tool_result` with `is_error: true` and a helpful message so Claude can retry or change course. Don't drop it or crash the loop.
+- Always **cap turns** (and ideally spend), and append the **full** assistant `content` to history, since it carries the `tool_use` blocks your results refer to.
+
+### 2. Sub-agents as a pattern
+
+A sub-agent is a separate loop with its own prompt, tools and history, exposed to the parent like a tool ("agents as tools"). The parent sends a self-contained task and gets back a short report. Use it to keep noisy work (reading 40 game logs) out of the parent's context, to parallelize, or to use a cheaper model. See 1.1 for when it is justified.
+
+### 3. Memory: three horizons
+
+| Horizon | What it is | Claude tooling |
+|---|---|---|
+| **Working memory** | The current context window | Your `messages` array; trimmed with context editing or compaction (see 6.1) |
+| **Session memory** | Resuming one conversation later | Agent SDK `resume` / `fork` by `session_id`; Managed Agents sessions |
+| **Long-term memory** | Facts that survive across sessions | The **memory tool** (`memory_20250818`): Claude reads and writes files under `/memories`, **your** handler stores them. CLAUDE.md for stable project rules. Managed Agents memory stores |
+
+Memory tool points that get tested: it is **client-side** (you choose the storage and must block paths outside `/memories`), Claude checks it before starting a task, secrets never go in it, and each user gets their own directory.
+
+### 4. Context-window management (in brief)
+
+Every turn adds tool inputs and outputs. Return concise tool results, clear stale ones, compact long histories and push reading-heavy work into sub-agents (details in 6.1).
+
+### 5. Agentic frameworks
+
+| Framework | Core abstraction | Reach for it when |
+|---|---|---|
+| **Strands Agents** (open source, from AWS) | A **model-driven loop**: give an agent a model, a prompt and tools, and the model plans. Multi-agent patterns such as agents-as-tools, swarms, graphs and workflows | You want a ready harness with lifecycle controls, sessions, MCP and provider portability (Bedrock is the default provider; Anthropic is supported) |
+| **LangGraph** | A **graph** of nodes and edges over shared state, mixing deterministic steps with LLM-driven steps | You need explicit control flow, durable execution and persistence, and human-in-the-loop pauses |
+| **Pydantic AI** | **Type-safe agents**: validated Pydantic output models, dependency injection into tools, model-agnostic | Your Python app cares most about typed, validated outputs and testable tools |
+
+**When a framework helps:** it supplies persistence, retries, tracing, multi-agent wiring and provider switching you would otherwise write yourself.
+**When it hurts:** abstraction layers hide the actual prompts and responses, making debugging harder, and invite unneeded complexity. Anthropic's guidance: start with the API directly (many patterns take a few lines), and if you use a framework, **understand the underlying code**.
+
+Claude's own options sit on the same spectrum: Tool Runner, Agent SDK and Managed Agents (see 1.2).
+
+## Exam traps
+
+- **Returning parallel tool results in separate messages.** All results for one assistant turn go back together in one user message.
+- **Treating a tool error as fatal.** Send it back with `is_error: true`; Claude can often recover.
+- **Calling the context window "memory".** It is wiped at the end of a session. Cross-session recall needs the memory tool, files or a database.
+- **Assuming the memory tool stores data for you.** It is client-side; your code implements storage and access control.
+- **Choosing a framework by popularity.** Match the abstraction to the need (graph control flow, typed outputs, model-driven loop) or use a plain loop.
+- **Ignoring `pause_turn` or `max_tokens`.** Treating every non-`tool_use` stop as success silently truncates work.
+
+## On the field
+
+**Gridiron Assistant: the fantasy lineup loop.** Your lineup assistant asks Claude to pick a lineup. Claude replies with three `tool_use` blocks at once: `get_player_stats` for two running backs and `get_injury_status` for your tight end. Your first version answers only the first call, and the API rejects the next request because two `tool_use` blocks have no results. *Fix:* run all three and return the three `tool_result` blocks together. When the injury feed times out, return `is_error: true` with "injury feed unavailable, retry or use last known status" instead of crashing.
+
+Next season the coach wants the assistant to remember that he never starts rookies in week 1. That is a long-term preference, so it goes into memory via the memory tool (`/memories/coach_prefs.md`), not into a longer and longer chat history.
+
+Try it in **Lab L4** (fantasy lineup assistant with a manual tool-use loop and parallel calls), then **Lab L6** for sub-agents and memory across sessions.

@@ -1,8 +1,11 @@
+import { lazy, Suspense } from 'react'
 import { Link, NavLink, Route, Routes } from 'react-router'
 import BlueprintPage from './pages/BlueprintPage'
-import LearnPage from './pages/LearnPage'
 import MockExamPage from './pages/MockExamPage'
 import PracticePage from './pages/PracticePage'
+
+// Lessons are the bulk of the bundle, so the Learn section is code-split.
+const LearnPage = lazy(() => import('./pages/LearnPage'))
 
 const NAV = [
   { to: '/', label: 'Playbook' },
@@ -32,13 +35,15 @@ export default function App() {
         </nav>
       </header>
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <Routes>
-          <Route path="/" element={<BlueprintPage />} />
-          <Route path="/learn" element={<LearnPage />} />
-          <Route path="/learn/:skillId" element={<LearnPage />} />
-          <Route path="/practice" element={<PracticePage />} />
-          <Route path="/mock" element={<MockExamPage />} />
-        </Routes>
+        <Suspense fallback={<p className="text-neutral-500">Loading…</p>}>
+          <Routes>
+            <Route path="/" element={<BlueprintPage />} />
+            <Route path="/learn" element={<LearnPage />} />
+            <Route path="/learn/:skillId" element={<LearnPage />} />
+            <Route path="/practice" element={<PracticePage />} />
+            <Route path="/mock" element={<MockExamPage />} />
+          </Routes>
+        </Suspense>
       </main>
     </div>
   )

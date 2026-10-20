@@ -1,0 +1,62 @@
+export const meta = {
+  skillId: '8.2',
+  updated: '2026-10-20',
+  tldr: 'An MCP server exposes tools (model-controlled), resources (application-controlled) and prompts (user-controlled) to a host, which runs one client per server. Use stdio for local subprocesses and Streamable HTTP for remote, shared servers secured with OAuth; SSE as a standalone transport is legacy.',
+  links: [
+    { title: 'MCP architecture overview', url: 'https://modelcontextprotocol.io/docs/learn/architecture' },
+    { title: 'MCP server concepts (tools, resources, prompts)', url: 'https://modelcontextprotocol.io/docs/learn/server-concepts' },
+    { title: 'MCP spec: transports', url: 'https://modelcontextprotocol.io/specification/latest/basic/transports' },
+    { title: 'MCP spec: authorization', url: 'https://modelcontextprotocol.io/specification/latest/basic/authorization' },
+    { title: 'Claude Code: connect to MCP servers', url: 'https://code.claude.com/docs/en/mcp' },
+    { title: 'Claude API: MCP connector', url: 'https://platform.claude.com/docs/en/agents-and-tools/mcp-connector' },
+  ],
+}
+
+Expect questions that ask you to pick the right **primitive**, the right **transport**, or the right **side** of the connection: *"Which MCP feature should expose X?"*, *"Local or remote?"*, *"Which component does what?"*
+
+## Key concepts
+
+### 1. Roles: host, client, server
+
+- The **host** is the AI application (Claude Code, Claude Desktop, your own agent). It creates **one MCP client per server**, and each client holds a dedicated connection.
+- The **server** is the program that provides context and capabilities. "Server" says nothing about where it runs: a local subprocess is still a server.
+- Messages are **JSON-RPC 2.0**. The same messages travel over every transport.
+
+### 2. The three server primitives
+
+| Primitive | What it is | Who controls it | Methods |
+|---|---|---|---|
+| **Tools** | Actions with a JSON Schema `inputSchema` (query, write, call an API) | **Model**: Claude decides when to call | `tools/list`, `tools/call` |
+| **Resources** | Read-only context identified by a URI, plus URI **templates** for parameters | **Application**: the host decides what to include | `resources/list`, `resources/templates/list`, `resources/read` |
+| **Prompts** | Reusable, parameterized templates | **User**: invoked explicitly, often as slash commands | `prompts/list`, `prompts/get` |
+
+On the client side, servers can ask the user for input or confirmation through **elicitation**.
+
+### 3. Transports
+
+- **stdio**: the host launches the server as a subprocess and exchanges newline-delimited JSON-RPC over stdin/stdout. Best for local tools on the same machine. The server **must not** write anything except MCP messages to stdout, so send logs to **stderr**.
+- **Streamable HTTP**: every message is an HTTP POST to a single MCP endpoint. The reply is either JSON or an SSE stream scoped to that request. Use it for remote servers that many clients share. Locally bound servers should listen on `127.0.0.1` and validate the `Origin` header.
+- **Custom transports** (for example Unix domain sockets or TCP) are allowed. The spec recommends reusing the stdio framing for them.
+- The old standalone **HTTP+SSE** transport is legacy. Claude Code marks `--transport sse` as deprecated and recommends `http`.
+
+### 4. Auth and integration with Claude apps
+
+- **Remote (HTTP)**: authorization follows **OAuth 2.1**. The server acts as a resource server, must validate that tokens were issued **for it** (audience), and must not pass tokens through to other services.
+- **stdio**: don't use the OAuth flow. Read credentials from the **environment**.
+- **Claude Code**: `claude mcp add --transport http|stdio …`, scopes *local*, *project* (shared through `.mcp.json`) and *user*. Tools appear as `mcp__server__tool`.
+- **Messages API**: the **MCP connector** (`mcp_servers` parameter, still beta) calls **remote** servers directly, but supports **tools only**. For stdio servers, resources or prompts, run your own MCP client.
+
+## Exam traps
+
+- **Making read-only reference data a tool** when the app should attach it as context. That's a resource.
+- **Logging to stdout from a stdio server.** It corrupts the protocol stream.
+- **Using stdio for a server several teams or apps must share.** Remote, shared means Streamable HTTP.
+- **Expecting the API's MCP connector to reach a local stdio server** or to read resources. It can't do either.
+- **Mixing up the roles:** Claude Code is the *host/client*. Your code that exposes capabilities is the *server*.
+- **Forwarding the user's token to downstream APIs** from your server (token passthrough). The spec forbids it.
+
+## On the field
+
+**League Stats MCP server.** You wrap L4's functions as an MCP server. `get_player_stats` and `get_injury_status` become **tools**. The season schedule becomes a **resource** (`league://schedule/2026`), and a team-roster **resource template** (`league://teams/{team}/roster`) lets the host attach any roster. A `weekly-preview` **prompt** gives users a `/weekly-preview` command. You develop it over stdio in Claude Code. When the fantasy app and the scouting agent both need it, you deploy it once over Streamable HTTP behind OAuth, and both apps connect to the same server.
+
+Try it in **Lab L5** (League Stats MCP server).

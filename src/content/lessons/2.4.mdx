@@ -1,0 +1,100 @@
+export const meta = {
+  skillId: '2.4',
+  updated: '2026-10-20',
+  tldr: 'The everyday engineering underneath every Claude app: REST calls and status codes, JSON you parse and validate instead of trusting, async code that runs independent work in parallel and streams long work, git habits that keep AI-assisted changes reviewable, CI integration, code review, and safe refactoring at small and large scale.',
+  links: [
+    { title: 'Claude API overview (requests, headers, auth)', url: 'https://platform.claude.com/docs/en/api/overview' },
+    { title: 'Claude API errors', url: 'https://platform.claude.com/docs/en/api/errors' },
+    { title: 'Streaming messages', url: 'https://platform.claude.com/docs/en/build-with-claude/streaming' },
+    { title: 'Claude Code GitHub Actions', url: 'https://code.claude.com/docs/en/github-actions' },
+    { title: 'Claude Code: review locally with /code-review', url: 'https://code.claude.com/docs/en/code-review-local' },
+    { title: 'Claude Code: common workflows (refactoring, PRs)', url: 'https://code.claude.com/docs/en/common-workflows' },
+    { title: 'MDN: HTTP response status codes', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status' },
+    { title: 'Pro Git book', url: 'https://git-scm.com/book/en/v2' },
+  ],
+}
+
+This is one of the heaviest skills (7.4%), and it's the least Claude-specific. Questions put ordinary engineering judgment inside a Claude scenario: *"The integration fails intermittently with 529. What should the client do?"*, *"How should the team review Claude-generated changes?"*, *"What's the safest way to run this refactor across 200 files?"*
+
+## Key concepts
+
+### 1. REST APIs
+
+REST maps operations onto HTTP: a **method** (`GET` reads, `POST` creates or acts, `PUT`/`PATCH` update, `DELETE` removes), a **resource URL**, **headers** and a **status code**.
+- `GET`, `PUT` and `DELETE` are meant to be **idempotent** (repeating them has the same effect). `POST` is not. Retrying a `POST` that triggers side effects in *your* system (such as charging a card or posting to Slack) can duplicate them, so guard with idempotency keys or dedupe.
+- The Claude API is REST: `POST /v1/messages` with the headers `x-api-key`, `anthropic-version: 2023-06-01` and `content-type: application/json`. The SDKs set these for you and wrap the REST calls in typed methods.
+- Status codes classify the failure, and the class decides what to do:
+
+| Class | Claude API examples | Client action |
+|---|---|---|
+| 4xx, your fault | 400 `invalid_request_error`, 401 `authentication_error`, 403 `permission_error`, 404 `not_found_error`, 413 `request_too_large` | **Fail fast** and fix the request. Retrying won't help. |
+| 429 | `rate_limit_error` | Back off, honoring the `retry-after` header |
+| 5xx / overload | 500 `api_error`, 529 `overloaded_error`, 504 `timeout_error` | Retry with exponential backoff and jitter |
+
+- Errors come back as JSON with an `error.type` and `message`, and every response carries a `request-id` header. **Log the request ID**, because it's what support needs.
+- The official SDKs already retry some failures (2 retries by default, covering 408, 409, 429, 5xx and connection errors). Don't wrap them in a second, aggressive retry loop.
+
+### 2. JSON
+
+JSON is the interchange format everywhere: request bodies, tool inputs, structured outputs, config files.
+- **Parse, then validate.** Use `JSON.parse` / `json.loads`, then check the shape against a schema (Zod, Pydantic, JSON Schema). Never string-match on serialized JSON, because escaping and key order can legitimately differ.
+- Model output is **untrusted input** until validated, even with structured outputs. Handle the failure path (re-ask, fall back or surface the error) instead of letting a `TypeError` crash the worker.
+- JSON has no comments, no trailing commas and no `undefined`. That's why a stray comment breaks a `settings.json`.
+- Be explicit about types: numbers vs numeric strings, `null` vs missing key, and ISO 8601 strings for dates.
+
+### 3. Asynchronous programming
+
+LLM calls are slow, network-bound I/O, so async code is the default.
+- `async`/`await` keeps code readable. A `Promise` (or Python awaitable) represents work in flight.
+- Run **independent** calls concurrently (`Promise.all`, `asyncio.gather`) instead of awaiting them one by one, and cap the concurrency so you stay under your rate limits.
+- When Claude returns several `tool_use` blocks in one turn, run them concurrently and return **all** the `tool_result` blocks in a single user message.
+- **Streaming** delivers a long response as server-sent events, so users see progress and long generations avoid HTTP timeouts. Consume the stream as an async iterator, and use the SDK helper that returns the final message when you only need the end result.
+- Always set timeouts, handle cancellation, and never block the event loop with CPU-heavy work.
+- Work that nobody waits for (nightly recaps, bulk scoring) belongs in a queue or the Message Batches API, not in a request handler.
+
+### 4. Version control
+
+Git is the safety net for AI-assisted development.
+- Small, focused commits with clear messages; one branch per change; merge through pull requests.
+- Have Claude work on a **branch**, never directly on `main`, so every change gets a reviewable diff and a cheap rollback.
+- **Commit** shared config: `CLAUDE.md`, `.claude/settings.json`, `.claude/skills/`, `.claude/agents/`. **Keep out of git:** `.claude/settings.local.json`, `CLAUDE.local.md`, `.env` files and any key.
+- Parallel sessions belong in **git worktrees**, separate working directories sharing one history. `claude --worktree <name>` starts a session in its own worktree so two tasks don't overwrite each other's files.
+
+### 5. SDLC integration
+
+Claude fits into the pipeline you already have. It doesn't replace it.
+- **CI:** run Claude Code headless (`claude -p`) with tools restricted, and treat its output like any other build step.
+- **GitHub:** Claude Code GitHub Actions (`anthropics/claude-code-action@v1`) responds to `@claude` mentions in issues and PRs and can turn an issue into a PR. Running `/install-github-app` in Claude Code sets up the app, the secret and the workflow.
+- Keep the normal gates. Tests, linters, type checks and branch protection apply to AI-written code exactly as they do to human code.
+
+### 6. Code review
+
+- Review every AI-generated change as if a new teammate wrote it: check correctness, edge cases, security, tests and fit with the codebase.
+- In Claude Code, `/code-review` reviews your branch's diff for correctness bugs, `/security-review` looks for vulnerabilities, and `/simplify` suggests cleanups (but doesn't hunt for bugs).
+- The managed **Code Review** service (Team and Enterprise) comments inline on GitHub PRs. It **never approves or blocks** a PR: the merge decision stays with humans.
+- Ask for **evidence**, not claims: the test output, the command that ran, a screenshot.
+
+### 7. Refactoring, small and large
+
+Refactoring changes structure **without changing behavior**, so tests are the contract.
+- **Small scale** (rename, extract a function, remove duplication): make sure tests cover the code first, change one thing, run the tests, commit.
+- **Large scale** (module split, framework migration, an API change across hundreds of files): **explore, then plan, then code**. Use plan mode to get a plan you can review, add characterization tests that pin current behavior, and migrate incrementally behind the old interface (the strangler pattern) instead of in one big-bang PR.
+- The bundled `/batch` skill splits a large change into roughly 5–30 independent units. After you approve the plan, it runs one background subagent per unit, each in its own worktree, and each one tests and publishes its change.
+- Give Claude a check it can run (tests, a build, a type checker). That turns a supervised session into one you can verify.
+
+## Exam traps
+
+- **Retrying every error.** A 400 or 401 will fail again. Retry only 429, 5xx and 529, with backoff.
+- **Trusting model JSON because "structured outputs are on".** Validate at the boundary anyway, and handle the failure path.
+- **Awaiting independent calls sequentially** (slow), or firing thousands at once with no limit (rate-limited). Use bounded concurrency.
+- **Letting Claude commit to `main`** or skipping review "because the AI wrote tests". Same gates, same review.
+- **Big-bang refactors.** A 200-file PR without characterization tests is unreviewable. Plan, split, verify each step.
+- **Committing secrets or personal config** such as `.env` or `settings.local.json`.
+
+## On the field
+
+**Gridiron Assistant: Sunday at 12:55.** The fantasy lineup assistant calls `get_player_stats` for 15 players, one after another, and then hits a 529 during kickoff rush. The app retries instantly in a tight loop, and lineups lock before it recovers.
+
+*Fix:* when Claude asks for all 15 lookups in one turn, run them concurrently with a small cap, and return all 15 results in one message. Let the SDK's built-in retries handle 529 with backoff instead of a hand-rolled loop. Log each `request-id`. Make `set_lineup` idempotent with a lineup version, so a retried call can't submit twice. Then refactor the tool dispatcher on a branch, with tests that pin today's behavior first, and run `/code-review` before opening the PR.
+
+Try it in **Lab L4** (fantasy lineup assistant: parallel tool calls and the tool loop) and **Lab L7** (Claude Code on the repo, with a headless run in CI).

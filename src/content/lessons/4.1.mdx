@@ -1,0 +1,70 @@
+export const meta = {
+  skillId: '4.1',
+  updated: '2026-10-20',
+  tldr: 'Classify the failure first: retryable (429, 500, 529, network) or a request you must fix (400, 401, 403, 404, 413). Then decide whether it lives in the integration layer or in the model output, using the request ID, stop_reason and a trace of exactly what Claude saw.',
+  links: [
+    { title: 'API errors', url: 'https://platform.claude.com/docs/en/api/errors' },
+    { title: 'Handling stop reasons', url: 'https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons' },
+    { title: 'Handle tool calls (errors and is_error)', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls' },
+  ],
+}
+
+Expect a symptom (an error code, a log excerpt or a bad answer) and a question about **what to do next**: retry, fix the request, or change the prompt. The skill is telling these apart quickly.
+
+## Key concepts
+
+### 1. Error types and recovery strategy
+
+| Status (`error.type`) | Meaning | Strategy |
+|---|---|---|
+| 400 `invalid_request_error` | Bad request shape or parameter, for example prefill, `temperature` or forced `tool_choice` on a model that rejects them | **Fix the request.** Retrying the same body won't help |
+| 401 / 403 / 404 | Bad key, no permission, wrong model ID | Fix credentials, access or ID |
+| 413 `request_too_large` | Body over the size limit (32 MB for Messages) | Shrink or split the input |
+| 429 `rate_limit_error` | Rate limit hit | Back off, honouring `retry-after` |
+| 500 `api_error` / 529 `overloaded_error` | Server-side or overload | Retry with exponential backoff |
+| 504 `timeout_error` | Long request timed out | Stream, or use Batches |
+
+- The SDKs **already retry** connection errors, 429 and 5xx with backoff (twice by default, set via `max_retries`).
+- Catch the SDK's **typed exceptions**, most specific first, never by matching message strings.
+- A 429 caused by a **spend cap** has no `retry-after` and keeps failing. Backoff won't fix it.
+- When streaming, an error can arrive as an **SSE `error` event after a 200**, so handle it in the stream consumer too.
+
+### 2. Failures that come back as HTTP 200
+
+| Signal | Meaning |
+|---|---|
+| `stop_reason: "max_tokens"` | Output was truncated. Raise the limit, don't parse it |
+| `stop_reason: "refusal"` | Safety classifiers declined. Read `stop_details`, don't retry blindly |
+| `stop_reason: "pause_turn"` | Server-tool loop paused. Send the turn back to resume |
+| `tool_result` with `is_error: true` | Your tool failed. Claude can adapt if the message says what to try next |
+
+### 3. Trace analysis
+
+For every call, log the **`request_id`** (the `request-id` header; support asks for it), the full rendered request (system, messages, tools), `stop_reason`, `usage`, and every tool call with its input and result. Then **replay** the failing request on its own and add it to your eval set.
+
+### 4. Integration layer or model output?
+
+| Clue | Likely layer |
+|---|---|
+| Non-2xx status, an SDK exception, an error naming a field | **Integration**: your request, config or network |
+| `tool_use ids were found without tool_result blocks immediately after` | **Integration**: your loop dropped or misordered results |
+| Template variable empty in the logged prompt, wrong data fetched | **Integration**: Claude answered what it was given |
+| Valid request, 200, but wrong or off-format content | **Model output**: fix the prompt, examples or schema, or add validation |
+
+The decisive question: **was the input Claude saw correct?** If not, no amount of prompt tuning helps.
+
+## Exam traps
+
+- **Retrying a 400.** It fails the same way every time. Read the message and fix the request.
+- **Rewriting the prompt for an integration bug**, such as an empty variable or a missing `tool_result`.
+- **Catching one broad exception** and treating everything as retryable. Separate 429/5xx from 4xx.
+- **Ignoring `stop_reason`**, so truncated output gets treated as a model "mistake".
+
+## On the field
+
+**Gridiron Assistant: Pick'em night goes sideways.** Three incidents land in the log:
+1. A burst of 529s at kickoff. *Transient:* let the SDK back off and retry.
+2. Every request returns 400 after a model upgrade: prefill isn't supported. *Integration:* remove the prefilled turn and use structured outputs. Retrying never helps.
+3. Picks cite the wrong starting quarterback. The trace shows the injury tool returned last week's data. *Integration, not the model:* fix the feed, and return `is_error` for stale data.
+
+Try it in **Lab L9** (error classification and trace review).

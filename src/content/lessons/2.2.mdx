@@ -1,0 +1,50 @@
+export const meta = {
+  skillId: '2.2',
+  updated: '2026-10-20',
+  tldr: 'A Claude feature goes through the same life cycle as any IT system (plan, design, build, test, deploy, operate, maintain, retire), but evals replace "it works on my machine", and model deprecations make maintenance a scheduled, recurring job.',
+  links: [
+    { title: 'Define success criteria and build evaluations', url: 'https://platform.claude.com/docs/en/test-and-evaluate/develop-tests' },
+    { title: 'Model deprecations (lifecycle and notice)', url: 'https://platform.claude.com/docs/en/about-claude/model-deprecations' },
+    { title: 'Migration guide (moving to newer models)', url: 'https://platform.claude.com/docs/en/about-claude/models/migration-guide' },
+  ],
+}
+
+Expect questions that ask *which phase* an activity belongs to, or *what should happen next*: *"The model your app uses was just deprecated. What's the right process?"*
+
+## Key concepts
+
+### 1. Phases and frameworks
+
+The classic **SDLC** phases are: plan, analyze requirements (2.1), design, build, test, deploy, **operate**, **maintain** and finally **retire**. Frameworks differ in how they move through them:
+- **Waterfall:** sequential phases with sign-offs. Predictable, but slow to absorb change.
+- **Agile / iterative:** short cycles that deliver a working slice each time. This suits LLM features, where quality is discovered through iteration.
+- **DevOps / continuous delivery:** automated build, test and deploy pipelines plus monitoring, so operating and changing the system are one loop.
+
+### 2. What changes for LLM systems
+
+| Phase | Claude-specific practice |
+|---|---|
+| Design | Choose the simplest architecture that fits (single call, workflow or agent). Define schemas and guardrails. |
+| Build | Version prompts, schemas and the model ID together (see 2.6) |
+| Test | **Evals** against success criteria, alongside unit and integration tests. Outputs aren't deterministic, so test on sets, not single examples. |
+| Deploy | Pin the model ID. Roll out gradually (canary or A/B) and keep the previous prompt version ready for rollback. |
+| Operate | Monitor usage and cost, latency, error rates (429/529), `refusal` stop reasons and output quality. Log request IDs. |
+| Maintain | Re-run evals on every prompt, model or SDK change. Migrate before a model's retirement date. |
+| Retire | Decommission cleanly: revoke keys, archive prompts and eval results, delete data as policy requires |
+
+### 3. Model lifecycle as a maintenance driver
+
+Claude models move from Active to Legacy, Deprecated and finally Retired, after which requests fail. Anthropic gives at least 60 days' notice for publicly released models. A Console usage export shows which keys still call a deprecated model. Treat each migration as a mini-project: read the migration guide, run your evals on the replacement, adjust prompts, then cut over.
+
+## Exam traps
+
+- **Treating launch as the end.** Operating and maintaining the system, including model migrations, is part of the life cycle.
+- **Swapping the model in production first** and testing afterwards. Evaluate first, then roll out gradually.
+- **One-example testing** of a non-deterministic system. Use an eval set.
+- **Ignoring deprecation notices until the retirement date.** After retirement, requests fail; the notice period is for evaluating and migrating.
+
+## On the field
+
+**Gridiron Assistant: the offseason.** In March you get notice that the model behind the recap job is deprecated. The team opens a ticket, re-runs last season's recap eval on the replacement model, finds that its play-ID citations are less consistent, and tightens the prompt (`recap@v12`). It ships to one division first, watches the metrics for a week, then rolls out league-wide, well before the retirement date.
+
+Try it in **Lab L10** (Ship it: model version pinning, prompt versioning, and a requirements and SDLC checklist).

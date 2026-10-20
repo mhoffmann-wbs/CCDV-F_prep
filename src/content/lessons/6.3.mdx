@@ -1,0 +1,66 @@
+export const meta = {
+  skillId: '6.3',
+  updated: '2026-10-20',
+  tldr: 'Get structure from structured outputs or strict tools, check stop_reason before you parse, validate both shape and meaning, and never treat confident, well-formed output as proof that it is correct.',
+  links: [
+    { title: 'Structured outputs', url: 'https://platform.claude.com/docs/en/build-with-claude/structured-outputs' },
+    { title: 'Handling stop reasons', url: 'https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons' },
+    { title: 'Strict tool use', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use' },
+    { title: 'Reduce hallucinations', url: 'https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations' },
+  ],
+}
+
+Questions here describe code that consumes Claude's output and ask what will break, or which safeguard is missing. Know what structured outputs actually guarantee, and what they don't.
+
+## Key concepts
+
+### 1. Structured output patterns
+
+| Need | Use |
+|---|---|
+| The **response itself** in a fixed JSON shape | `output_config.format` with a JSON schema. The SDK helpers (`messages.parse()` in Python, `zodOutputFormat()` in TypeScript) send the schema and validate the result |
+| **Tool arguments** that always match the schema | `strict: true` on the tool definition (with `required` and `additionalProperties: false`) |
+| Free text with an extractable part | Ask for tags such as `<summary>` and extract them, tolerating text around them |
+
+- `output_format` is **deprecated**. Use `output_config.format`.
+- Structured outputs are **incompatible with citations** (a 400). Pick one.
+- Schema design itself is covered in 2.5.
+
+### 2. What the guarantee does not cover
+
+Constrained decoding guarantees **schema shape**, with documented exceptions:
+- **`stop_reason: "refusal"`**: the refusal takes precedence and the output may not match the schema.
+- **`stop_reason: "max_tokens"`**: the JSON may be cut off. Retry with a higher limit.
+- **Enum casing** isn't guaranteed. Compare enum values case-insensitively.
+- **Unsupported constraints** (`minimum`, `maxLength` and similar) are removed from the schema Claude sees. The validating SDK helpers still enforce them client-side. A raw schema doesn't, so check them yourself.
+- It guarantees nothing about whether the **values are true**.
+
+### 3. Defensive parsing
+
+- **Check `stop_reason` first**, then read content.
+- **Iterate content blocks by `type`.** Don't assume `content[0]` is text: thinking and tool-use blocks can come first.
+- **Parse tool inputs as JSON** (`JSON.parse`) and never string-match the serialized input. Escaping can differ between models.
+- Validate with a schema library (Zod, Pydantic). On failure, retry with the error included a **bounded** number of times, then fail loudly.
+
+### 4. Skepticism toward confident output
+
+Well-formed, fluent output can still be wrong.
+- **Semantic validation:** check business rules in code. Do quarter scores add up to the final score? Is the player ID real?
+- **Ground the answer:** give the source data, allow Claude to say "I don't know", and ask it to quote its evidence, removing any claim it can't support.
+- **Cross-check** against source data, or compare several runs: disagreement is a warning sign. Keep humans on high-stakes decisions.
+
+## Exam traps
+
+- **"Structured outputs are on, so no validation is needed."** Refusals, truncation and dropped constraints still reach your code, and correct shape is not correct facts.
+- **Parsing before checking `stop_reason`.** A `max_tokens` stop produces partial JSON.
+- **Reading `response.content[0].text` blindly.** It breaks as soon as a thinking or tool-use block comes first.
+- **Retrying forever** on validation failures. Bound the retries and then escalate.
+- **Trusting a confident tone** as a signal of accuracy.
+
+## On the field
+
+**Gridiron Assistant: the summarizer feeds the scoreboard widget.** L1 returns `home_score`, `away_score` and `summary` via `output_config.format`. One night the widget shows 31–17 for a game that ended 31–24. The JSON was perfectly valid: Claude had missed a late touchdown buried in a long feed.
+
+*Fix:* validate with Zod (shape), then check the scores against the official box score (meaning). On a mismatch, show the official score and add the case to your eval set. And check `stop_reason` first: long overtime feeds sometimes hit `max_tokens`.
+
+Try it in **Lab L1** (Zod-validated JSON) and **Lab L9** (code graders that catch wrong-but-valid output).

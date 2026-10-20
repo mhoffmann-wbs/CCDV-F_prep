@@ -1,0 +1,140 @@
+export const meta = {
+  skillId: '2.3',
+  updated: '2026-10-20',
+  tldr: 'The Messages API is stateless: you resend history, read stop_reason before content, return every tool_result in one user message, stream long or user-facing output, pass thinking blocks back unchanged, keep cached prefixes byte-identical, check feature availability before choosing a cloud vendor, and send work nobody is waiting for to the Message Batches API.',
+  links: [
+    { title: 'Using the Messages API', url: 'https://platform.claude.com/docs/en/build-with-claude/working-with-messages' },
+    { title: 'Tool use overview', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview' },
+    { title: 'Streaming messages', url: 'https://platform.claude.com/docs/en/build-with-claude/streaming' },
+    { title: 'Thinking', url: 'https://platform.claude.com/docs/en/build-with-claude/thinking' },
+    { title: 'Prompt caching', url: 'https://platform.claude.com/docs/en/build-with-claude/prompt-caching' },
+    { title: 'Batch processing', url: 'https://platform.claude.com/docs/en/build-with-claude/batch-processing' },
+    { title: 'Files API', url: 'https://platform.claude.com/docs/en/build-with-claude/files' },
+    { title: 'Vision', url: 'https://platform.claude.com/docs/en/build-with-claude/vision' },
+    { title: 'API overview (cloud platforms)', url: 'https://platform.claude.com/docs/en/api/overview' },
+  ],
+}
+
+This skill carries **6.8%** of the exam, and its items are the most "hands-on" in the guide. Expect a symptom ("the bot forgets", "results land on the wrong rows", "nothing appears for 30 seconds", "the cache never hits") and four plausible fixes. You win by knowing exactly what the API does and doesn't do for you.
+
+## Key concepts
+
+### 1. Messages: one stateless endpoint
+
+Everything goes through `POST /v1/messages`. Tools, thinking, caching and structured output are features of that one endpoint, not separate APIs.
+
+- **Stateless.** The API keeps no conversation. You send the full history (alternating `user` and `assistant` turns) on every request. There is no session ID that recalls earlier turns.
+- **Content blocks.** A message's `content` is a list of typed blocks: `text`, `image`, `document`, `tool_use`, `tool_result`, `thinking`. Select blocks by `type`, never by position: on current models a response can start with a `thinking` block.
+- **System prompt** goes in the top-level `system` field, not in a message.
+- **Read `stop_reason` before you use the content.**
+
+| `stop_reason` | What it means | What your code does |
+|---|---|---|
+| `end_turn` | Claude finished | Use the answer |
+| `max_tokens` | Hit your cap; output is **truncated** | Don't parse it as complete. Raise `max_tokens` (stream if large) or split the task |
+| `tool_use` | Claude wants tools run | Run them, send results back |
+| `pause_turn` | A long server-tool turn paused | Send the response back to let it continue |
+| `refusal` | Safety classifiers declined | Handle it explicitly (some models support fallbacks) |
+| `model_context_window_exceeded` | Generation reached the context limit | Trim or compact context |
+
+### 2. Tools: the request–execute–return loop
+
+1. You declare tools (name, description, JSON Schema `input_schema`).
+2. Claude replies with `stop_reason: "tool_use"` and one or more `tool_use` blocks, each with an `id`.
+3. **Your code** runs the tools (client tools run on your side; server tools such as web search run on Anthropic's side and return results in the same response).
+4. You send back **one user message** containing a `tool_result` for **every** `tool_use`, matched by `tool_use_id`.
+
+Rules that show up in questions:
+- **Parallel calls** arrive in one assistant message. Return all results together in a single user message. Splitting them across messages teaches Claude to stop calling tools in parallel.
+- **A failed tool still gets a result**, with `is_error: true` and a useful message. Dropping it breaks the pairing.
+- **`strict: true`** on a tool guarantees inputs that match the schema. On some current models, forced `tool_choice` (`any` or a named tool) is rejected with a 400; use `auto` plus a clear instruction, `strict: true`, or structured outputs instead.
+
+### 3. Streaming
+
+Set `stream: true` (or use the SDK's stream helper) and the response arrives as **server-sent events**: `message_start`, then per block `content_block_start` / `content_block_delta` / `content_block_stop`, then `message_delta` and `message_stop`. `ping` events can appear anywhere.
+
+- **Why stream:** users see text immediately (perceived latency), and long generations don't hit HTTP timeouts. The SDKs insist on streaming for very large `max_tokens`.
+- **Don't need deltas?** Use the SDK helper that collects the final message (`finalMessage()` in TypeScript, `get_final_message()` in Python). Don't hand-assemble events.
+- **Errors can arrive after a 200**, as an `error` event inside the stream (for example `overloaded_error`). Handle them in the stream loop, not only around the initial call.
+- Streaming fixes latency and timeouts. It does **not** make anything cheaper.
+
+### 4. Vision and documents
+
+- Images go in `image` blocks (base64, URL, or a Files API `file_id`). Put the image before the question about it.
+- PDFs go in `document` blocks; Claude reads both text and visuals on each page.
+- Images and PDF pages cost input tokens, and large images cost more. Resize what you send.
+
+### 5. Thinking
+
+Current models use **adaptive thinking**: the model decides when and how much to think, steered by `output_config.effort`. The old fixed budget (`thinking.type: "enabled"` with `budget_tokens`) is rejected on current models (details in 5.1).
+
+For this skill, the API mechanics matter:
+- Thinking tokens are **output tokens**: billed, and counted against `max_tokens`.
+- In a tool loop, **pass thinking blocks back exactly as received**, including their signatures and blocks whose text is empty. Editing, reordering or stripping them causes rejected requests or lost reasoning.
+- Keep conversations **append-only**. On the newest models, a thinking block stays valid only while everything before it is unchanged.
+
+### 6. Prompt caching
+
+Caching is a **prefix match**. The request renders as `tools`, then `system`, then `messages`. A `cache_control` breakpoint caches everything up to it. Any byte change earlier in the prefix (a timestamp, a reordered tool, different JSON key order) invalidates everything after it.
+
+- Put stable content first and volatile content (timestamps, the user's question) after the last breakpoint.
+- Verify with `usage`: `cache_creation_input_tokens` on the write, then non-zero `cache_read_input_tokens` on later requests. There is no "cache hit" header.
+- Prefixes shorter than the model's minimum silently don't cache. Changing the model also misses the cache, because caches are per model.
+- Pricing and TTL choices are in 5.4.
+
+### 7. Getting data into a request
+
+The API only sees what you send. Pick the pattern that fits the data:
+
+| Pattern | Use when |
+|---|---|
+| Inline text, base64 image or PDF | One-off content, small enough to resend |
+| **Files API** (upload once, reference by `file_id`) | The same document is used across many requests |
+| **Tools** that fetch data when Claude asks | Data is large, changes often, or only some of it is needed |
+| Retrieval before the call (RAG) | You choose the relevant chunks and pass them in |
+
+Files API facts worth knowing: uploads are free and content is billed as input tokens when used. Files are scoped to the **workspace**, not to an end user, so never accept a `file_id` from a user.
+
+### 8. Third-party vendors
+
+Claude is also available through Amazon Bedrock, Google Cloud, Microsoft Foundry and Claude Platform on AWS. They integrate with that cloud's billing and IAM, which is why enterprises choose them.
+- **Feature availability differs by platform.** For example, the Message Batches API and Files API are not offered on every platform. Check the platform-availability docs for every feature your design depends on before you commit.
+- Use the platform's own client class, not the first-party client with a changed `base_url`. Model IDs and auth differ per platform.
+- Partner-operated platforms set their own prices and model lifecycle dates.
+
+### 9. Batch vs real time
+
+The **Message Batches API** takes many Messages requests at once and processes them asynchronously at **50% of the standard price**.
+- Most batches finish within an hour, but the guarantee is only that requests expire if not processed **within 24 hours**. Expired, errored and canceled requests aren't billed.
+- **Results come back in any order.** Give every request a unique `custom_id` and join on it.
+- No streaming inside a batch, and no mid-batch tool loop (each request is single-shot).
+- Batch and caching discounts stack; for shared context, the 1-hour cache TTL helps because batches can outlast 5 minutes.
+
+| Real-time Messages API | Message Batches API |
+|---|---|
+| A user or system is waiting | Nobody is waiting (overnight, weekly, evals, backfills) |
+| Streaming, interactive tool loops | Large volume, single-shot requests |
+| Standard price | Half price |
+
+### 10. Errors and retries
+
+Retry **429** (rate limit; honor `retry-after`), **529** (overloaded) and **500**, with exponential backoff. The SDKs already do this twice by default. Don't retry **400**, **401**, **403**, **404** or **413**: the same request fails again. Catch the SDK's typed error classes, most specific first.
+
+## Exam traps
+
+- **"Pass a session ID" or "Claude remembers the first request."** The Messages API is stateless. The fix is always to resend history or re-reference the file.
+- **Matching batch results by position.** Order isn't guaranteed. Use `custom_id`.
+- **Choosing the Batch API for anything a user is waiting on**, or streaming for a cost problem. Batch is for cost and volume; streaming is for latency and timeouts.
+- **Parsing output without checking `stop_reason`.** `max_tokens` means truncated, and auto-closing the JSON hides the bug.
+- **Stripping or editing thinking blocks "to save tokens".** It breaks tool loops. Use effort or context management instead.
+- **Assuming every cloud platform has every feature on the same day.** Check availability per feature.
+
+## On the field
+
+**Gridiron Assistant: the weekly recap pipeline.** Every Tuesday the league wants a recap for each of the 16 games, plus a live "scoring play explainer" during games.
+
+The first version sends every recap synchronously, starts the system prompt with `Generated at: <timestamp>`, and writes results into the spreadsheet by row number. It is slow, expensive, the cache never hits, and two recaps land on the wrong games.
+
+*Fixes:* move the recaps to the **Message Batches API** with `custom_id` values like `2026-W07-KC-BUF` and join results on them. Move the timestamp after the cached league context so the prefix stays byte-identical, and confirm it with `cache_read_input_tokens`. Keep the scoring-play explainer on the **real-time** API, streamed, because a fan is watching. The injury-report PDF is uploaded once through the Files API and referenced by `file_id` all week.
+
+Try it in **Lab L2** (weekly recap batch job), with streaming in **Lab L1** and the Files API in **Lab L3**.

@@ -1,0 +1,63 @@
+export const meta = {
+  skillId: '5.3',
+  updated: '2026-10-20',
+  tldr: 'Pick the tier by the task, measure it with evals, and tune effort before you switch models. Haiku is fastest and cheapest, Sonnet balances speed and intelligence, Opus is the default for hard agentic work, and Fable sits above Opus. Every model upgrade is a migration: request shapes that worked before (sampling knobs, prefill, thinking budgets, forced tool choice) can return 400s on the next release.',
+  links: [
+    { title: 'Choosing the right model', url: 'https://platform.claude.com/docs/en/about-claude/models/choosing-a-model' },
+    { title: 'Models overview', url: 'https://platform.claude.com/docs/en/models/overview' },
+    { title: 'Migration guides', url: 'https://platform.claude.com/docs/en/about-claude/models/migration-guide' },
+    { title: 'Model deprecations', url: 'https://platform.claude.com/docs/en/about-claude/model-deprecations' },
+  ],
+}
+
+A small skill (**2.7%**), but its questions are classic tradeoff scenarios: "which model for this workload?", or "we switched model IDs and requests started failing, why?"
+
+## Key concepts
+
+### Tiers and when to use them
+
+| Tier | Positioning (as of 2026-10) | Typical workloads |
+|---|---|---|
+| **Haiku** | Fastest and cheapest | Classification, extraction, routing, real-time and high-volume work, sub-agents |
+| **Sonnet** | Best mix of speed and intelligence | Everyday coding, data analysis, content, agentic tool use |
+| **Opus** | The docs' default starting point | Long-running agentic coding, complex knowledge work, large refactors |
+| **Fable** | Most capable widely released tier, slowest and priciest | Hours-long agent sessions, deep research, when Opus at high effort still falls short |
+
+Latency rises and price per token rises as you go up the table. The current models all support vision, tool use and **adaptive thinking**; older models such as Haiku 4.5 only support the fixed-budget thinking mode. Check what a model supports with the **Models API** (its `capabilities` object), not from memory.
+
+### How to choose
+
+- **Efficiency-first:** start on Haiku, test, and move up only for a measured capability gap. Good for prototypes, tight latency and high volume.
+- **Capability-first:** start on Opus, get it working, then lower effort or step down a tier while your evals still pass. Good for complex reasoning and agentic work.
+- **Tune effort before switching models.** Within one model, effort trades intelligence against latency and cost, and the docs call it often a better lever than a model switch.
+- **Judge cost per completed task, not per token.** A cheaper model that needs retries or more turns can cost more.
+- **Mixing models** (a cheap executor that escalates to a stronger advisor, or a strong orchestrator with cheap workers) can pay off, but measure it. Caches don't carry across models.
+
+### Why releases break things
+
+New models change defaults and remove options that conflict with how they work. Recent examples from the migration guides:
+
+- **Sampling parameters**: non-default `temperature`, `top_p`, `top_k` now return 400.
+- **Assistant prefill**: a final assistant turn is rejected; use structured outputs or instructions.
+- **Thinking**: `budget_tokens` is rejected; thinking is on by default, and on some models can't be disabled.
+- **Effort defaults** differ between models, and levels are recalibrated between releases.
+- **Forced `tool_choice`** (`any` or a named tool) is rejected on some current models.
+- **Tokenizer**: the same text produces more tokens, so `max_tokens` caps and cost estimates change.
+- **New stop reasons** such as `refusal` must be handled.
+
+A safe upgrade: the model ID is a **pinned snapshot**, so nothing changes until you change it. Read the migration guide, update request shapes, recount tokens, re-run your evals, and re-tune effort from the new model's default. Track **retirement dates** so a model isn't removed under you.
+
+## Exam traps
+
+- **"Always use the most capable model."** Wrong when latency or cost is the constraint and a smaller tier passes the evals.
+- **Switching tiers before trying a lower effort level** on the current model.
+- **Swapping the model ID and assuming identical behavior.** Parameters, defaults and token counts change across releases.
+- **Choosing by per-token price alone**, ignoring retries, turns and failure cost.
+
+## On the field
+
+**Gridiron Assistant: one recap, three tiers.** The league wants weekly game recaps. You run the same 16 games through Haiku, Sonnet and Opus and grade each recap on accuracy (scores and players match the box score) and style.
+
+Haiku nails the short "final score" blurbs at a fraction of the cost. The long analytical recaps need Sonnet. Opus at `medium` effort wins only on the playoff-implications piece. You also try moving the old Haiku 4.5 code to the newest Haiku: the request with `temperature: 0.2` and a prefilled `{` now fails with a 400 until you remove both and switch to structured outputs.
+
+Try it in **Lab L2**: build the cost and quality report comparing Haiku, Sonnet and Opus.

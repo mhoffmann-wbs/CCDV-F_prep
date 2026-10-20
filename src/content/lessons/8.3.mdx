@@ -1,0 +1,66 @@
+export const meta = {
+  skillId: '8.3',
+  updated: '2026-10-20',
+  tldr: 'Start with built-in tools. Write a custom tool when one app needs one specific capability, an MCP server when a capability must be reused across apps and maintained on its own, and a Skill when Claude needs know-how or a repeatable workflow rather than new access. Choose by reuse, ownership, context cost and who executes the code.',
+  links: [
+    { title: 'Claude Code: extend Claude Code (feature comparison)', url: 'https://code.claude.com/docs/en/features-overview' },
+    { title: 'Claude Code: skills', url: 'https://code.claude.com/docs/en/skills' },
+    { title: 'Agent Skills overview (API)', url: 'https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview' },
+    { title: 'Tool use overview (client vs. server tools)', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview' },
+    { title: 'MCP architecture overview', url: 'https://modelcontextprotocol.io/docs/learn/architecture' },
+  ],
+}
+
+This skill is about **choosing**. Expect *"Which approach best fits…"* scenarios where every option could technically work, but only one fits the stated constraint: reuse across apps, independent maintenance, context budget, or who runs the code. Exam Guide sample item 3 is exactly this pattern.
+
+## Key concepts
+
+### 1. The four options
+
+| Option | What it adds | Where the code runs | Best when |
+|---|---|---|---|
+| **Built-in tools** | Ready-made capabilities. In Claude Code: Read, Edit, Bash, Grep, WebFetch and others. On the API: server tools such as `web_search`, `web_fetch`, `code_execution` | Claude Code locally, or Anthropic's infrastructure for API server tools | The job is generic: files, shell, web, sandboxed code |
+| **Custom tools** | A function you define with a name, description and JSON Schema, called through your tool-use loop (or in-process in the Agent SDK) | Your application | One app needs one specific capability and you own the loop |
+| **MCP server** | Tools, resources and prompts behind a standard protocol | A separate process or service that you deploy | **Several apps or teams** need the same capability, maintained **independently** of any one app |
+| **Skill** | A `SKILL.md` with instructions, plus optional scripts and reference files | Wherever Claude already runs (Claude Code, or the code-execution container on the API) | Claude needs **know-how or a workflow**, not new access |
+
+### 2. Decision rules
+
+- **New access versus new know-how.** Reaching a system Claude can't reach (an inventory REST API, a database) calls for a tool or MCP. Teaching Claude *how* to do something (your release checklist, your schema conventions) calls for a Skill.
+- **Reuse and ownership.** If the capability lives in one app's code and only that app uses it, a custom tool is simplest. If several Claude apps need it, or another team owns it, put it in an **MCP server** so it has one implementation, one deployment and one auth story.
+- **Don't build what exists.** If a built-in tool already does the job (web search, code execution), adding a custom tool just adds code to maintain.
+- **They combine.** The common pattern is **MCP for the connection and a Skill for how to use it well**: MCP exposes the database, and a Skill documents the schema and query patterns.
+
+### 3. Context cost and progressive disclosure
+
+- **Skills** load in stages. At startup Claude sees only `name` and `description` (roughly 100 tokens per Skill). The body loads when the Skill triggers, and bundled files load only when read. A script's code never enters context, only its output. So you can install many Skills cheaply, and the `description` must say **what the Skill does and when to use it**.
+- **MCP in Claude Code**: tool search is on by default. Tool names load at startup and full schemas load on demand, so idle servers cost little.
+- **Custom tools on the API**: every definition you send is part of the prompt on every call. Keep the set small and focused, or defer them with tool search.
+- **CLAUDE.md** loads in full every session. When a section turns into a procedure, move it into a Skill.
+
+### 4. Where each option works
+
+- **Skills on the API** need the **code execution tool** (the Skill runs in its container, with no network access). Custom Skills are shared **workspace-wide**. The Skills API is out of beta.
+- **Skills in Claude Code** are folders on disk (`~/.claude/skills/`, `.claude/skills/`, or inside a plugin). Custom slash commands have been merged into Skills. Set `disable-model-invocation: true` for Skills with side effects, so they run only when a person calls them.
+- Custom Skills **don't sync** between claude.ai, the API and Claude Code. You upload or install them separately on each surface.
+- **MCP from the API**: the MCP connector reaches remote servers' **tools** only (see 8.2).
+- **Treat Skills and MCP servers like software you install.** Use only trusted sources, and audit their scripts and network calls (see 2.5 on plugins).
+
+## Exam traps
+
+- **"Hard-code it in the system prompt"** or **"paste the data every request"** when the requirement is live access or reuse. Neither gives live access, and both waste context.
+- **Assuming a built-in tool can reach any internal API.** Built-ins do generic things. Your private service needs a custom tool or an MCP server.
+- **Choosing a custom tool when the requirement says "reusable across several apps" or "maintained independently."** Those words point to MCP.
+- **Choosing MCP when nothing external is involved.** If Claude only needs a procedure or reference material, a Skill is lighter.
+- **Treating a Skill as enforcement.** A Skill is instructions Claude interprets. Rules that must always hold belong in hooks or permissions (see 7.3).
+- **Forgetting code execution** when using Skills through the API.
+
+## On the field
+
+**Gridiron Assistant: four ways to add "injury intel".**
+- The fantasy app (L4) needs `get_injury_status`, and only that app uses it. A **custom tool** is enough.
+- Then the scouting agent, the fan chat and Claude Code all need the same injury data, and the data team wants to own it. You move it into the **League Stats MCP server**. Each app connects to it, and the data team ships fixes without touching any app.
+- Analysts keep pasting the same "how we grade an injury designation" rubric into chat. That becomes an `injury-grading` **Skill**, which loads only when relevant and costs about 100 tokens the rest of the time.
+- For breaking news you use the built-in **web search** server tool instead of writing a scraper.
+
+Try it in **Lab L5** (League Stats MCP server) and **Lab L7** (Claude Code on the repo, where you write a Skill).

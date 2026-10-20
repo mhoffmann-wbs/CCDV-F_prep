@@ -1,0 +1,92 @@
+export const meta = {
+  skillId: '3.1',
+  updated: '2026-10-20',
+  tldr: 'Know the Claude Code building blocks (CLAUDE.md and rules, skills, commands, subagents, auto memory), how to manage sessions, the built-in commands that matter, how to run Claude Code headless in scripts and CI, and what each permission mode, including auto mode, lets Claude do without asking.',
+  links: [
+    { title: 'Claude Code: extend Claude with skills', url: 'https://code.claude.com/docs/en/skills' },
+    { title: 'Claude Code: subagents', url: 'https://code.claude.com/docs/en/sub-agents' },
+    { title: 'Claude Code: run programmatically (headless)', url: 'https://code.claude.com/docs/en/headless' },
+    { title: 'Claude Code: permission modes', url: 'https://code.claude.com/docs/en/permission-modes' },
+    { title: 'Claude Code: commands reference', url: 'https://code.claude.com/docs/en/commands' },
+    { title: 'Claude Code: CLI reference', url: 'https://code.claude.com/docs/en/cli-reference' },
+  ],
+}
+
+This skill tests whether you can operate Claude Code, not just describe it. Expect scenarios like *"Which component should hold this procedure?"*, *"How do you run this in CI?"* or *"Why did the session forget X?"* The right answer usually picks the lightest mechanism that fits.
+
+## Key concepts
+
+### 1. The core components
+
+| Component | Where it lives | When it's in context | Use it for |
+|---|---|---|---|
+| **CLAUDE.md** | `./CLAUDE.md`, `~/.claude/CLAUDE.md`, and more (see 2.6) | Every session, from the start | Facts Claude always needs: build commands, conventions, layout |
+| **Rules** | `.claude/rules/*.md` | At launch, or only for matching files if the rule has `paths` frontmatter | Topic- or path-specific instructions |
+| **Skills** | `.claude/skills/<name>/SKILL.md` (or `~/.claude/skills/`) | The **description** always; the **body** only when invoked | Procedures and reference material, run as `/name` or picked by Claude |
+| **Commands** | `.claude/commands/<name>.md` | Same as skills | The older format. Custom commands have been **merged into skills** and both create `/name`. |
+| **Subagents** | `.claude/agents/` or `~/.claude/agents/` | Run in **their own context window** | Isolated side tasks with their own prompt, tools and permissions |
+| **Auto memory** | `~/.claude/projects/<project>/memory/` | First 200 lines or 25KB of `MEMORY.md` each session | Notes Claude writes itself from your corrections |
+
+Details that show up in questions:
+- Skill frontmatter `disable-model-invocation: true` means only *you* can trigger it, which suits actions like deploys. Its description then stays out of context.
+- A subagent file needs `name` and `description`. `tools` and `model` are optional; if `tools` is omitted, the subagent inherits the tools available to subagents. A `memory` field (`user`, `project` or `local`) gives a subagent its own persistent memory.
+- Auto memory is machine-local and on by default. Toggle it in `/memory`, or with `autoMemoryEnabled` in settings.
+- Skill, command and subagent files under `.claude/` are committed so the team shares them; `~/.claude/` versions are personal.
+
+### 2. Session management
+
+Every session starts with a fresh context window. Only CLAUDE.md, rules, auto memory and files carry knowledge across sessions.
+- `claude --continue` (`-c`) reopens the most recent conversation in this directory. `claude --resume` (`-r`) picks one by ID or name, or opens a picker. Add `--fork-session` to get a new session ID instead of reusing the original.
+- `/clear` starts an empty conversation (the old one stays resumable). `/compact [focus]` summarizes the current one to free space. `/context` shows what's using the window.
+- `/rewind` rolls the conversation and/or code back to a checkpoint. `/branch` forks the conversation so you can try another direction.
+
+### 3. Built-in and custom slash commands
+
+- Know these built-ins: `/init` (draft a CLAUDE.md), `/memory`, `/model`, `/config`, `/status` (which settings files loaded), `/permissions`, `/hooks`, `/agents`, `/skills`, `/mcp`, `/plugin`, `/plan`, `/usage`.
+- **Bundled skills** ship with Claude Code but are prompt-based, for example `/code-review`, `/simplify`, `/batch` and `/doctor`. Turn them off with the `disableBundledSkills` setting.
+- **Custom** commands are skills you write. A skill body can use arguments (`$ARGUMENTS`) and can run in a forked subagent context (`context: fork`) so a long procedure doesn't flood your main conversation.
+
+### 4. Headless, streaming and auto mode
+
+**Headless** means `claude -p "prompt"` (`--print`): one non-interactive run, ideal for scripts and CI.
+- `--output-format text` (default), `json` (result, session ID, cost and usage) or `stream-json` (newline-delimited events). For token-by-token streaming, add `--verbose --include-partial-messages`.
+- `--json-schema` with `--output-format json` puts schema-conforming output in a `structured_output` field.
+- `--allowedTools "Read,Edit,Bash(npm test *)"` pre-approves tools. `--max-turns` caps agentic turns in print mode.
+- `--bare` skips auto-discovery of hooks, skills, commands, subagents, plugins, MCP servers, auto memory and CLAUDE.md, and it ignores your subscription login (set `ANTHROPIC_API_KEY` instead). The docs recommend it for scripted runs. **Without it, a `-p` run in a folder loads that project's hooks and `.mcp.json` servers with no trust dialog.**
+
+**Permission modes** (cycle with `Shift+Tab`, or start with `--permission-mode`):
+
+| Mode | Runs without asking |
+|---|---|
+| `default` (shown as **Manual**) | Reads only |
+| `acceptEdits` | Reads, file edits, common filesystem commands |
+| `plan` | Reads (Claude proposes a plan before editing) |
+| `auto` | Everything, but a **separate classifier model** reviews actions first and blocks risky ones |
+| `dontAsk` | Pre-approved tools only; anything that would prompt is denied (locked-down CI) |
+| `bypassPermissions` | Everything; only for isolated containers or VMs |
+
+- On current versions, interactive terminal sessions **start in auto mode by default**, but `claude -p` and the Agent SDK start in `default`.
+- **Deny rules apply in every mode**, including `bypassPermissions`. Admins can remove auto mode with `disableAutoMode` in managed settings.
+
+## Exam traps
+
+- **Putting a 40-step release procedure in CLAUDE.md.** It costs context every session. Make it a skill, so only its description loads until it's used.
+- **Expecting a subagent to see your conversation.** It starts in its own context window and returns only its result. Give it everything it needs in the delegation.
+- **Assuming `/clear` and `/compact` are the same.** `/clear` starts fresh; `/compact` keeps a summary of the same conversation.
+- **Running `claude -p` in CI without `--bare` or tool limits** on untrusted code. The repo's own hooks and MCP servers would load.
+- **Choosing `bypassPermissions` "to avoid prompts" on a developer laptop.** Use auto mode, `acceptEdits` or allow rules; bypass is for sandboxes only.
+- **Assuming headless runs inherit auto mode.** `claude -p` starts in `default` unless you pass a mode.
+
+## On the field
+
+**Gridiron Assistant: game week in the repo.** Every Wednesday a coordinator wants a game preview for Sunday's opponent, and CI should post one automatically.
+
+Run `/init`, then trim the draft CLAUDE.md to the build commands and the rule "stats come only from `data/stats/`". Write the preview procedure as a skill at `.claude/skills/game-preview/SKILL.md`, so `/game-preview Chiefs` works and its long checklist stays out of context until used. Add a `film-analyst` subagent with read-only tools so tape notes don't flood the main session. In CI, run it headless:
+
+```bash
+claude -p "/game-preview Chiefs" --allowedTools "Read" --output-format json
+```
+
+Note the trade-off: this run needs the project's skill, so it can't use `--bare` (bare mode skips project skills). That's acceptable only because CI runs on your own reviewed repo. For a job that touches untrusted forks, use `--bare` and pass the instructions in the prompt instead.
+
+Try it in **Lab L7** (Claude Code on the repo: `/init`, rules, a custom `/game-preview` command, a Skill, and a headless CI run).

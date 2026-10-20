@@ -105,7 +105,8 @@ The learner runs everything locally with their own `ANTHROPIC_API_KEY`. Data com
 - Phase 1 is done. Lesson and lab schemas will be added along with their phases.
 - The 3 official sample items are seeded.
 - Phase 2 is done: the progress store, practice mode, the mock exam (weighted sampler, timer, flag/review, results report) and 12 original 2.3 items.
-- Next step: Phase 3 (lessons, starting with 2.5).
+- Phase 3 is done: all 25 lessons (`src/content/lessons/*.mdx`), checked against the docs on 2026-10-20.
+- Next step: Phase 4 (question bank).
 
 ### Phase 0: Scaffold
 - `git init`. Vite + React + TS, Tailwind, React Router, Zod, Vitest + RTL, ESLint, MDX via `@mdx-js/rollup`
@@ -146,3 +147,27 @@ The learner runs everything locally with their own `ANTHROPIC_API_KEY`. Data com
 - Write every item yourself. Never reproduce live exam content: candidates sign an NDA (§13), and the app must not encourage using dumps.
 - Check model IDs, API parameters, pricing and feature names against current docs (in Claude Code, use the `claude-api` skill) before writing them. The exam tests breaking changes across model releases (5.3), so content has to be current.
 - Skilljar lessons require a login, so link to the courses rather than summarizing their contents.
+
+## 7. Notes for question writers (from lesson research, 2026-10-20)
+
+Facts in current docs that differ from older material. Use them for correct answers and plausible distractors, and re-check them before relying on them.
+- **Models and API**
+  - Non-default `temperature`, `top_p` and `top_k` return a 400 on current models, so "set temperature to 0" is a good distractor.
+  - `budget_tokens` thinking and assistant prefill are rejected.
+  - Opus 5.5 can't turn thinking off; its default effort is `medium`.
+  - Forced `tool_choice` (`any` or `tool`) is rejected on Opus 5.5, Sonnet 5.5 and Fable 5.1.
+- **Model IDs:** dateless IDs (`claude-sonnet-5-5`) are fixed snapshots, not "latest" pointers.
+- **Errors**
+  - A 429 caused by a spend cap has no `retry-after` and keeps failing.
+  - Errors can arrive mid-stream after an HTTP 200.
+- **Structured outputs:** don't combine them with citations (a 400). Validate enum values anyway.
+- **Claude Code**
+  - Interactive sessions start in auto mode (v2.1.283+), while `claude -p` and the Agent SDK start in `default` (Manual).
+  - Deny rules and hook `deny` apply even in `bypassPermissions`.
+  - Custom commands have merged into skills.
+  - Claude Code reads `AGENTS.md` when there's no `CLAUDE.md`.
+- **Agent SDK**
+  - The default system prompt is minimal; the `claude_code` preset is opt-in.
+  - CLAUDE.md is loaded through `settingSources` and injected into the conversation, not the system prompt.
+- **MCP:** the 2026-07-28 spec is stateless. There's no `initialize` handshake; a mandatory `server/discover` replaces it. Sampling and logging are deprecated. The exam guide may predate this, so avoid stems that depend on handshake details.
+- **API keys:** they can have an expiration. Personal and service-account keys are preferred; workspace keys are legacy.

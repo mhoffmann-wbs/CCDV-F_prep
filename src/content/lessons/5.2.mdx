@@ -1,0 +1,102 @@
+export const meta = {
+  skillId: '5.2',
+  updated: '2026-10-20',
+  tldr: 'The Claude API is plain HTTPS + JSON; the official SDKs wrap it with auth headers, typed requests and errors, retries with backoff, timeouts, pagination and stream helpers. Streaming is server-sent events (one-way, over HTTP). Use websockets only for your own two-way channel to browsers, and keep the API key on your server.',
+  links: [
+    { title: 'API overview (headers, SDKs, size limits)', url: 'https://platform.claude.com/docs/en/api/overview' },
+    { title: 'Client SDKs', url: 'https://platform.claude.com/docs/en/cli-sdks-libraries/overview' },
+    { title: 'Claude API errors', url: 'https://platform.claude.com/docs/en/api/errors' },
+    { title: 'Rate limits', url: 'https://platform.claude.com/docs/en/api/rate-limits' },
+    { title: 'Streaming messages (SSE)', url: 'https://platform.claude.com/docs/en/build-with-claude/streaming' },
+  ],
+}
+
+This skill (**6.1%**) is general engineering applied to an AI app. Expect questions like "the team hand-rolled HTTP calls and keeps breaking, what should they use?", "which errors should the client retry?", "how should the browser get live tokens?" or "the stream died halfway through, what now?"
+
+## Key concepts
+
+### 1. The REST API underneath
+
+The Claude API is a REST API at `https://api.anthropic.com`. A Messages call is `POST /v1/messages` with a JSON body.
+
+| Header | Purpose |
+|---|---|
+| `x-api-key` (or `Authorization: Bearer`) | Credentials. Docs now list `Authorization` first and `x-api-key` as the still-supported legacy form |
+| `anthropic-version` | API version, for example `2023-06-01`. Required |
+| `content-type: application/json` | Required |
+| `anthropic-beta` | Opt in to beta features by name |
+
+Responses carry a `request-id` header (also `request_id` in error bodies; quote it to support) plus `anthropic-ratelimit-*` headers showing remaining capacity. Errors are JSON with a `type` and `message`. Requests have size limits per endpoint; going over returns **413**.
+
+### 2. What an SDK adds
+
+Official SDKs exist for Python, TypeScript, Java, Go, C#, PHP and Ruby. Prefer them over hand-written HTTP because they give you:
+
+- **Headers handled for you**: auth, `anthropic-version`, `content-type`. A zero-argument client reads `ANTHROPIC_API_KEY` from the environment, so keys stay out of code.
+- **Typed requests and responses**: content blocks are a discriminated union. Narrow by `type` instead of guessing.
+- **Automatic retries** with exponential backoff for connection errors, 408, 409, 429 and 5xx, honoring `retry-after` (twice by default, configurable with `max_retries` / `maxRetries`).
+- **Timeouts** with sensible defaults. Watch the units: seconds in Python, milliseconds in TypeScript.
+- **Typed exceptions** (`RateLimitError`, `NotFoundError` and so on). Catch from most specific to least specific, and never string-match error messages.
+- **Stream helpers** that turn SSE into events or a final message, plus **auto-pagination** for list endpoints.
+- **Cloud clients** for Bedrock, Google Cloud and Foundry that keep the same `messages.create` surface.
+
+Raw HTTP is still right for a language without an official SDK, or a shell script. Don't mix both styles in one codebase.
+
+### 3. Errors: retry or fail fast
+
+| Status | Type | Retry? |
+|---|---|---|
+| 400 | `invalid_request_error` | No: fix the request |
+| 401 / 403 | `authentication_error` / `permission_error` | No: fix credentials or access |
+| 404 | `not_found_error` | No |
+| 413 | `request_too_large` | No: shrink the request or use the Files API |
+| 429 | `rate_limit_error` | Yes, after `retry-after`. A monthly spend-cap 429 has **no** `retry-after` and keeps failing |
+| 500 | `api_error` | Yes, with backoff |
+| 529 | `overloaded_error` | Yes, with backoff |
+
+Rate limits are per organization, measured in requests, input tokens and output tokens per minute, and refill continuously (token bucket). Ramp traffic up gradually: sudden spikes can trigger acceleration limits.
+
+### 4. Streaming is SSE, not websockets
+
+**Server-sent events (SSE)** are a one-way stream from server to client over a normal HTTP response. **Websockets** are a persistent two-way channel. The Messages API streams with SSE.
+
+SSE handling rules:
+- Events follow a fixed flow: `message_start`, then content blocks (`content_block_start`, deltas, `content_block_stop`), then `message_delta` and `message_stop`. Token counts in `message_delta` are **cumulative**.
+- Ignore `ping` events, and **handle unknown event types gracefully**: new ones may be added.
+- An `error` event can arrive **after the HTTP 200**. Normal status-code handling won't catch it.
+- If a stream breaks, you can save what arrived and ask the model to continue (on current models, in a new **user** message that quotes the partial text, since assistant prefill is rejected). Tool-use and thinking blocks can't be partially recovered.
+
+### 5. Where websockets fit
+
+Use a websocket for **your own** two-way channel, typically browser to backend, when the client also needs to push things mid-response (cancel, follow-ups, live game events):
+
+```text
+Browser ⇄ (websocket) ⇄ Your backend → (HTTPS + SSE) → Claude API
+```
+
+- Your backend holds the API key, calls the API, and relays text deltas to the browser. **Never ship the API key to the browser.**
+- If the browser only needs to receive text, re-streaming SSE from your backend is simpler than a websocket.
+- Treat a websocket disconnect as a cancellation: close the upstream stream instead of leaving your backend reading a response nobody will see.
+
+### 6. Long requests
+
+Long, non-streaming requests risk idle-connection drops and timeouts. Stream them, or send them to the Message Batches API and poll for results. The SDKs reject non-streaming requests they expect to exceed their timeout, and point you to streaming.
+
+## Exam traps
+
+- **Hand-rolling HTTP plus your own retry loop** when an official SDK exists. You lose typed errors, backoff and stream helpers.
+- **Retrying 400s.** The same request fails again. Retry 429, 500 and 529.
+- **Assuming the Messages API uses websockets**, or putting the API key in front-end code to "stream directly".
+- **Ignoring errors that arrive inside a 200 stream.**
+- **Crashing on an unrecognized SSE event type.** The API may add new ones.
+- **Retrying a spend-cap 429 forever.** It has no `retry-after` and won't clear until access resumes.
+
+## On the field
+
+**Gridiron Assistant: the live game companion.** The front end wants recaps to type out live while fans can tap "stop" or "explain that penalty" mid-answer.
+
+The first prototype calls the API from the browser with the key embedded, hand-parses SSE lines, and dies on the first `ping` event. *Fix:* move the call to the backend with the official TypeScript SDK (keys from the environment, typed errors, retries). The backend relays text deltas over a websocket to the browser and cancels the upstream stream when the fan taps "stop". Overloaded errors that arrive mid-stream show a "retrying" banner instead of a frozen screen.
+
+Later the team exposes league stats as an MCP server: first over **stdio** for local Claude Code use, then over a **remote HTTP** transport for the API app. The same engineering habits apply: auth on the server, typed clients, and clear errors.
+
+Try it in **Lab L1** (streaming the play-by-play summarizer through the SDK) and **Lab L5** (League Stats MCP server over stdio, then remote).

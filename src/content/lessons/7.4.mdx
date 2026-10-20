@@ -1,0 +1,55 @@
+export const meta = {
+  skillId: '7.4',
+  updated: '2026-10-20',
+  tldr: 'Keep keys out of code, prompts, CLAUDE.md and repos. Load them from the environment or a secrets manager, separate dev and prod with workspaces, prefer identity-backed keys with expirations, rotate and revoke on suspicion, and for production consider Workload Identity Federation (short-lived tokens, no static key). The model should never see a credential.',
+  links: [
+    { title: 'Claude API: authentication and key types', url: 'https://platform.claude.com/docs/en/manage-claude/authentication' },
+    { title: 'Workspaces', url: 'https://platform.claude.com/docs/en/manage-claude/workspaces' },
+    { title: 'Workload Identity Federation', url: 'https://platform.claude.com/docs/en/manage-claude/workload-identity-federation' },
+    { title: 'Securely deploying AI agents (credential proxy)', url: 'https://code.claude.com/docs/en/agent-sdk/secure-deployment' },
+  ],
+}
+
+Expect *"where should this key live?"* and *"how do we separate and control access?"* scenarios. Wrong answers usually put a secret somewhere Claude or Git can see it.
+
+## Key concepts
+
+### 1. Where secrets belong
+
+- **Never** in source code, the system prompt, CLAUDE.md, Skills, tool descriptions, or committed `.mcp.json` / settings files. Anything in context can leak through output, and anything in Git leaks to everyone with repo access.
+- **Do**: set `ANTHROPIC_API_KEY` in the environment (the SDKs read it automatically) and source it from a **secrets manager** in prod. In `.mcp.json`, reference variables such as `${API_KEY}` instead of literal values.
+- **Agents**: keep credentials **outside the agent's boundary**. A proxy or MCP server injects them into outgoing requests, so the model can use an API without ever seeing the key.
+- Never ship a key in a browser or mobile client. Route calls through your back end.
+
+### 2. Scoping and separation
+
+- **Workspaces** separate dev, staging and prod (or teams), each with its own keys, rate limits and spend limits. A workspace-scoped key can reach only that workspace's resources (files, batches, skills).
+- **Key types**: a *personal* key acts as you, and a *service account* key gives a workload its own identity. Both stop working when that identity is removed. Legacy *workspace* keys have no owner, so prefer identity-backed keys.
+- **Roles**: give people the narrowest workspace role they need (User, Limited Developer, Developer, Admin).
+
+### 3. Rotation and revocation
+
+- Set an **expiration** when you create a key. Store keys you rotate yourself in a secrets manager.
+- On suspicion of a leak, **disable** the key (reversible) or **delete** it (permanent), then issue a new one.
+- Rotate without downtime: deploy the new key, confirm traffic works, then delete the old one.
+
+### 4. Workload Identity Federation (WIF)
+
+The workload presents a short-lived **OIDC token** from an identity provider you already run (AWS, Google Cloud, Entra ID, GitHub Actions, Kubernetes and others). Anthropic exchanges it for a short-lived access token bound to a **service account**. There's no static key to store, rotate or leak. A leftover `ANTHROPIC_API_KEY` in the environment takes precedence over federation, so unset it when you migrate.
+
+### 5. Verify and monitor access
+
+Authenticate users and check their level (role, plan, tenant) **in your app** before you act for them. Use approvals for privilege changes. Review workspace membership, and watch per-workspace usage (the Usage and Cost API) for anomalies that suggest a stolen key.
+
+## Exam traps
+
+- **"Put the key in the system prompt or CLAUDE.md so the agent can call the API."** Inject it outside the model instead.
+- **One shared key for dev and prod.** Use separate workspaces and keys.
+- **A personal key in CI.** Use a service account key or WIF.
+- **Rotating by "editing the key."** You can't swap a key's secret in place. Create a new key, deploy it, then delete the old one.
+
+## On the field
+
+**Gridiron Assistant goes to prod.** In dev, each engineer uses a personal key in a `.env` file that `.gitignore` excludes. The production fan chat runs in its own **Production** workspace with spend limits. Its Kubernetes pods authenticate through **WIF**, so no static key exists. The ticketing API key sits behind a proxy that injects it, so the chat agent never sees it. When a contractor leaves, their personal key stops working automatically.
+
+Try it in **Lab L8** (secrets in env or a vault, never in the prompt) and **Lab L10** (ship it).

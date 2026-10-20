@@ -1,0 +1,73 @@
+export const meta = {
+  skillId: '2.1',
+  updated: '2026-10-20',
+  tldr: 'Turn a business goal into functional requirements (what the Claude feature must do, with measurable success criteria) and infrastructure requirements (latency, throughput and rate limits, cost, data residency and retention, platform and security), then let those constraints, not habit, pick the model, the API features and the deployment.',
+  links: [
+    { title: 'Define success criteria and build evaluations', url: 'https://platform.claude.com/docs/en/test-and-evaluate/develop-tests' },
+    { title: 'Choosing a model', url: 'https://platform.claude.com/docs/en/about-claude/models/choosing-a-model' },
+    { title: 'Rate limits', url: 'https://platform.claude.com/docs/en/api/rate-limits' },
+    { title: 'Data residency', url: 'https://platform.claude.com/docs/en/manage-claude/data-residency' },
+    { title: 'API and data retention (ZDR, HIPAA readiness)', url: 'https://platform.claude.com/docs/en/manage-claude/api-and-data-retention' },
+  ],
+}
+
+Requirement questions describe a business situation and ask what to build or which constraint matters most: *"The league office needs X under constraint Y. Which design meets it?"* The winning answer is the one that satisfies the **stated** constraint, not the most powerful option.
+
+## Key concepts
+
+### 1. From business requirement to system requirement
+
+A **business requirement** states an outcome: *"Coaches get a scouting summary for every opponent before Wednesday practice."* You derive two kinds of system requirement from it:
+
+| Kind | Answers | Examples |
+|---|---|---|
+| **Functional** | What must the system *do*? | Summarize the last 4 games; cite the play IDs it used; flag injured starters; output JSON the coaching app can render |
+| **Infrastructure / non-functional** | Under what *constraints*? | Ready by 06:00 Wednesday; 32 teams per week; under $X per report; data stays in the US; 99.5% availability |
+
+The **solution architecture** (which systems exist, how they connect, which cloud you're on) adds more constraints, such as "everything runs in our AWS account" or "the CRM only accepts CSV".
+
+### 2. Make requirements measurable
+
+"Accurate and fast" can't be tested. Rewrite each requirement as something you can check:
+- *Accurate* becomes "at least 95% of stat claims match the source data on a 200-item eval set".
+- *Fast* becomes "first token in under 2 seconds for the chat view; full report in under 10 minutes for the batch view".
+- *Safe* becomes "zero PII in outputs on the red-team set".
+
+These success criteria become your **eval set** (see 4.1 and 6.3), and they're how you'll know whether a model or prompt change is an improvement.
+
+### 3. Infrastructure requirements that drive Claude design choices
+
+| Requirement | Design lever |
+|---|---|
+| Interactive latency | Streaming, a smaller or faster model, lower effort, prompt caching for a long shared prefix |
+| Nobody waits on it | Message Batches API (asynchronous, lower cost) instead of real-time calls |
+| Throughput | Rate limits are measured in requests per minute (RPM), input tokens per minute (ITPM) and output tokens per minute (OTPM). Plan the tier, queue the work and handle 429s. |
+| Cost ceiling | Model choice, caching, trimming input, batch processing. Model the cost per completed task, not per call. |
+| Context size | How much source material fits per request, and whether you need retrieval or summarization first |
+| Data residency | `inference_geo` per request (`"global"` by default, or `"us"`) and the workspace geo for data at rest |
+| Data retention / compliance | Zero data retention (ZDR) or HIPAA-ready arrangements, which limit which features you can use |
+| Platform / procurement | Claude API, Claude Platform on AWS, Amazon Bedrock, Google Cloud or Microsoft Foundry. Feature availability and model retirement schedules differ by platform. |
+| Security | Where keys live, who may call what (see 7.1–7.4) |
+
+### 4. Elicit, prioritize, trace
+
+- **Elicit** from the people who own the outcome and the people who run the system. Ask what happens when the output is wrong, because that sets the review and guardrail requirements.
+- **Prioritize** (for example MoSCoW: must, should, could, won't) and surface conflicts early. "Use the most capable model" and "cost under 1 cent per report" may not both hold.
+- **Trace** each requirement to a test or eval, and each design decision back to a requirement. A decision record that says *"Bedrock, because procurement requires AWS billing"* survives staff changes.
+- Don't build an agent when a single call or a fixed workflow meets the requirements. Choose the simplest design that fits.
+
+## Exam traps
+
+- **Picking the most capable model or newest feature by default.** If the requirement is "cheapest that meets 95% accuracy", the answer is the cheapest model that passes the eval.
+- **Ignoring a stated constraint** in the scenario (US-only processing, AWS-only procurement, nightly deadline). It's usually the key to the item.
+- **Unmeasurable acceptance criteria.** "High quality" isn't a requirement until it has a metric and a test set.
+- **Real-time calls for work nobody waits on.** Asynchronous batch processing is cheaper and avoids rate-limit spikes.
+- **Assuming every feature exists on every platform.** Check availability for the platform the architecture requires.
+
+## On the field
+
+**Gridiron Assistant: the league office asks for weekly recaps.** The request: "Recaps for all games, every Monday, in the league's AWS account, no fan data leaves the US, under $50 a week."
+
+*Functional:* one recap per game, with final score, three key plays with play IDs, injuries, and JSON for the website. *Infrastructure:* Monday 08:00 deadline (nobody waits interactively, so use batch), AWS-hosted (Claude Platform on AWS or Bedrock, and check that the features you need are available there), US-only inference, and a cost model per recap that fits the budget. *Success criteria:* 100% score accuracy and at least 95% key-play accuracy against a hand-checked set of last season's games.
+
+Try it in **Lab L10** (Ship it: a requirements and SDLC checklist, plus a decision record comparing first-party API, Bedrock and Vertex).

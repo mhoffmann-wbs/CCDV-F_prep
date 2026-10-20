@@ -1,0 +1,82 @@
+export const meta = {
+  skillId: '1.1',
+  updated: '2026-10-20',
+  tldr: 'Start with the simplest thing that works: a single call, then a code-driven workflow, and an agent only when the steps cannot be known in advance. When you do build an agent, use a supervisor with focused subagents to isolate context and parallelize work, not to look sophisticated.',
+  links: [
+    { title: 'Building effective agents (Anthropic Engineering)', url: 'https://www.anthropic.com/engineering/building-effective-agents' },
+    { title: 'Agent SDK: subagents', url: 'https://code.claude.com/docs/en/agent-sdk/subagents' },
+    { title: 'Managed Agents: multiagent orchestration', url: 'https://platform.claude.com/docs/en/managed-agents/multiagent-orchestration' },
+    { title: 'Agent SDK overview', url: 'https://code.claude.com/docs/en/agent-sdk/overview' },
+  ],
+}
+
+Expect architecture questions framed as a business need: *"A team wants to automate X. Which design fits best?"* The right answer is usually the **least autonomous design that still meets the requirement**, and the distractors are either over-engineered (a multi-agent system for a fixed pipeline) or under-powered (a fixed chain for an open-ended task).
+
+## Key concepts
+
+### 1. The three tiers: single call, workflow, agent
+
+| Tier | Who decides the next step | Good for |
+|---|---|---|
+| **Single LLM call** | Nobody, there is only one step | Classify, summarize, extract, answer one question |
+| **Workflow** | **Your code**, along predefined paths | Multi-step tasks whose steps you can write down in advance |
+| **Agent** | **The model**, in a loop with tools, until it decides it is done | Open-ended tasks where the number and kind of steps depend on what it finds |
+
+Workflows are predictable, cheaper and easier to test. Agents trade that for flexibility, at higher cost and latency.
+
+### 2. Decision criteria: should this be an agent?
+
+Before choosing an agent, check all four. If any answer is "no", stay with a workflow or a single call.
+- **Complexity:** is the task multi-step and hard to specify fully in advance?
+- **Value:** does the outcome justify the higher cost and latency?
+- **Viability:** is Claude actually good at this kind of task?
+- **Cost of error:** can mistakes be caught and recovered from (tests, review, rollback, approval gates)?
+
+A useful tell: if you can draw the flowchart before you start, it's a workflow.
+
+### 3. Common workflow patterns
+
+- **Prompt chaining:** a fixed sequence of calls, often with a programmatic "gate" between steps.
+- **Routing:** classify the input, then send it to a specialised prompt, tool set or model.
+- **Parallelization:** *sectioning* (independent subtasks at once) or *voting* (same task several times for confidence).
+- **Orchestrator-workers:** a central model breaks the task down **at runtime** and delegates to workers. Unlike parallelization, the subtasks are not predefined.
+- **Evaluator-optimizer:** one call generates, another critiques against criteria, and the loop repeats.
+
+### 4. Supervisor hierarchies and subagents
+
+A **supervisor** (coordinator, lead) owns the plan, delegates focused subtasks to **subagents**, and synthesizes their results. Reasons to add subagents:
+- **Context isolation:** each subagent works in its own fresh context window. Its file reads and tool calls stay there; only its **final report** returns to the parent.
+- **Parallelism:** independent subtasks finish in the time of the slowest one.
+- **Specialization:** each subagent has its own narrow prompt, model and **least-privilege tool set** (a read-only reviewer can't write files).
+- **Cost:** reading-heavy work can go to a cheaper model.
+
+Rules of thumb:
+- A subagent sees **only what you pass it** (its own prompt plus the delegation message), not the parent's conversation. Put every path, decision and constraint it needs into the task.
+- Don't split work that is tightly coupled: if every step needs everything the others learned, one agent is simpler.
+- Every layer multiplies cost. Cap depth, concurrency and spend (the Agent SDK has `maxBudgetUsd` plus depth and concurrency limits).
+
+### 5. Where these live in Claude tooling
+
+- **Agent SDK:** subagents defined in the `agents` option (or `.claude/agents/*.md`), called through the `Agent` tool, each with a `description`, `prompt` and optional `tools` and `model`.
+- **Managed Agents:** a coordinator lists other agents in its `multiagent` roster; each runs in its own context-isolated thread sharing the session's filesystem.
+- **Your own loop:** a subagent is just a separate `messages` history whose final text becomes a tool result.
+
+## Exam traps
+
+- **Picking an agent because it sounds more capable.** If the steps are known (validate, enrich, format, save), a workflow is cheaper, faster and more reliable.
+- **Picking a workflow for an open-ended task.** "Investigate why this build fails" can't be drawn as a flowchart. That's agent territory.
+- **Assuming subagents share the parent's memory.** They start with a fresh context; anything they need must be in the delegation prompt.
+- **Multi-agent for a single sequential task.** More agents add overhead without benefit when the work can't be split.
+- **Ignoring cost of error.** An agent taking irreversible actions (sending emails, trading players) needs approval gates or a narrower design, whatever its capability.
+
+## On the field
+
+**Gridiron Assistant: the scouting report.** Your coach wants a weekly scouting report on the next opponent. Two designs are on the table.
+
+*Design A, a workflow:* fetch the opponent's stats, summarize the last three games, fill a fixed template. Every step is known, so code drives it: cheap and predictable.
+
+*Design B, a supervisor agent:* a **lead scout** plans the report and delegates to a **film** subagent (reads play-by-play logs, read-only tools) and a **stats** subagent (queries the stats tool, cheaper model). Both run in parallel in their own context windows; only their summaries reach the lead. This pays off for open questions ("why does their red-zone defense collapse against 12 personnel?") where the investigation must change course based on what it finds.
+
+A fixed template points to Design A; open-ended questions point to Design B.
+
+Try it in **Lab L6** (scouting report agent), where you build both versions and compare their cost, latency and report quality.
