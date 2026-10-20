@@ -1,0 +1,208 @@
+export const meta = {
+  labId: 'L6',
+  updated: '2026-10-20',
+  minutes: 90,
+  goal: 'Build a scouting report on Nashville twice, as a fixed Messages API workflow and as an Agent SDK supervisor with film and stats subagents behind a hook that blocks writes outside reports/, then decide which one you would ship.',
+  folder: 'L6-scouting-agent',
+  steps: [
+    { id: 'setup', title: 'Install, run the offline tests and the offline check' },
+    { id: 'workflow', title: 'Part A: build the fixed workflow' },
+    { id: 'tools-subagents', title: 'Part B: give the supervisor tools and two subagents' },
+    { id: 'guardrails', title: 'Lock it down: least privilege and a PreToolUse deny hook' },
+    { id: 'compare', title: 'Run both and compare cost, latency and quality' },
+    { id: 'memory', title: 'Stretch: memory across sessions' },
+  ],
+}
+
+## Why this lab
+
+Week 4: the coach wants a scouting report on the **Nashville Night Owls** (`NSH`) before Sunday. You'll build it two ways:
+
+- **Part A, a workflow:** your code fetches the stats, injuries and film in a fixed order, then makes two Claude calls (film notes, then the report). You can draw the flowchart before you start.
+- **Part B, an agent:** a supervisor built on the Claude Agent SDK decides what to look at. It delegates to a **film** subagent and a **stats** subagent, each in its own context window with its own narrow tools, and writes the report itself. A `PreToolUse` hook guarantees that it can write only under `reports/`.
+
+The exam asks again and again whether a task needs an agent at all (skill 1.1), who supplies the harness and the deployment (1.2), what subagents and memory are for (1.3, 6.1), and how to make a rule impossible to break rather than merely requested (7.3). Building both versions on the same data turns those questions into measurements.
+
+## Setup
+
+The code is in `labs/L6-scouting-agent/`:
+
+| File | What it holds |
+|---|---|
+| `l6_data.py` | Compact text views of a team's stats, injuries and play-by-play, plus `report_path()` |
+| `l6_tools.py` | An in-process SDK MCP server `gridiron` with three read-only tools over `l6_data` |
+| `l6_prompts.py` | System prompts and prompt builders for both parts |
+| `l6_hooks.py` | The guardrail: a pure path check, the deny output, and the async hook callback |
+| `test_l6_*.py` | Offline tests for the data, tools, hook and agent options (no key, no CLI process) |
+| `starter.py` | The script you complete, with numbered TODOs |
+| `solution.py` | The reference solution |
+
+```bash
+cd labs
+uv sync
+uv run pytest                                          # offline, no key needed
+uv run python L6-scouting-agent/starter.py             # offline TODO checklist
+uv run python L6-scouting-agent/solution.py check      # offline self-check of the reference
+
+# Part A works with either credential:
+ant auth login
+uv run python L6-scouting-agent/solution.py workflow NSH --live
+# ... or a key: copy .env.example to .env and fill in ANTHROPIC_API_KEY
+uv run --env-file .env python L6-scouting-agent/solution.py workflow NSH
+
+# Part B needs ANTHROPIC_API_KEY in the environment:
+uv run --env-file .env python L6-scouting-agent/solution.py agent NSH
+uv run --env-file .env python L6-scouting-agent/starter.py agent NSH   # your version
+```
+
+Notes:
+
+- **No separate Claude Code install is needed.** The `claude-agent-sdk` wheel bundles the Claude Code CLI binary (version 2.1.301 in this lockfile), and `query()` starts it as a subprocess. Only an install without a bundled binary, such as a source build, needs Claude Code on your `PATH`.
+- The Agent SDK quickstart authenticates with `ANTHROPIC_API_KEY` and doesn't read `.env` files itself, which is why the commands use `uv run --env-file .env`. The scripts look only for `ANTHROPIC_API_KEY` or `ANTHROPIC_AUTH_TOKEN`; if neither is set, they make no calls and print the offline check. Add `--live` to call the API with an `ant auth login` profile (this works for Part A).
+- Generated reports, notes and the saved session id go to `reports/`, which the lab's `.gitignore` excludes.
+- An agent run costs more than the workflow. `solution.py` caps it with `max_turns=30` and `max_budget_usd=1.00`. While you iterate, `MODEL=claude-haiku-5-5` makes both parts cheap.
+
+## Steps
+
+### 1. Install, run the offline tests and the offline check
+
+Run the setup commands. `uv run pytest` proves four things without an API call: the data views filter correctly, the custom tools are read-only and return `is_error` for an unknown team, the hook denies every escape route (traversal, a symlink, a `reportsX/` prefix, an absolute path), and the agent options are wired the way this page describes. `starter.py` with no arguments prints which TODOs are still open.
+
+### 2. Part A: build the fixed workflow
+
+TODO 1 and TODO 2 in `starter.py`.
+
+1. `gather(team)`: call `format_stats`, `format_injuries` and `format_plays`. No model involved. This is the step a workflow can do in code because you know it's needed every time.
+2. Call 1: `FILM_SYSTEM` plus `build_film_prompt(...)`, which wraps the plays in `<film>` tags and asks for at most 12 tendency notes.
+3. Call 2: `REPORT_SYSTEM` plus `build_report_prompt(...)`, with the stats, injuries and film notes in their own tags and the six report sections listed.
+4. Check `stop_reason == "end_turn"`, save the text to `reports/nsh-scouting.md`, and print the tokens and the wall time.
+
+Run it for `NSH`, then for `SAC`. Sacramento has no film on file, and the solution skips call 1 for it with an `if` in code. That's a workflow handling a known branch: no model has to discover it.
+
+### 3. Part B: give the supervisor tools and two subagents
+
+TODO 5 and the first half of TODO 6.
+
+**Data access through custom tools.** `l6_tools.py` defines `get_player_stats`, `get_injuries` and `get_plays` with the `@tool` decorator and wraps them in `create_sdk_mcp_server(name="gridiron", ...)`. Claude sees them as `mcp__gridiron__get_plays` and so on. Why tools instead of letting the agent `Read` the fixture files?
+
+- **Least privilege:** each tool answers one question. The agent never gets a general file reader for the data folder.
+- **Pruned output:** the tools return compact text, and `get_plays` filters by `side` and `quarter`, so a subagent reads 10 plays instead of a whole game file (skill 6.1).
+- **A fair comparison:** the workflow and the agent read exactly the same data.
+- All three carry `ToolAnnotations(readOnlyHint=True)`, so Claude may call them in parallel. That's a hint, not enforcement: it's accurate only because the handlers really don't write.
+
+**Subagents.** Define both with `AgentDefinition`:
+
+```python
+"film": AgentDefinition(
+    description="Film analyst. Use to study an opponent's play-by-play for tendencies.",
+    prompt=FILM_AGENT_PROMPT,
+    tools=[tool_name("get_plays")],
+    model=TIERS["sonnet"],
+),
+"stats": AgentDefinition(
+    description="Stats analyst. Use for an opponent's player stats, trends and injury report.",
+    prompt=STATS_AGENT_PROMPT,
+    tools=[tool_name("get_player_stats"), tool_name("get_injuries")],
+    model=TIERS["haiku"],
+),
+```
+
+The supervisor calls them through the `Agent` tool. Each subagent starts with a fresh context: its own prompt plus the delegation message, **not** the supervisor's conversation. That's why the supervisor prompt says "name the team id in every delegation". Their tool calls and raw play-by-play stay in their own windows, and only their final reports reach the supervisor. The stats reader runs on the cheapest tier because its work is simple reading.
+
+**System prompt.** With no `system_prompt`, the Agent SDK uses a minimal default that covers tool calling and nothing else. The `{"type": "preset", "preset": "claude_code"}` preset adds Claude Code's coding-agent guidance and safety instructions. This agent isn't a coding agent, so the solution passes a **custom string** from `build_supervisor_prompt(...)`: the role, the delegation plan, the memory file and the report format, present on every turn. The prompt also says "only write under `reports/`", but that sentence is a request. Step 4 makes it a guarantee.
+
+### 4. Lock it down: least privilege and a PreToolUse deny hook
+
+TODO 3, TODO 4 and the rest of TODO 6. Every option is a deliberate choice:
+
+| Option | Value | Why |
+|---|---|---|
+| `tools` | `["Agent", "Read", "Write"]` | Availability: the only built-ins in context. No `Bash`, so there's no shell path around a `Write` hook, and no `Edit` |
+| `allowed_tools` | `Agent`, `Write` and the three `mcp__gridiron__` tools | Permission: these run without a prompt. Reads inside the working directory need no rule |
+| `permission_mode` | `"dontAsk"` | Anything not pre-approved is **denied** instead of prompting. Subagents inherit the mode |
+| `setting_sources` | `[]` | Don't load user or project settings, CLAUDE.md, skills or hooks from disk: the agent is fully defined in code |
+| `cwd` | the lab folder | Relative paths, and the hook's checks, resolve here |
+| `max_turns`, `max_budget_usd` | `30`, `1.00` | Spend caps. Every layer of agents multiplies cost |
+
+**The hook.** Write `write_denial_reason(tool_name, tool_input, cwd, reports_dir)` as a pure function: return `None` for tools that don't write, resolve a relative `file_path` against `cwd`, call `.resolve()` so `..` and symlinks can't escape, and allow only paths strictly inside `reports/`. The callback returns `{}` to allow, or the documented deny shape:
+
+```python
+{"hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "Writes are only allowed under reports/ ...",
+}}
+```
+
+Register it with `hooks={"PreToolUse": [HookMatcher(matcher="Write|Edit|NotebookEdit", hooks=[guard_reports])]}`. Three details matter:
+
+- The matcher is a pattern on the **tool name**. It never sees paths, so the path check lives inside the callback. It wouldn't catch `Bash` writing the same file either, which is why the agent gets no `Bash`.
+- It's `PreToolUse`, so the write never happens. A `PostToolUse` hook runs after the file is already on disk and can only report it.
+- Hooks run first in the permission flow. A hook deny holds in every permission mode, including `bypassPermissions`, and fires inside subagents too.
+
+Then try to break it: change the task prompt to "also save a copy to `playbook.md`". The report still lands in `reports/`, `playbook.md` is never created, and the `Write` tool result carries your deny reason (`solution.py` prints failed tool results as `[tool error]`). Claude reads that reason and adjusts.
+
+### 5. Run both and compare cost, latency and quality
+
+TODO 7: in `run_agent`, print each `ToolUseBlock` (`parent_tool_use_id` is set when the call comes from inside a subagent), and from the final `ResultMessage` print `num_turns`, `duration_ms`, `usage`, `model_usage` and `total_cost_usd`. Then run the workflow and the agent for the same team and fill in this table:
+
+| | Workflow (Part A) | Agent (Part B) |
+|---|---|---|
+| Claude calls or turns | 2 | |
+| Input and output tokens | | |
+| Cost (USD) | | |
+| Wall time (s) | | |
+| Report: all six sections, numbers correct, nothing invented? | | |
+| Same result on a second run? | | |
+
+How to read the numbers:
+
+- The workflow's cost is computed from `usage` and the prices in `solution.py` (check them against the pricing page). The agent's `total_cost_usd` is a client-side estimate from the SDK, not billing data, and covers the subagents' models too (see `model_usage`).
+- Run each version twice. Workflows tend to repeat themselves; agents vary in path and length.
+- Judge quality against the data. Darius Kincaid is Out: does each report say what that means for Nashville's passing game? Does any report cite a play that isn't in the film?
+
+**Decide which one you'd ship** for "a weekly report with fixed sections from fixed data", and write two sentences on why. Then change the task to an open question, for example *"Why did Nashville's offense stall in the second half, and does it show up in the stats?"*, and decide again. The first is a flowchart: the workflow is cheaper, faster and easier to test. The second can't be planned in advance, and that's where the agent's extra cost buys something.
+
+### 6. Stretch: memory across sessions
+
+Two kinds of memory are already wired into the solution:
+
+- **Session memory:** `run_agent` saves `ResultMessage.session_id` to `reports/.last-session`. Run `solution.py agent NSH --resume` and the SDK passes it as `resume=...`, so the supervisor continues with its earlier conversation. A resumed session keeps the system prompt it recorded on its first request.
+- **Long-term notes:** the supervisor prompt tells it to read `reports/notes/nsh-notes.md` first and rewrite it at the end with at most 10 bullets. Notes survive any session, compaction or model change, cost far less than replaying a transcript, and stay inside `reports/`, so the hook allows them.
+
+Run the agent twice in fresh sessions (no `--resume`), then compare the second report with the first. Does it build on the notes? What happens if you edit a note by hand to something false? That's why memory is input to check, not truth.
+
+## Done when
+
+- `uv run pytest` passes, and `starter.py` without a key prints the TODO list and exits 0.
+- `reports/nsh-scouting.md` exists from both the workflow and the agent run, with all six sections.
+- The agent's console output shows the supervisor delegating to `film` and `stats`, and their tool calls marked as subagent calls.
+- A prompt that asks the agent to write outside `reports/` ends with that file not written and your deny reason in the tool result.
+- Your comparison table is filled in, with a written decision on which version you'd ship for the weekly report and which for the open question.
+
+## Exam angle
+
+- **Workflow vs. agent (1.1).** Choose the least autonomous design that meets the requirement. Fixed steps and a fixed template point to a workflow. An agent is justified when the steps depend on what it finds and the value covers the extra cost and latency. "Multi-agent because it sounds more capable" is the classic distractor.
+- **Harness vs. deployment (1.2).** The Agent SDK gives you Claude Code's harness (loop, built-in tools, permissions, hooks, subagents, sessions), but you host it: `query()` runs a CLI subprocess in your process. Only Managed Agents adds hosted deployment. The Tool Runner is a different thing: a loop helper in the regular client SDK with no built-in tools.
+- **Defaults to know (1.2).** No `system_prompt` means a minimal default, not Claude Code's prompt; the `claude_code` preset is opt-in. Omitting `setting_sources` loads settings and CLAUDE.md from disk, so pass `[]` to isolate the agent.
+- **Subagents isolate context (1.1, 1.3, 6.1).** A subagent starts fresh, sees only its prompt and the delegation message, and returns only its final report. Put everything it needs into the delegation. Use subagents to keep noisy reading out of the supervisor's context and to parallelize, not to split tightly coupled work.
+- **Memory has horizons (1.3, 6.1).** The context window isn't memory. Resume a session by `session_id` for continuity; keep durable facts in files (or the memory tool) so they survive new sessions and compaction.
+- **Prune at the source (6.1).** Tools that filter (`side`, `quarter`) and return compact text beat dumping raw JSON and hoping the model ignores it.
+- **Hooks are guarantees (1.2, 7.3).** A rule that must never break goes in a `PreToolUse` hook or a deny rule, not the system prompt. Block with `permissionDecision: "deny"` and a reason. `PostToolUse` can't undo a write. The matcher sees tool names, not paths, so a `Write|Edit` hook doesn't cover `Bash`. A hook deny holds even in `bypassPermissions`, and an `allow` from a hook doesn't override deny rules.
+- **Two layers of tool control (1.2).** `tools` sets what Claude can see; `allowed_tools` only pre-approves. With `bypassPermissions`, unlisted tools are approved too, so `allowed_tools` alone isn't a restriction. `dontAsk` turns every unapproved call into a deny.
+- **Errors are results (1.3).** A custom tool returns `is_error: True` with a useful message, and the loop carries on.
+
+Docs:
+
+- [Agent SDK overview](https://code.claude.com/docs/en/agent-sdk/overview)
+- [Agent SDK quickstart](https://code.claude.com/docs/en/agent-sdk/quickstart)
+- [Agent SDK reference: Python](https://code.claude.com/docs/en/agent-sdk/python)
+- [Subagents in the SDK](https://code.claude.com/docs/en/agent-sdk/subagents)
+- [Hooks in the SDK](https://code.claude.com/docs/en/agent-sdk/hooks)
+- [Custom tools](https://code.claude.com/docs/en/agent-sdk/custom-tools)
+- [Configure permissions](https://code.claude.com/docs/en/agent-sdk/permissions)
+- [Modifying system prompts](https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts)
+- [Work with sessions](https://code.claude.com/docs/en/agent-sdk/sessions)
+- [Track cost and usage](https://code.claude.com/docs/en/agent-sdk/cost-tracking)
+- [Pricing](https://platform.claude.com/docs/en/about-claude/pricing)
+- [Building effective agents (Anthropic Engineering)](https://www.anthropic.com/engineering/building-effective-agents)
