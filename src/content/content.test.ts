@@ -11,6 +11,7 @@ import {
   questionTarget,
 } from './blueprint'
 import { LESSONS, REQUIRED_SECTIONS } from './lessons'
+import { analyzeQuestions } from './questionQuality'
 import { QUESTIONS, questionFiles } from './questions'
 import { QuestionSchema } from './schema'
 
@@ -60,11 +61,12 @@ describe('question bank', () => {
     }
   })
 
-  it('questions live in the file of their domain', () => {
+  it('questions live in the file of their skill', () => {
     for (const [path, raw] of Object.entries(questionFiles)) {
-      const domain = path.match(/domain-(\d)\.json$/)![1]
+      const skillId = path.match(/\/(\d\.\d)\.json$/)?.[1]
+      expect(skillId, `${path} must be named <skillId>.json`).toBeDefined()
       for (const q of raw as { id: string; skillId: string }[]) {
-        expect(q.skillId.split('.')[0], `${q.id} in ${path}`).toBe(domain)
+        expect(q.skillId, `${q.id} in ${path}`).toBe(skillId)
       }
     }
   })
@@ -78,6 +80,10 @@ describe('question bank', () => {
     for (const q of QUESTIONS.filter((q) => !q.official)) {
       expect(q.id.startsWith(`q-${q.skillId}-`), q.id).toBe(true)
     }
+  })
+
+  it('has no answer-key giveaways or duplicate items (npm run content:quality)', () => {
+    expect(analyzeQuestions(QUESTIONS).problems).toEqual([])
   })
 
   it('includes the three official Exam Guide samples', () => {

@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "content:status": "node scripts/content-status.ts"
+    "content:status": "node scripts/content-status.ts",
+    "content:quality": "node scripts/question-quality.ts"
   },
   "dependencies": {
     "react": "^19.3.1",

@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import { QuestionSchema, type Question } from '../schema'
 
-// One JSON file per domain: domain-<n>.json, each an array of questions.
-const files = import.meta.glob<Question[]>('./domain-*.json', { eager: true, import: 'default' })
+// One JSON file per blueprint skill: <skillId>.json (e.g. 2.3.json), each an array of questions.
+const files = import.meta.glob<Question[]>('./*.json', { eager: true, import: 'default' })
 
 export const questionFiles: Record<string, unknown> = files
 

@@ -6,7 +6,7 @@ import { DOMAINS, questionTarget } from '../src/content/blueprint.ts'
 
 const questionsDir = join(import.meta.dirname, '../src/content/questions')
 const counts = new Map<string, number>()
-for (const file of readdirSync(questionsDir).filter((f) => /^domain-\d\.json$/.test(f))) {
+for (const file of readdirSync(questionsDir).filter((f) => /^\d\.\d\.json$/.test(f))) {
   for (const q of JSON.parse(readFileSync(join(questionsDir, file), 'utf8')) as { skillId: string }[]) {
     counts.set(q.skillId, (counts.get(q.skillId) ?? 0) + 1)
   }
