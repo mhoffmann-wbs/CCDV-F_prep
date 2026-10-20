@@ -1,0 +1,22 @@
+[
+  {
+    "id": "POR",
+    "name": "Portland Lumberjacks",
+    "conference": "West"
+  },
+  {
+    "id": "NSH",
+    "name": "Nashville Night Owls",
+    "conference": "East"
+  },
+  {
+    "id": "SAC",
+    "name": "Sacramento Prospectors",
+    "conference": "West"
+  },
+  {
+    "id": "BAL",
+    "name": "Baltimore Harbor Hawks",
+    "conference": "East"
+  }
+]

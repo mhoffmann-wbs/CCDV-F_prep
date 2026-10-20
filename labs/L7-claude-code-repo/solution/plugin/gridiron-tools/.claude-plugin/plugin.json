@@ -1,0 +1,10 @@
+{
+  "name": "gridiron-tools",
+  "version": "0.1.0",
+  "description": "Game previews, a test-runner subagent and a hook that keeps data/ fixtures read-only, for gridiron-stats style repos",
+  "author": {
+    "name": "Gridiron Prep"
+  },
+  "license": "MIT",
+  "keywords": ["football", "fantasy", "testing", "hooks"]
+}

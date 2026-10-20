@@ -1,0 +1,14 @@
+{
+  "name": "gridiron-marketplace",
+  "description": "Plugins for the Gridiron Prep labs",
+  "owner": {
+    "name": "Gridiron Prep"
+  },
+  "plugins": [
+    {
+      "name": "gridiron-tools",
+      "source": "./gridiron-tools",
+      "description": "Game previews, a test-runner subagent and a data/ protection hook"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "note": "Fictional league. Week 3 POR at NSH is copied from labs/fixtures/game-week3-por-nsh.json; the other results are made up for this lab.",
+  "games": [
+    {
+      "week": 1,
+      "away": "POR",
+      "home": "SAC",
+      "score": {
+        "POR": 17,
+        "SAC": 20
+      }
+    },
+    {
+      "week": 1,
+      "away": "BAL",
+      "home": "NSH",
+      "score": {
+        "BAL": 27,
+        "NSH": 24
+      }
+    },
+    {
+      "week": 2,
+      "away": "NSH",
+      "home": "SAC",
+      "score": {
+        "NSH": 31,
+        "SAC": 13
+      }
+    },
+    {
+      "week": 2,
+      "away": "POR",
+      "home": "BAL",
+      "score": {
+        "POR": 23,
+        "BAL": 23
+      }
+    },
+    {
+      "week": 3,
+      "away": "POR",
+      "home": "NSH",
+      "score": {
+        "POR": 24,
+        "NSH": 20
+      }
+    },
+    {
+      "week": 3,
+      "away": "SAC",
+      "home": "BAL",
+      "score": {
+        "SAC": 10,
+        "BAL": 21
+      }
+    }
+  ]
+}

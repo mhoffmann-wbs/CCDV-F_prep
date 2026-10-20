@@ -1,0 +1,285 @@
+export const meta = {
+  labId: 'L7',
+  updated: '2026-10-20',
+  minutes: 90,
+  goal: 'Set up Claude Code on a small Python repo: a lean CLAUDE.md, permission rules, a PreToolUse hook that really blocks, a /game-preview skill, a test-runner subagent, a plugin and a headless CI run. Then use it to fix a real bug.',
+  folder: 'L7-claude-code-repo',
+  steps: [
+    { id: 'init-claude-md', title: 'Run /init and trim CLAUDE.md; add a rule and a nested file' },
+    { id: 'permissions', title: 'Add allow, ask and deny rules in .claude/settings.json' },
+    { id: 'hook', title: 'Block edits to data/ with a PreToolUse hook' },
+    { id: 'subagent', title: 'Add a test-runner subagent' },
+    { id: 'fix-bug', title: 'Fix the scoring bug and add the missing feature with Claude Code' },
+    { id: 'skill', title: 'Write the /game-preview skill' },
+    { id: 'plugin', title: 'Package the skill, agent and hook as a plugin' },
+    { id: 'headless-ci', title: 'Run Claude Code headless for CI' },
+  ],
+}
+
+## Why this lab
+
+The league's stats repo, **gridiron-stats**, has a bug: some running backs score too few fantasy points. It also has a feature request that nobody has built. You'll set up Claude Code so the whole team can work on this repo safely, and then let it do the work.
+
+Most exam questions about Claude Code come down to one distinction. **CLAUDE.md, rules and skills are context**: Claude reads them and usually follows them, but nothing forces it to. **Permission rules and hooks are enforcement**: Claude Code applies them in code, whatever the model decides. When a scenario says "must never", "guarantee" or "block", the answer is a deny rule or a hook, not a sentence in CLAUDE.md. You'll see both sides of that line in this lab.
+
+You will use:
+
+- `/init`, the CLAUDE.md hierarchy and a path-scoped rule (skills 2.5 and 2.6)
+- `settings.json` permission rules and their precedence (skills 2.6 and 7.3)
+- a `PreToolUse` hook with the documented deny output (skill 7.3)
+- a skill that is also the `/game-preview` command, and a subagent (skills 3.1 and 8.3)
+- plugin packaging and install scopes (skills 2.5 and 2.6)
+- `claude -p` in CI with an explicit permission mode (skill 3.1)
+
+## Setup
+
+The lab lives in `labs/L7-claude-code-repo/`:
+
+| Folder | What it holds |
+|---|---|
+| `starter/` | The gridiron-stats project with **no Claude Code configuration**. Three tests in `tests/test_l7_fantasy.py` fail because of the bug, and `top_performers()` is a stub. |
+| `solution/` | The same project, fixed, with the complete setup: `CLAUDE.md`, `data/CLAUDE.md`, `.claude/settings.json`, `.claude/rules/`, `.claude/hooks/`, `.claude/skills/`, `.claude/agents/`, `plugin/` and `ci/`. |
+
+1. Install Claude Code with the native installer from the [setup guide](https://code.claude.com/docs/en/setup), then check it with `claude --version`. You also need [uv](https://docs.astral.sh/uv/).
+2. Copy the starter to a scratch folder outside this repo and make it a git repository:
+
+   ```bash
+   cp -R labs/L7-claude-code-repo/starter ~/gridiron-stats
+   cd ~/gridiron-stats && git init -q && git add -A && git commit -qm "starter"
+   uv run pytest          # 3 failed, 9 passed
+   ```
+
+   Why a copy? Claude Code loads `CLAUDE.md` from the folder you start in **and every folder above it**. If you start it inside this repo, Gridiron Prep's own `CLAUDE.md` loads too. That's the hierarchy at work, but it would muddy the lab.
+3. Start Claude Code in that folder with `claude`. Sign in when it asks.
+
+Whenever you're stuck, compare your file with the one at the same path in `solution/`.
+
+## Steps
+
+### 1. Run /init and trim CLAUDE.md; add a rule and a nested file
+
+Run `/init`. Claude reads the repo and writes a `CLAUDE.md` with build commands, test commands and conventions it found.
+
+Now edit it down. A good CLAUDE.md holds what Claude **can't** work out on its own and needs **every session**: the exact commands, where things live, and team conventions. Delete generic advice like "write clean code". Compare yours with `solution/CLAUDE.md`, which is about 20 lines.
+
+Then add two more files to see the hierarchy:
+
+- **A path-scoped rule.** Copy `solution/.claude/rules/testing.md`. Its `paths` frontmatter (`tests/**/*.py`) means it loads only when Claude reads or edits a matching test file. A rule without `paths` loads every session, like CLAUDE.md.
+- **A nested CLAUDE.md.** Copy `solution/data/CLAUDE.md`. Files in subfolders load when Claude first reads or edits a file in that folder.
+
+Start a new session and run `/context` to see which CLAUDE.md and rules files loaded (`/memory` lists the files and opens them for editing). Ask "how do I run one test file?" to check that the commands work.
+
+Remember these points about the hierarchy:
+
+- **CLAUDE.md files are concatenated, not overridden.** Files higher up load first and the closest file loads last, but all of them stay in context.
+- **Personal notes go in `CLAUDE.local.md`** and personal settings in `.claude/settings.local.json`. Both are in the solution's `.gitignore`.
+- **`AGENTS.md`**: when a repo has an `AGENTS.md` and no `CLAUDE.md`, Claude Code reads the `AGENTS.md`.
+- Long procedures don't belong in CLAUDE.md. They cost context in every session, so make them a skill (step 6).
+
+### 2. Add allow, ask and deny rules in .claude/settings.json
+
+Create `.claude/settings.json` with the `permissions` block from `solution/.claude/settings.json`:
+
+```json
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": ["Bash(uv run pytest *)", "Bash(uv run python -m gridiron_stats *)", "Bash(git diff *)"],
+    "ask": ["Bash(git push *)"],
+    "deny": ["Read(./.env)", "Read(./.env.*)", "Bash(rm -rf *)", "Bash(git push --force *)", "Bash(curl *)"]
+  }
+}
+```
+
+Try it:
+
+1. Run `/permissions` to see each rule and the file it comes from.
+2. `echo "API_TOKEN=not-a-real-secret" > .env`, then ask Claude to show you `.env`. The `Read` deny rule refuses it. A `Read` deny also blocks `Edit` and `Write` on that path.
+3. Ask Claude to run the tests. `uv run pytest` runs without a prompt, because the allow rule covers it.
+
+How the rules work:
+
+- **Evaluation order is deny, then ask, then allow.** A broad deny like `Bash(curl *)` beats any narrower allow. An allow rule can't carve an exception out of a deny rule.
+- **Deny rules block in every permission mode, including `bypassPermissions`.** Allow rules have no effect in `bypassPermissions`. Interactive sessions start in **auto mode** (v2.1.283 and later): an action that matches one of your rules resolves at once, and a classifier reviews the rest. In `claude -p` runs, which start in Manual mode, allow rules decide what can run at all (step 8).
+- **The space before `*` counts.** `Bash(uv run pytest *)` also matches a bare `uv run pytest`, but `Bash(ls*)` would also match `lsof`.
+- **Deny rules cover Claude's built-in tools and the Bash commands Claude Code recognizes** (such as `cat` or `> file`). They don't cover a Python script that opens `.env` by itself. For OS-level enforcement, turn on the sandbox.
+- **Settings precedence:** managed settings, then command-line `--settings`, then `.claude/settings.local.json`, then `.claude/settings.json`, then `~/.claude/settings.json`. A higher level overrides a single value. List keys such as `permissions.allow` **merge** across files instead.
+
+### 3. Block edits to data/ with a PreToolUse hook
+
+The JSON files in `data/` are fixtures, and the expected test values were worked out from them. Editing them to make a test pass would be cheating. Start with the advisory version:
+
+1. Add "Never edit files in data/" to CLAUDE.md.
+2. Ask: "Make the failing fantasy tests pass. Changing the data is fine if that's quickest." Claude may decline or may edit the data. Either way, nothing **guarantees** the outcome. Press Esc and undo any change with `git checkout data/`.
+
+Now enforce it. Copy `solution/.claude/hooks/protect_data.py`, then add the `hooks` block from `solution/.claude/settings.json`:
+
+```json
+"hooks": {
+  "PreToolUse": [
+    {
+      "matcher": "Write|Edit|NotebookEdit|Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3",
+          "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/protect_data.py"],
+          "timeout": 10,
+          "onFailure": "block"
+        }
+      ]
+    }
+  ]
+}
+```
+
+The script reads the hook input JSON on stdin (`tool_name`, `tool_input.file_path` or `tool_input.command`). To block, it prints the documented deny decision and exits 0:
+
+```json
+{"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny", "permissionDecisionReason": "data/players.json is a read-only fixture ..."}}
+```
+
+Claude sees the reason and changes its approach. Run the hook yourself before trusting it:
+
+```bash
+echo '{"tool_name":"Edit","tool_input":{"file_path":"'"$PWD"'/data/players.json"}}' | CLAUDE_PROJECT_DIR=$PWD python3 .claude/hooks/protect_data.py
+echo '{"tool_name":"Edit","tool_input":{"file_path":"'"$PWD"'/gridiron_stats/fantasy.py"}}' | CLAUDE_PROJECT_DIR=$PWD python3 .claude/hooks/protect_data.py
+```
+
+The first command prints the deny JSON, and the second prints nothing (no decision, so the normal permission rules apply). Copy `solution/tests/test_l7_hook.py` and run `uv run pytest tests/test_l7_hook.py`. It tests the pure `decide()` function offline. Then repeat the request from step 2 of this section: the edit is blocked every time.
+
+Read the details closely, because each one is a classic exam distractor:
+
+- **`PreToolUse`, not `PostToolUse`.** A `PostToolUse` hook runs after the file has already changed.
+- **Exit code 2 also blocks**, with your stderr as the reason. **Exit 1 doesn't block.** It's a non-blocking error, and the edit goes ahead. `onFailure: "block"` (v2.1.295 and later) makes a crashing or missing script block too, instead of failing open.
+- **Matchers match tool names, not paths.** That's why the script checks the path itself, and why `Bash` is in the matcher: `echo x > data/games.json` never touches the `Edit` tool. The Bash check is best-effort; only the sandbox stops every possible write.
+- **A hook's deny wins over allow rules, and deny rules still apply when a hook returns allow.** A simpler alternative for this exact case is a deny rule, `Edit(/data/**)`. Use a hook when you need logic, such as path normalization, Bash inspection or a custom message.
+- **Hooks are code that runs as you.** Review the hooks in any repo or plugin before you start Claude Code there.
+
+### 4. Add a test-runner subagent
+
+Copy `solution/.claude/agents/test-runner.md`:
+
+```markdown
+---
+name: test-runner
+description: Runs the pytest suite and reports failures with their likely cause. Use proactively after changing code in gridiron_stats/ or tests/, or when the user asks to run the tests.
+tools: Bash, Read, Grep, Glob
+model: haiku
+---
+You run the test suite for gridiron-stats and report what you find. You don't change files. ...
+```
+
+Only `name` and `description` are required. The `description` tells Claude when to delegate. `tools` leaves out `Edit` and `Write`, so this agent can't change code. The body is the subagent's **whole system prompt**: it doesn't get the Claude Code system prompt or your conversation. Ask "use the test-runner subagent to run the tests". The noisy pytest output stays in the subagent's context, and you get back a short report.
+
+### 5. Fix the scoring bug and add the missing feature with Claude Code
+
+Now put the setup to work.
+
+1. **The bug.** Ask: "Use the test-runner subagent to find out why the fantasy tests fail, then fix the cause." The tests say a running back with 4 catches scores 2 points too few. The cause is in `gridiron_stats/fantasy.py`: the module promises full PPR, but `SCORING` gives half a point per reception. If Claude reaches for `data/`, the hook stops it.
+2. **The feature.** Press Shift+Tab to switch to plan mode and ask: "Implement `top_performers()` and a `top` CLI command, as described in its docstring and README.md, with tests in `tests/test_l7_top_performers.py`." Review the plan, approve it, and let Claude build it. The path-scoped testing rule loads as soon as Claude touches `tests/`.
+3. Run `uv run pytest` yourself. Everything passes. Then run `uv run python -m gridiron_stats top --week 3`, which should list POR-TE1, POR-QB1 and POR-WR1.
+
+Commit your work with `git commit -am "fix PPR, add top performers"`.
+
+### 6. Write the /game-preview skill
+
+Create `.claude/skills/game-preview/SKILL.md` (copy it from the solution):
+
+```markdown
+---
+name: game-preview
+description: Write a short preview of a matchup in this fictional league from the bundled data (standings, records, top fantasy performers). Use when the user asks to preview a game or matchup, such as "preview POR at NSH".
+argument-hint: "[away-team] [home-team] [week]"
+arguments: [away, home, week]
+allowed-tools: Bash(uv run python -m gridiron_stats *)
+---
+Write a game preview for **$away at $home** (week $week; ...)
+```
+
+Try it both ways:
+
+- Type `/game-preview POR NSH 3`. **Custom commands have merged into skills**: this one file is both a skill and the `/game-preview` command. An older `.claude/commands/game-preview.md` would also create `/game-preview` and still works, but a skill can also hold supporting files and can load on its own.
+- In a fresh session, ask "Can you preview Nashville against Portland?". Claude picks the skill from its `description`. Only the name and description sit in context until the skill is used, which is why a long procedure belongs in a skill and not in CLAUDE.md.
+
+Two frontmatter fields to know: `disable-model-invocation: true` makes a skill run only when you type it, which suits workflows with side effects such as deploys. `allowed-tools` pre-approves tools only for the turn that invokes the skill. It doesn't restrict any tools, and a skill is never enforcement.
+
+### 7. Package the skill, agent and hook as a plugin
+
+Copy `solution/plugin/` into your project. It's a small marketplace that contains one plugin:
+
+```text
+plugin/
+├── .claude-plugin/marketplace.json  ← name, owner, plugins[]
+└── gridiron-tools/
+    ├── .claude-plugin/plugin.json   ← only "name" is required
+    ├── skills/game-preview/SKILL.md
+    ├── agents/test-runner.md
+    ├── hooks/hooks.json             ← same hook, via ${CLAUDE_PLUGIN_ROOT}
+    └── scripts/protect_data.py
+```
+
+```bash
+claude plugin validate ./plugin/gridiron-tools   # ✔ Validation passed
+claude plugin validate ./plugin                  # checks marketplace.json too
+claude --plugin-dir ./plugin/gridiron-tools      # load it for one session
+```
+
+In that session, the skill is namespaced: `/gridiron-tools:game-preview`. To install it from the marketplace instead, run `claude plugin marketplace add ./plugin` and then `claude plugin install gridiron-tools@gridiron-marketplace --scope project`. **User** scope enables it for you in every project, **project** scope enables it for the whole team through `.claude/settings.json`, and **local** scope enables it for you in this repo only. `solution/plugin/README.md` has the details.
+
+Before you share a plugin, remember that it runs code as the user (this one runs a Python hook), and every skill and agent description it adds sits in context on every turn, even when unused.
+
+### 8. Run Claude Code headless for CI
+
+Read `solution/ci/claude-review.sh` and `solution/ci/github-workflow.yml`. The core of the script:
+
+```bash
+claude --bare -p "Review the changes on this branch for bugs. Run the test suite ..." \
+  --settings .claude/settings.json \
+  --append-system-prompt-file CLAUDE.md \
+  --permission-mode dontAsk \
+  --allowedTools "Read,Grep,Glob,Bash(uv run pytest *),Bash(git diff *),Bash(git log *)" \
+  --disallowedTools "Edit,Write,NotebookEdit,WebFetch,WebSearch" \
+  --max-turns 15 --max-budget-usd 1.00 \
+  --output-format json
+```
+
+Why the headless defaults differ: an interactive session starts in auto mode and can ask you about anything else. **`claude -p` starts in `default` (Manual) mode, and nobody is there to answer.** Any call that needs approval is denied unless an allow rule, a hook or `--permission-prompt-tool` approves it. So a CI job names its mode and its tools explicitly:
+
+- `--permission-mode dontAsk` denies everything you didn't pre-approve. `--allowedTools` lists exactly what the review may do.
+- `--bare` skips auto-discovery of CLAUDE.md, hooks, skills, plugins and MCP servers. Without it, a `-p` run loads whatever a pull request's `.claude/` and `.mcp.json` contain, and there's no trust dialog. With it, you pass back only what you chose, with `--settings` and `--append-system-prompt-file`. Bare mode needs `ANTHROPIC_API_KEY`.
+- `--output-format json` returns one object. The script reads `result`, `is_error` and `total_cost_usd` (an estimate) and fails the job on an error or a FAIL verdict.
+- Never use `bypassPermissions` "to avoid prompts" in CI. It's for isolated containers or VMs only, and deny rules still apply there.
+
+To try it (this calls the API and costs a few cents), export `ANTHROPIC_API_KEY` and run `ci/claude-review.sh` from the project root. You also need `jq`. For a cheaper check, run `claude -p "create a file notes.txt that says hello" --output-format json` in your project. No allow rule covers `Write`, so in Manual mode the call is denied, and the `result` says so.
+
+## Done when
+
+- `uv run pytest` passes in your project, including `tests/test_l7_hook.py` and your `top_performers` tests.
+- Your `CLAUDE.md` is short and specific, and `/context` shows it loaded, along with the testing rule and `data/CLAUDE.md` once Claude has touched those folders.
+- Claude can't read `.env`, and it can't change `data/` through `Edit`, `Write` or an obvious Bash redirect, even when you ask it to.
+- `/game-preview POR NSH 3` prints a preview built from the CLI output.
+- `claude plugin validate ./plugin` passes, and `--plugin-dir` gives you `/gridiron-tools:game-preview`.
+- You can explain why the CI script sets `--permission-mode`, `--allowedTools` and `--bare` explicitly.
+
+## Exam angle
+
+- **CLAUDE.md is context, not enforcement** (2.5, 2.6, 7.3). "Never edit .env" in CLAUDE.md is the wrong answer to a guarantee requirement. Use a `permissions.deny` rule, a `PreToolUse` hook or managed settings.
+- **CLAUDE.md files concatenate; settings override** (2.6). Nested and parent CLAUDE.md files all load. Precedence by override applies to settings values (managed, then CLI, then local, then project, then user), while permission lists merge. Personal choices go in `CLAUDE.local.md` or `.claude/settings.local.json`, never in the shared files.
+- **Deny first, in every mode** (2.6, 7.3). Rules are evaluated deny, then ask, then allow, and deny rules apply even in `bypassPermissions`. Nothing below managed settings can override a managed key.
+- **Block before, with exit 2 or JSON deny** (7.3). Use `PreToolUse`, not `PostToolUse`. Exit 1 is a non-blocking error. Matchers see tool names, so cover `Bash` as well as `Edit|Write`, or use the sandbox.
+- **Hooks and plugins are code that runs as you** (2.5, 7.3). Review them before trusting a repo or installing a plugin. An enabled plugin also costs context on every turn.
+- **Skill vs. CLAUDE.md vs. MCP** (3.1, 8.3). A long procedure goes in a skill (only its description loads until it's used). Use MCP when Claude needs live access to an external system. A skill is instructions, never enforcement. Custom commands have merged into skills.
+- **A subagent has its own context** (3.1). It sees its own system prompt and your delegation message, not your conversation. Put everything it needs in the request, and expect only its final message back.
+- **Headless is not interactive** (3.1). `claude -p` starts in `default` mode, while interactive sessions start in auto mode. In CI, set `--permission-mode`, list `--allowedTools`, and use `--bare` on untrusted code. Don't reach for `bypassPermissions`.
+
+Official docs:
+
+- [How Claude remembers your project (CLAUDE.md, rules, AGENTS.md)](https://code.claude.com/docs/en/memory)
+- [Settings files and precedence](https://code.claude.com/docs/en/settings)
+- [Configure permissions](https://code.claude.com/docs/en/permissions) and [Choose a permission mode](https://code.claude.com/docs/en/permission-modes)
+- [Hooks reference](https://code.claude.com/docs/en/hooks) and [Automate actions with hooks](https://code.claude.com/docs/en/hooks-guide)
+- [Extend Claude with skills](https://code.claude.com/docs/en/skills)
+- [Create custom subagents](https://code.claude.com/docs/en/sub-agents)
+- [Plugins overview](https://code.claude.com/docs/en/plugins), [Plugin manifest reference](https://code.claude.com/docs/en/plugins-reference), [Create a marketplace](https://code.claude.com/docs/en/plugin-marketplaces) and [Install and manage plugins](https://code.claude.com/docs/en/discover-plugins)
+- [Run Claude Code programmatically (headless)](https://code.claude.com/docs/en/headless), [CLI reference](https://code.claude.com/docs/en/cli-reference) and [Claude Code GitHub Actions](https://code.claude.com/docs/en/github-actions)

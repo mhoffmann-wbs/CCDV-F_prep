@@ -1,0 +1,280 @@
+[
+  {
+    "id": "POR-QB1",
+    "name": "Marcus Holloway",
+    "team": "POR",
+    "position": "QB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "passing_yds": 208,
+        "passing_td": 0,
+        "interceptions": 2,
+        "rushing_yds": 17,
+        "rushing_td": 0
+      },
+      {
+        "week": 2,
+        "passing_yds": 237,
+        "passing_td": 1,
+        "interceptions": 2,
+        "rushing_yds": 6,
+        "rushing_td": 0
+      },
+      {
+        "week": 3,
+        "passing_yds": 331,
+        "passing_td": 3,
+        "interceptions": 0,
+        "rushing_yds": 1,
+        "rushing_td": 0
+      }
+    ]
+  },
+  {
+    "id": "POR-RB1",
+    "name": "Devin Brightwater",
+    "team": "POR",
+    "position": "RB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "rushing_yds": 47,
+        "rushing_td": 0,
+        "receptions": 4,
+        "receiving_yds": 38,
+        "receiving_td": 0
+      },
+      {
+        "week": 2,
+        "rushing_yds": 91,
+        "rushing_td": 0,
+        "receptions": 5,
+        "receiving_yds": 41,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "rushing_yds": 48,
+        "rushing_td": 1,
+        "receptions": 4,
+        "receiving_yds": 17,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "POR-WR1",
+    "name": "Jalen Castellanos",
+    "team": "POR",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 6,
+        "receiving_yds": 77,
+        "receiving_td": 0
+      },
+      {
+        "week": 2,
+        "receptions": 8,
+        "receiving_yds": 41,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "receptions": 2,
+        "receiving_yds": 85,
+        "receiving_td": 2
+      }
+    ]
+  },
+  {
+    "id": "POR-TE1",
+    "name": "Brett Ashby",
+    "team": "POR",
+    "position": "TE",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 2,
+        "receiving_yds": 53,
+        "receiving_td": 2
+      },
+      {
+        "week": 2,
+        "receptions": 4,
+        "receiving_yds": 51,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "receptions": 7,
+        "receiving_yds": 79,
+        "receiving_td": 2
+      }
+    ]
+  },
+  {
+    "id": "POR-K1",
+    "name": "Isaiah Delacroix",
+    "team": "POR",
+    "position": "K",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "field_goals_made": 1,
+        "extra_points_made": 3
+      },
+      {
+        "week": 2,
+        "field_goals_made": 0,
+        "extra_points_made": 2
+      },
+      {
+        "week": 3,
+        "field_goals_made": 0,
+        "extra_points_made": 3
+      }
+    ]
+  },
+  {
+    "id": "NSH-QB1",
+    "name": "Quentin Mbeki",
+    "team": "NSH",
+    "position": "QB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "passing_yds": 282,
+        "passing_td": 2,
+        "interceptions": 0,
+        "rushing_yds": 13,
+        "rushing_td": 0
+      },
+      {
+        "week": 2,
+        "passing_yds": 234,
+        "passing_td": 3,
+        "interceptions": 1,
+        "rushing_yds": 29,
+        "rushing_td": 0
+      },
+      {
+        "week": 3,
+        "passing_yds": 247,
+        "passing_td": 1,
+        "interceptions": 0,
+        "rushing_yds": 35,
+        "rushing_td": 0
+      }
+    ]
+  },
+  {
+    "id": "NSH-RB1",
+    "name": "Malik Sorensen",
+    "team": "NSH",
+    "position": "RB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "rushing_yds": 115,
+        "rushing_td": 2,
+        "receptions": 3,
+        "receiving_yds": 37,
+        "receiving_td": 1
+      },
+      {
+        "week": 2,
+        "rushing_yds": 66,
+        "rushing_td": 0,
+        "receptions": 1,
+        "receiving_yds": 32,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "rushing_yds": 31,
+        "rushing_td": 0,
+        "receptions": 6,
+        "receiving_yds": 7,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "NSH-WR1",
+    "name": "Darius Kincaid",
+    "team": "NSH",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 2,
+        "receiving_yds": 78,
+        "receiving_td": 1
+      },
+      {
+        "week": 2,
+        "receptions": 2,
+        "receiving_yds": 85,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "receptions": 3,
+        "receiving_yds": 126,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "NSH-TE1",
+    "name": "Rashad Abernathy",
+    "team": "NSH",
+    "position": "TE",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 2,
+        "receiving_yds": 102,
+        "receiving_td": 1
+      },
+      {
+        "week": 2,
+        "receptions": 4,
+        "receiving_yds": 24,
+        "receiving_td": 0
+      },
+      {
+        "week": 3,
+        "receptions": 10,
+        "receiving_yds": 30,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "NSH-K1",
+    "name": "Owen Quarles",
+    "team": "NSH",
+    "position": "K",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "field_goals_made": 3,
+        "extra_points_made": 1
+      },
+      {
+        "week": 2,
+        "field_goals_made": 4,
+        "extra_points_made": 2
+      },
+      {
+        "week": 3,
+        "field_goals_made": 1,
+        "extra_points_made": 4
+      }
+    ]
+  }
+]
