@@ -1,4 +1,4 @@
-// Checks every external link in the content (blueprint, lessons, questions).
+// Checks every external link in the content (blueprint, lessons, questions, lab pages).
 // platform.claude.com answers missing pages with HTTP 200 and a generic title ("soft 404"),
 // so a status check alone is not enough: we also inspect the page title.
 // Run: npm run content:links   (needs network; not part of `npm test`)
@@ -19,7 +19,7 @@ function collect(file: string) {
 }
 
 collect(join(contentDir, 'blueprint.ts'))
-for (const dir of ['lessons', 'questions']) {
+for (const dir of ['lessons', 'questions', 'labs']) {
   for (const f of readdirSync(join(contentDir, dir))) {
     if (/\.(mdx|json)$/.test(f)) collect(join(contentDir, dir, f))
   }

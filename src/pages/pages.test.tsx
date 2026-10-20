@@ -111,3 +111,13 @@ describe('labs', () => {
     expect(screen.getByText('Checklist (1/6)')).toBeInTheDocument()
   })
 })
+
+describe('scoreboard', () => {
+  it('shows readiness and links to the weak-area drill', async () => {
+    const user = userEvent.setup()
+    await renderAt('/progress')
+    expect(screen.getByText('Weighted readiness')).toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name: 'Run the weak-area drill' }))
+    expect(await screen.findByText('Weak-area drill')).toBeInTheDocument()
+  })
+})

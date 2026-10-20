@@ -1,0 +1,157 @@
+export const meta = {
+  labId: 'L1',
+  updated: '2026-10-20',
+  minutes: 60,
+  goal: 'Turn a play-by-play feed into a streamed prose recap and a schema-checked JSON recap, then prove the JSON matches the game before you trust it.',
+  folder: 'L1-play-by-play',
+  steps: [
+    { id: 'setup', title: 'Install the labs workspace and authenticate' },
+    { id: 'tokens', title: 'Count input tokens on all three model tiers' },
+    { id: 'stream', title: 'Stream a prose recap and check the stop reason' },
+    { id: 'structured', title: 'Get a structured recap with a Pydantic schema' },
+    { id: 'validate', title: 'Validate the recap against the game data' },
+    { id: 'experiment', title: 'Break it on purpose and compare tiers' },
+  ],
+}
+
+## Why this lab
+
+Week 3: Portland beat Nashville 24-20 on a touchdown with 0:41 left. The app needs a recap for fans (prose, streamed so it appears at once) and a machine-readable recap for the game page (headline, key plays, player of the game). This is the most common shape of a real Claude feature: **one well-built request, a typed output, and code that checks the result.** It covers the API mechanics, prompt structure and output handling that the exam tests again and again.
+
+You will use:
+
+- a system prompt with a role and clear rules, plus XML-tagged data and a one-shot example (skill 6.2)
+- token counting across model tiers (skills 5.1 and 5.2)
+- streaming with `client.messages.stream(...)` and a stop-reason check (skills 2.3 and 5.2)
+- structured outputs with a Pydantic model through `client.messages.parse(...)` (skills 2.5 and 6.3)
+- validation of the parsed result against the source data (skills 2.4 and 6.3)
+
+## Setup
+
+The code is in `labs/L1-play-by-play/`:
+
+| File | What it holds |
+|---|---|
+| `l1_recap.py` | Offline helpers: the `Recap` schema, `SYSTEM_PROMPT`, `EXAMPLE`, `format_plays`, `build_user_message` and `validate_recap` |
+| `test_l1_recap.py` | Offline tests for those helpers (no API key needed) |
+| `starter.py` | The script you complete, with numbered TODOs |
+| `solution.py` | The reference solution |
+
+```bash
+cd labs
+uv sync
+
+# Authenticate, either with a stored profile ...
+ant auth login
+# ... or with a key: copy .env.example to .env, fill in ANTHROPIC_API_KEY,
+# and add --env-file .env to the uv run commands below.
+cp .env.example .env
+uv run --env-file .env python L1-play-by-play/solution.py
+
+uv run pytest                                   # offline tests, no key needed
+uv run python L1-play-by-play/starter.py        # your version
+uv run python L1-play-by-play/solution.py       # the reference
+```
+
+Tip: set `MODEL=claude-haiku-5-5` (in `.env` or as `MODEL=claude-haiku-5-5 uv run ...`) while you iterate. It is the cheapest tier, and the lab's prompt is small. Never paste a key into a lab file; the client in `gridiron/client.py` reads credentials from the environment or your `ant` profile.
+
+## Steps
+
+### 1. Install the labs workspace and authenticate
+
+Run the setup commands. `uv run pytest` must pass before you call the API: it proves that the prompt puts the data first and that the validator catches a wrong score, an invented play and unknown player IDs. Then run `starter.py`. With no TODOs done it makes no API calls and prints the first lines of the user message, which start with `<game>` and `<plays>`.
+
+### 2. Count input tokens on all three model tiers
+
+TODO 1: loop over `TIERS` and call `client.messages.count_tokens(model=..., system=SYSTEM_PROMPT, messages=messages)` for each model. Print `input_tokens`.
+
+Look at the numbers. Counts can differ between models because tokenizers differ between model generations. That's why you count with the API for the model you'll actually call, and never estimate from word counts or from another tokenizer.
+
+### 3. Stream a prose recap and check the stop reason
+
+TODO 0 and TODO 2. First write `check_stop(message)`: raise if `stop_reason` is `"refusal"` (report `stop_details.category`) or `"max_tokens"` (the text was cut off). Then stream:
+
+```python
+with client.messages.stream(
+    model=MODEL,
+    max_tokens=16000,
+    system=SYSTEM_PROMPT,
+    output_config={"effort": "low"},
+    messages=[{"role": "user", "content": build_user_message(game, PROSE_REQUEST)}],
+) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)
+    final = stream.get_final_message()
+log_usage("stream", final.usage)
+check_stop(final)
+```
+
+Streaming fixes the time to first token: fans see words immediately. It doesn't make the request cheaper. `effort` sits inside `output_config` and is a soft dial for how much the model thinks and writes; only `max_tokens` is a hard limit. Note that there is no `temperature`: current models reject non-default sampling values.
+
+### 4. Get a structured recap with a Pydantic schema
+
+TODO 3. Open `l1_recap.py` and read the `Recap` model first. The field descriptions are part of the prompt: they tell the model to use exact player IDs and the exact quarter and clock. There are no `min`/`max` limits in the schema, on purpose: structured outputs don't support every JSON Schema constraint, so the 3-5 key plays rule is enforced in code.
+
+```python
+response = client.messages.parse(
+    model=MODEL,
+    max_tokens=16000,
+    system=SYSTEM_PROMPT,
+    output_config={"effort": "low"},
+    messages=messages,
+    output_format=Recap,
+)
+log_usage("parse", response.usage)
+check_stop(response)
+recap = response.parsed_output  # a Recap instance
+```
+
+Call `check_stop` **before** you read `parsed_output`. A refusal or a truncated response is not a valid recap, even with structured outputs on.
+
+### 5. Validate the recap against the game data
+
+TODO 4: run `validate_recap(recap, game, players)` and print the problems. It checks:
+
+- the final score against the game (home and away the right way round)
+- every player ID against the roster, including `player_of_the_game`
+- every key play against a real play, by quarter and clock
+- the number of key plays (3-5)
+
+The schema guarantees the **shape**. Only your code can check the **facts**. In a real app, a failed check leads to a bounded retry (send the problems back once) and then a fallback, never an endless loop.
+
+### 6. Break it on purpose and compare tiers
+
+Change one thing at a time and rerun `solution.py`. Note what changes in the output, in `validate_recap` and in the usage line.
+
+1. **Creative liberties.** Add "Feel free to take creative liberties and add color, quotes and stats" to `SYSTEM_PROMPT`. Do invented quotes or plays appear? Does the validator catch them? (It catches invented plays and IDs, but not an invented quote in the summary.)
+2. **Data after the request.** Call `build_user_message(game, data_first=False)`. The output may still look fine on a game this small. The guidance to put long data at the top matters more as the input grows, and now you know how to test it.
+3. **`max_tokens=200`.** Set it on the streaming call. The text stops mid-sentence and `check_stop` raises on `max_tokens`. Try it on the `parse` call too: never accept a partial recap.
+4. **Compare the tiers.** Run with `MODEL=claude-haiku-5-5`, `claude-sonnet-5-5` and `claude-opus-5-5`. Compare the usage lines, the speed and the validator results. Choose the cheapest tier that passes your checks, and decide with checks rather than by feel.
+
+## Done when
+
+- `uv run pytest` passes.
+- `starter.py`, completed by you, prints the token counts for all three tiers, streams a prose recap, prints a structured `Recap`, and reports no validation problems (or explains the ones it finds).
+- `check_stop` raises on a `max_tokens` stop before any content is used.
+- You've run the four experiments and can say which tier you'd ship and why.
+
+## Exam angle
+
+- **Streaming fixes latency, not cost** (2.3, 5.1). If users wait 20 seconds for the first word, stream. If the bill is too high, look at batching, caching or a smaller model.
+- **Check `stop_reason` before you use the content** (2.3, 6.3). `max_tokens` means truncated output, and `refusal` means there is nothing valid to parse. Structured outputs don't change that.
+- **Correct shape is not correct facts** (2.4, 6.3). Validate model output at the boundary, against your own data, even when structured outputs are on.
+- **Keep unsupported constraints out of the schema and enforce them in code** (2.5, 6.3). Use field descriptions and enums (`Literal`) to steer the model.
+- **Data first, request last, tags around data** (6.2). Long documents go at the top, the question at the end, and XML tags such as `<plays>` keep data apart from instructions. Examples need their own tags and a note that they show format only.
+- **Count tokens with the API for each model** (5.1, 5.2). Don't estimate from word counts or reuse another model's count.
+- **No temperature, no prefill, no `budget_tokens`** (5.1, 6.2). Use `effort` in `output_config` and structured outputs instead. Each of those older settings is a 400 on current models.
+- **Use the SDK's helpers** (5.2): `messages.stream` with `text_stream` and `get_final_message()`, `messages.parse` with `parsed_output`, and typed errors with built-in retries, instead of hand-rolled HTTP.
+
+Official docs:
+
+- [Streaming messages](https://platform.claude.com/docs/en/build-with-claude/streaming)
+- [Structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+- [Token counting](https://platform.claude.com/docs/en/build-with-claude/token-counting)
+- [Handling stop reasons](https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons)
+- [Effort](https://platform.claude.com/docs/en/build-with-claude/effort)
+- [Prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices)
+- Optional extension: [Refusals and fallback](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback). Opus 5.5 can retry a declined request on another model inside the same call (a beta `fallbacks` parameter). Haiku 5.5 has no server-side fallback, so handle its refusals in your own code.

@@ -8,6 +8,7 @@ const LearnPage = lazy(() => import('./pages/LearnPage'))
 const PracticePage = lazy(() => import('./pages/PracticePage'))
 const MockExamPage = lazy(() => import('./pages/MockExamPage'))
 const LabsPage = lazy(() => import('./pages/LabsPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 
 const NAV = [
   { to: '/', label: 'Playbook' },
@@ -15,6 +16,7 @@ const NAV = [
   { to: '/practice', label: 'Practice' },
   { to: '/mock', label: 'Mock exam' },
   { to: '/labs', label: 'Labs' },
+  { to: '/progress', label: 'Scoreboard' },
 ]
 
 export default function App() {
@@ -46,6 +48,7 @@ export default function App() {
             <Route path="/practice" element={<PracticePage />} />
             <Route path="/mock" element={<MockExamPage />} />
             <Route path="/labs" element={<LabsPage />} />
+            <Route path="/progress" element={<DashboardPage />} />
             <Route path="/labs/:labId" element={<LabsPage />} />
           </Routes>
         </Suspense>

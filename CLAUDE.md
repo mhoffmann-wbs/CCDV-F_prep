@@ -47,7 +47,7 @@ Use these, not third-party prep sites. If the guide gets a new version, update `
   - `schema.ts`: the Zod `QuestionSchema`, with cross-field checks: `correct.length === selectCount`, correct ids must exist among the options, and `skillId` must be in the blueprint.
   - `questions/<skillId>.json`: one array per skill. Per-skill files let several writers work in parallel without conflicts. They are loaded and validated through `import.meta.glob` in `questions/index.ts`. Ids are `q-<skillId>-NNN`, or `official-N` for the Exam Guide samples, which also carry `official: true`.
   - `lessons/<skillId>.mdx` (e.g. `2.5.mdx`, which is the reference template). Each file exports `meta` (validated by `LessonMetaSchema`: `skillId`, `updated`, `tldr`, `links[]` to official docs). The body has `## Key concepts`, `## Exam traps` and `## On the field` (an NFL example ending with a pointer to a lab), in that order, and `content.test.ts` enforces this. Skilljar course and lab links come from the blueprint, so don't repeat them in the MDX. MDX is compiled with `remark-gfm`, so tables work, but a bare `<` or `{` in prose breaks the build: wrap it in backticks. `/learn/:skillId` renders the lesson with Tailwind `prose`. Every page is lazy-loaded in `App.tsx`, so the shell stays small and the lessons and question bank load as their own chunks. Keep content imports out of `App.tsx` and `main.tsx`. UI tests use an async `renderAt()` that waits for the lazy page.
-  - *Planned:* `labs/L<n>.mdx`.
+  - `labs/L<n>.mdx` (lab pages, validated by `LabMetaSchema`). `meta.steps` drive the checklist, and their ids are stored in progress, so don't rename them. The body has `## Why this lab`, `## Setup`, `## Steps`, `## Done when` and `## Exam angle`, in that order. A lab's skills come from the blueprint (`skillsForLab`), not from the MDX. Routes: `/labs` and `/labs/:labId`.
 - **`content.test.ts`** checks blueprint integrity (weights sum to 100, domain weights match the guide, allocation) and question-bank integrity (schema, file/skill match, unique ids). It also runs the anti-giveaway checks in `questionQuality.ts`:
   - no answer letter is the key in more than 40% of single-select items
   - the key is the longest option in at most 40% of them
@@ -55,7 +55,11 @@ Use these, not third-party prep sites. If the guide gets a new version, update `
 
   These checks skip the official samples, which keep their published order. Explanations must never mention option letters, so options can be reordered to rebalance the keys. The question *targets* are not enforced by tests. Track them with `npm run content:status`.
 - **UI tests** (`src/pages/pages.test.tsx`) render `<App>` inside a `MemoryRouter` and run against the real question bank. Adding questions can change which item appears first, so write these tests to be independent of order.
-- *Planned:* **`labs/`** is a separate TS workspace that learners run themselves with their own `ANTHROPIC_API_KEY`, using bundled fictional NFL JSON fixtures. The web app never calls the Claude API and never stores keys.
+- **`labs/`** is a separate **Python** workspace managed by uv (`labs/pyproject.toml`). Learners run it themselves with their own `ANTHROPIC_API_KEY` or `ant auth login`; the web app never calls the Claude API and never stores keys.
+  - `labs/gridiron/`: the shared package (Pydantic fixture loaders in `data.py`; `client`, `MODEL`, `TIERS` and `log_usage` in `client.py`).
+  - `labs/fixtures/`: a fictional league (4 teams, 32 players, injuries, one full play-by-play game). All names are invented.
+  - Each lab lives in `labs/L<n>-<slug>/` with `starter.py` and `solution.py`, or `starter/` and `solution/` folders for config-style labs such as L7. Offline tests are named `test_l<n>_*.py`, and helper modules carry an `l<n>_` prefix, because all labs share one pytest run.
+  - Lab tests must never call the API. Commands: `cd labs && uv sync && uv run pytest`.
 
 ## Content rules
 

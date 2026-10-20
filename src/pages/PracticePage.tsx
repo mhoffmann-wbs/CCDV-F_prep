@@ -2,7 +2,8 @@ import { useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { DOMAINS, getSkill } from '../content/blueprint'
 import { QUESTIONS } from '../content/questions'
-import { recordAnswer } from '../progress/store'
+import { weakAreaQuestions } from '../progress/readiness'
+import { getProgress, recordAnswer } from '../progress/store'
 import QuestionView from '../quiz/QuestionView'
 import { isCorrect } from '../quiz/grading'
 import { shuffle } from '../quiz/sampler'
@@ -12,6 +13,10 @@ export default function PracticePage() {
   const skillId = params.get('skill')
   const domainId = params.get('domain')
 
+  if (params.get('weak')) {
+    // Snapshot progress once so answering during the drill doesn't reshuffle it.
+    return <PracticeSession key="weak" pool={weakAreaQuestions(QUESTIONS, getProgress())} label="Weak-area drill" />
+  }
   if (!skillId && !domainId) return <PracticePicker />
 
   const pool = QUESTIONS.filter((q) =>
