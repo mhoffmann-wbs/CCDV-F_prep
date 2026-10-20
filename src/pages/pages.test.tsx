@@ -98,3 +98,16 @@ describe('learn', () => {
     expect(getProgress().lessonsRead).toEqual([])
   })
 })
+
+describe('labs', () => {
+  it('shows a lab with its checklist and saves ticked steps', async () => {
+    const user = userEvent.setup()
+    await renderAt('/labs/L1')
+    expect(screen.getByRole('heading', { level: 1, name: /L1: Play-by-play summarizer/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Done when' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('checkbox', { name: /Count input tokens/ }))
+    expect(getProgress().labSteps.L1).toEqual(['tokens'])
+    expect(screen.getByText('Checklist (1/6)')).toBeInTheDocument()
+  })
+})

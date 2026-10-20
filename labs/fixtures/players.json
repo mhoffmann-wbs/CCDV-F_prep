@@ -1,0 +1,894 @@
+[
+  {
+    "id": "POR-QB1",
+    "name": "Marcus Holloway",
+    "team": "POR",
+    "position": "QB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "passing_yds": 208,
+        "passing_td": 0,
+        "interceptions": 2,
+        "rushing_yds": 17,
+        "rushing_td": 0
+      },
+      {
+        "week": 2,
+        "passing_yds": 237,
+        "passing_td": 1,
+        "interceptions": 2,
+        "rushing_yds": 6,
+        "rushing_td": 0
+      },
+      {
+        "week": 3,
+        "passing_yds": 331,
+        "passing_td": 3,
+        "interceptions": 0,
+        "rushing_yds": 1,
+        "rushing_td": 0
+      }
+    ]
+  },
+  {
+    "id": "POR-RB1",
+    "name": "Devin Brightwater",
+    "team": "POR",
+    "position": "RB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "rushing_yds": 47,
+        "rushing_td": 0,
+        "receptions": 4,
+        "receiving_yds": 38,
+        "receiving_td": 0
+      },
+      {
+        "week": 2,
+        "rushing_yds": 91,
+        "rushing_td": 0,
+        "receptions": 5,
+        "receiving_yds": 41,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "rushing_yds": 48,
+        "rushing_td": 1,
+        "receptions": 4,
+        "receiving_yds": 17,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "POR-RB2",
+    "name": "Tyrell Okafor",
+    "team": "POR",
+    "position": "RB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "rushing_yds": 117,
+        "rushing_td": 0,
+        "receptions": 5,
+        "receiving_yds": 27,
+        "receiving_td": 0
+      },
+      {
+        "week": 2,
+        "rushing_yds": 55,
+        "rushing_td": 0,
+        "receptions": 1,
+        "receiving_yds": 48,
+        "receiving_td": 0
+      },
+      {
+        "week": 3,
+        "rushing_yds": 33,
+        "rushing_td": 0,
+        "receptions": 3,
+        "receiving_yds": 6,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "POR-WR1",
+    "name": "Jalen Castellanos",
+    "team": "POR",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 6,
+        "receiving_yds": 77,
+        "receiving_td": 0
+      },
+      {
+        "week": 2,
+        "receptions": 8,
+        "receiving_yds": 41,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "receptions": 2,
+        "receiving_yds": 85,
+        "receiving_td": 2
+      }
+    ]
+  },
+  {
+    "id": "POR-WR2",
+    "name": "Cody Pruitt",
+    "team": "POR",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 6,
+        "receiving_yds": 59,
+        "receiving_td": 0
+      },
+      {
+        "week": 2,
+        "receptions": 1,
+        "receiving_yds": 68,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "receptions": 2,
+        "receiving_yds": 69,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "POR-WR3",
+    "name": "Andre Vance",
+    "team": "POR",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 7,
+        "receiving_yds": 81,
+        "receiving_td": 1
+      },
+      {
+        "week": 2,
+        "receptions": 6,
+        "receiving_yds": 51,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "receptions": 6,
+        "receiving_yds": 63,
+        "receiving_td": 1
+      }
+    ]
+  },
+  {
+    "id": "POR-TE1",
+    "name": "Brett Ashby",
+    "team": "POR",
+    "position": "TE",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 2,
+        "receiving_yds": 53,
+        "receiving_td": 2
+      },
+      {
+        "week": 2,
+        "receptions": 4,
+        "receiving_yds": 51,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "receptions": 7,
+        "receiving_yds": 79,
+        "receiving_td": 2
+      }
+    ]
+  },
+  {
+    "id": "POR-K1",
+    "name": "Isaiah Delacroix",
+    "team": "POR",
+    "position": "K",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "field_goals_made": 1,
+        "extra_points_made": 3
+      },
+      {
+        "week": 2,
+        "field_goals_made": 0,
+        "extra_points_made": 2
+      },
+      {
+        "week": 3,
+        "field_goals_made": 0,
+        "extra_points_made": 3
+      }
+    ]
+  },
+  {
+    "id": "NSH-QB1",
+    "name": "Quentin Mbeki",
+    "team": "NSH",
+    "position": "QB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "passing_yds": 282,
+        "passing_td": 2,
+        "interceptions": 0,
+        "rushing_yds": 13,
+        "rushing_td": 0
+      },
+      {
+        "week": 2,
+        "passing_yds": 234,
+        "passing_td": 3,
+        "interceptions": 1,
+        "rushing_yds": 29,
+        "rushing_td": 0
+      },
+      {
+        "week": 3,
+        "passing_yds": 247,
+        "passing_td": 1,
+        "interceptions": 0,
+        "rushing_yds": 35,
+        "rushing_td": 0
+      }
+    ]
+  },
+  {
+    "id": "NSH-RB1",
+    "name": "Malik Sorensen",
+    "team": "NSH",
+    "position": "RB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "rushing_yds": 115,
+        "rushing_td": 2,
+        "receptions": 3,
+        "receiving_yds": 37,
+        "receiving_td": 1
+      },
+      {
+        "week": 2,
+        "rushing_yds": 66,
+        "rushing_td": 0,
+        "receptions": 1,
+        "receiving_yds": 32,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "rushing_yds": 31,
+        "rushing_td": 0,
+        "receptions": 6,
+        "receiving_yds": 7,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "NSH-RB2",
+    "name": "Trey Fairbanks",
+    "team": "NSH",
+    "position": "RB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "rushing_yds": 100,
+        "rushing_td": 0,
+        "receptions": 6,
+        "receiving_yds": 43,
+        "receiving_td": 1
+      },
+      {
+        "week": 2,
+        "rushing_yds": 96,
+        "rushing_td": 0,
+        "receptions": 3,
+        "receiving_yds": 24,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "rushing_yds": 87,
+        "rushing_td": 1,
+        "receptions": 4,
+        "receiving_yds": 55,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "NSH-WR1",
+    "name": "Darius Kincaid",
+    "team": "NSH",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 2,
+        "receiving_yds": 78,
+        "receiving_td": 1
+      },
+      {
+        "week": 2,
+        "receptions": 2,
+        "receiving_yds": 85,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "receptions": 3,
+        "receiving_yds": 126,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "NSH-WR2",
+    "name": "Nolan Redfeather",
+    "team": "NSH",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 5,
+        "receiving_yds": 138,
+        "receiving_td": 0
+      },
+      {
+        "week": 2,
+        "receptions": 9,
+        "receiving_yds": 37,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "receptions": 9,
+        "receiving_yds": 60,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "NSH-WR3",
+    "name": "Xavier Lindqvist",
+    "team": "NSH",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 6,
+        "receiving_yds": 51,
+        "receiving_td": 2
+      },
+      {
+        "week": 2,
+        "receptions": 9,
+        "receiving_yds": 10,
+        "receiving_td": 2
+      },
+      {
+        "week": 3,
+        "receptions": 6,
+        "receiving_yds": 135,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "NSH-TE1",
+    "name": "Rashad Abernathy",
+    "team": "NSH",
+    "position": "TE",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 2,
+        "receiving_yds": 102,
+        "receiving_td": 1
+      },
+      {
+        "week": 2,
+        "receptions": 4,
+        "receiving_yds": 24,
+        "receiving_td": 0
+      },
+      {
+        "week": 3,
+        "receptions": 10,
+        "receiving_yds": 30,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "NSH-K1",
+    "name": "Owen Quarles",
+    "team": "NSH",
+    "position": "K",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "field_goals_made": 3,
+        "extra_points_made": 1
+      },
+      {
+        "week": 2,
+        "field_goals_made": 4,
+        "extra_points_made": 2
+      },
+      {
+        "week": 3,
+        "field_goals_made": 1,
+        "extra_points_made": 4
+      }
+    ]
+  },
+  {
+    "id": "SAC-QB1",
+    "name": "Caleb Montague",
+    "team": "SAC",
+    "position": "QB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "passing_yds": 320,
+        "passing_td": 1,
+        "interceptions": 1,
+        "rushing_yds": 33,
+        "rushing_td": 1
+      },
+      {
+        "week": 2,
+        "passing_yds": 234,
+        "passing_td": 4,
+        "interceptions": 2,
+        "rushing_yds": 12,
+        "rushing_td": 0
+      },
+      {
+        "week": 3,
+        "passing_yds": 282,
+        "passing_td": 2,
+        "interceptions": 1,
+        "rushing_yds": 33,
+        "rushing_td": 1
+      }
+    ]
+  },
+  {
+    "id": "SAC-RB1",
+    "name": "Jamal Ridley",
+    "team": "SAC",
+    "position": "RB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "rushing_yds": 35,
+        "rushing_td": 0,
+        "receptions": 1,
+        "receiving_yds": 4,
+        "receiving_td": 0
+      },
+      {
+        "week": 2,
+        "rushing_yds": 22,
+        "rushing_td": 2,
+        "receptions": 4,
+        "receiving_yds": 14,
+        "receiving_td": 0
+      },
+      {
+        "week": 3,
+        "rushing_yds": 20,
+        "rushing_td": 0,
+        "receptions": 5,
+        "receiving_yds": 40,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "SAC-RB2",
+    "name": "Luis Treadwell",
+    "team": "SAC",
+    "position": "RB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "rushing_yds": 49,
+        "rushing_td": 0,
+        "receptions": 0,
+        "receiving_yds": 55,
+        "receiving_td": 0
+      },
+      {
+        "week": 2,
+        "rushing_yds": 29,
+        "rushing_td": 2,
+        "receptions": 1,
+        "receiving_yds": 17,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "rushing_yds": 47,
+        "rushing_td": 2,
+        "receptions": 1,
+        "receiving_yds": 46,
+        "receiving_td": 1
+      }
+    ]
+  },
+  {
+    "id": "SAC-WR1",
+    "name": "Bryce Oyelaran",
+    "team": "SAC",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 4,
+        "receiving_yds": 131,
+        "receiving_td": 1
+      },
+      {
+        "week": 2,
+        "receptions": 4,
+        "receiving_yds": 34,
+        "receiving_td": 0
+      },
+      {
+        "week": 3,
+        "receptions": 7,
+        "receiving_yds": 100,
+        "receiving_td": 1
+      }
+    ]
+  },
+  {
+    "id": "SAC-WR2",
+    "name": "Terrance Haverford",
+    "team": "SAC",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 7,
+        "receiving_yds": 129,
+        "receiving_td": 0
+      },
+      {
+        "week": 2,
+        "receptions": 2,
+        "receiving_yds": 25,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "receptions": 6,
+        "receiving_yds": 37,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "SAC-WR3",
+    "name": "Kendrick Stroud-Penn",
+    "team": "SAC",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 4,
+        "receiving_yds": 58,
+        "receiving_td": 2
+      },
+      {
+        "week": 2,
+        "receptions": 8,
+        "receiving_yds": 45,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "receptions": 3,
+        "receiving_yds": 81,
+        "receiving_td": 1
+      }
+    ]
+  },
+  {
+    "id": "SAC-TE1",
+    "name": "Austin Calloway",
+    "team": "SAC",
+    "position": "TE",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 4,
+        "receiving_yds": 29,
+        "receiving_td": 1
+      },
+      {
+        "week": 2,
+        "receptions": 9,
+        "receiving_yds": 35,
+        "receiving_td": 0
+      },
+      {
+        "week": 3,
+        "receptions": 9,
+        "receiving_yds": 13,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "SAC-K1",
+    "name": "Damon Nakamura",
+    "team": "SAC",
+    "position": "K",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "field_goals_made": 1,
+        "extra_points_made": 2
+      },
+      {
+        "week": 2,
+        "field_goals_made": 3,
+        "extra_points_made": 4
+      },
+      {
+        "week": 3,
+        "field_goals_made": 3,
+        "extra_points_made": 2
+      }
+    ]
+  },
+  {
+    "id": "BAL-QB1",
+    "name": "Zeke Whitlock",
+    "team": "BAL",
+    "position": "QB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "passing_yds": 282,
+        "passing_td": 0,
+        "interceptions": 0,
+        "rushing_yds": 24,
+        "rushing_td": 0
+      },
+      {
+        "week": 2,
+        "passing_yds": 279,
+        "passing_td": 2,
+        "interceptions": 1,
+        "rushing_yds": 18,
+        "rushing_td": 1
+      },
+      {
+        "week": 3,
+        "passing_yds": 322,
+        "passing_td": 3,
+        "interceptions": 0,
+        "rushing_yds": 12,
+        "rushing_td": 0
+      }
+    ]
+  },
+  {
+    "id": "BAL-RB1",
+    "name": "Rory Esparza",
+    "team": "BAL",
+    "position": "RB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "rushing_yds": 47,
+        "rushing_td": 0,
+        "receptions": 4,
+        "receiving_yds": 47,
+        "receiving_td": 0
+      },
+      {
+        "week": 2,
+        "rushing_yds": 115,
+        "rushing_td": 1,
+        "receptions": 0,
+        "receiving_yds": 3,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "rushing_yds": 84,
+        "rushing_td": 2,
+        "receptions": 1,
+        "receiving_yds": 3,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "BAL-RB2",
+    "name": "Felix Guillory",
+    "team": "BAL",
+    "position": "RB",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "rushing_yds": 128,
+        "rushing_td": 0,
+        "receptions": 0,
+        "receiving_yds": 38,
+        "receiving_td": 0
+      },
+      {
+        "week": 2,
+        "rushing_yds": 106,
+        "rushing_td": 0,
+        "receptions": 3,
+        "receiving_yds": 7,
+        "receiving_td": 0
+      },
+      {
+        "week": 3,
+        "rushing_yds": 94,
+        "rushing_td": 2,
+        "receptions": 0,
+        "receiving_yds": 39,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "BAL-WR1",
+    "name": "Hank Thibodeaux",
+    "team": "BAL",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 7,
+        "receiving_yds": 90,
+        "receiving_td": 1
+      },
+      {
+        "week": 2,
+        "receptions": 4,
+        "receiving_yds": 90,
+        "receiving_td": 0
+      },
+      {
+        "week": 3,
+        "receptions": 5,
+        "receiving_yds": 111,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "BAL-WR2",
+    "name": "Omar Adeyemi",
+    "team": "BAL",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 5,
+        "receiving_yds": 127,
+        "receiving_td": 1
+      },
+      {
+        "week": 2,
+        "receptions": 2,
+        "receiving_yds": 12,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "receptions": 10,
+        "receiving_yds": 35,
+        "receiving_td": 0
+      }
+    ]
+  },
+  {
+    "id": "BAL-WR3",
+    "name": "Jace Larkspur",
+    "team": "BAL",
+    "position": "WR",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 9,
+        "receiving_yds": 64,
+        "receiving_td": 2
+      },
+      {
+        "week": 2,
+        "receptions": 5,
+        "receiving_yds": 43,
+        "receiving_td": 1
+      },
+      {
+        "week": 3,
+        "receptions": 2,
+        "receiving_yds": 72,
+        "receiving_td": 1
+      }
+    ]
+  },
+  {
+    "id": "BAL-TE1",
+    "name": "Elijah Mulroney",
+    "team": "BAL",
+    "position": "TE",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "receptions": 5,
+        "receiving_yds": 50,
+        "receiving_td": 1
+      },
+      {
+        "week": 2,
+        "receptions": 9,
+        "receiving_yds": 87,
+        "receiving_td": 2
+      },
+      {
+        "week": 3,
+        "receptions": 9,
+        "receiving_yds": 12,
+        "receiving_td": 2
+      }
+    ]
+  },
+  {
+    "id": "BAL-K1",
+    "name": "Grady Petrakis",
+    "team": "BAL",
+    "position": "K",
+    "weekly_stats": [
+      {
+        "week": 1,
+        "field_goals_made": 2,
+        "extra_points_made": 1
+      },
+      {
+        "week": 2,
+        "field_goals_made": 1,
+        "extra_points_made": 3
+      },
+      {
+        "week": 3,
+        "field_goals_made": 0,
+        "extra_points_made": 1
+      }
+    ]
+  }
+]

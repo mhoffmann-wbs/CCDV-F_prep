@@ -402,3 +402,8 @@ export function allocateItems(total: number = EXAM_FORMAT.items): Map<string, nu
 function round1(n: number): number {
   return Math.round(n * 10) / 10
 }
+
+/** Skills a lab exercises, derived from each skill's `labs` list (single source of truth). */
+export function skillsForLab(labId: LabId): Skill[] {
+  return SKILLS.filter((s) => s.labs.includes(labId))
+}

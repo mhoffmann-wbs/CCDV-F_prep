@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
@@ -10,6 +10,7 @@ import {
   domainWeight,
   questionTarget,
 } from './blueprint'
+import { LAB_CONTENT, REQUIRED_LAB_SECTIONS } from './labs'
 import { LESSONS, REQUIRED_SECTIONS } from './lessons'
 import { analyzeQuestions } from './questionQuality'
 import { QUESTIONS, questionFiles } from './questions'
@@ -127,6 +128,39 @@ describe('lessons', () => {
   it('every lesson links only to https URLs', () => {
     for (const { meta } of LESSONS.values()) {
       for (const link of meta.links) expect(link.url.startsWith('https://'), link.url).toBe(true)
+    }
+  })
+})
+
+describe('labs', () => {
+  const labDir = join(import.meta.dirname, 'labs')
+  const labsRoot = join(import.meta.dirname, '..', '..', 'labs')
+
+  it('every lab page has the required sections in order', () => {
+    for (const f of readdirSync(labDir).filter((f) => f.endsWith('.mdx'))) {
+      const source = readFileSync(join(labDir, f), 'utf8')
+      const positions = REQUIRED_LAB_SECTIONS.map((heading) => source.indexOf(`\n${heading}`))
+      expect(positions.every((p) => p >= 0), `${f} is missing a required section`).toBe(true)
+      expect([...positions].sort((a, b) => a - b), `${f} sections out of order`).toEqual(positions)
+      expect(LAB_CONTENT.get(f.replace('.mdx', '')), `${f} meta.labId must match its file name`).toBeDefined()
+    }
+  })
+
+  it('every lab page points to a code folder with a starter and a solution', () => {
+    // Python labs ship starter.py/solution.py; config-style labs (e.g. Claude Code) ship starter/ and solution/ folders.
+    for (const { meta } of LAB_CONTENT.values()) {
+      expect(meta.folder.startsWith(`${meta.labId}-`), meta.folder).toBe(true)
+      for (const name of ['starter', 'solution']) {
+        const dir = join(labsRoot, meta.folder)
+        expect(existsSync(join(dir, `${name}.py`)) || existsSync(join(dir, name)), `${meta.folder}/${name}(.py|/)`).toBe(true)
+      }
+    }
+  })
+
+  it('lab step ids are unique within a lab', () => {
+    for (const { meta } of LAB_CONTENT.values()) {
+      const ids = meta.steps.map((s) => s.id)
+      expect(new Set(ids).size, meta.labId).toBe(ids.length)
     }
   })
 })

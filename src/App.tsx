@@ -7,12 +7,14 @@ const BlueprintPage = lazy(() => import('./pages/BlueprintPage'))
 const LearnPage = lazy(() => import('./pages/LearnPage'))
 const PracticePage = lazy(() => import('./pages/PracticePage'))
 const MockExamPage = lazy(() => import('./pages/MockExamPage'))
+const LabsPage = lazy(() => import('./pages/LabsPage'))
 
 const NAV = [
   { to: '/', label: 'Playbook' },
   { to: '/learn', label: 'Learn' },
   { to: '/practice', label: 'Practice' },
   { to: '/mock', label: 'Mock exam' },
+  { to: '/labs', label: 'Labs' },
 ]
 
 export default function App() {
@@ -43,6 +45,8 @@ export default function App() {
             <Route path="/learn/:skillId" element={<LearnPage />} />
             <Route path="/practice" element={<PracticePage />} />
             <Route path="/mock" element={<MockExamPage />} />
+            <Route path="/labs" element={<LabsPage />} />
+            <Route path="/labs/:labId" element={<LabsPage />} />
           </Routes>
         </Suspense>
       </main>

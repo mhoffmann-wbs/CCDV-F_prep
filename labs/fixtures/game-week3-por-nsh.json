@@ -1,0 +1,472 @@
+{
+  "id": "2026-W3-POR-NSH",
+  "week": 3,
+  "date": "2026-09-27",
+  "home": "NSH",
+  "away": "POR",
+  "venue": "Riverside Dome, Nashville",
+  "final_score": {
+    "POR": 24,
+    "NSH": 20
+  },
+  "note": "All teams, players and games in this league are fictional.",
+  "plays": [
+    {
+      "quarter": 1,
+      "clock": "14:55",
+      "offense": "POR",
+      "down": 1,
+      "distance": 10,
+      "yard_line": "POR 25",
+      "play_type": "pass",
+      "yards": 8,
+      "description": "M. Holloway pass short right to C. Pruitt for 8 yards.",
+      "player_ids": [
+        "POR-QB1",
+        "POR-WR2"
+      ],
+      "score_after": {
+        "POR": 0,
+        "NSH": 0
+      }
+    },
+    {
+      "quarter": 1,
+      "clock": "14:20",
+      "offense": "POR",
+      "down": 2,
+      "distance": 2,
+      "yard_line": "POR 33",
+      "play_type": "run",
+      "yards": 4,
+      "description": "D. Brightwater up the middle for 4 yards.",
+      "player_ids": [
+        "POR-RB1"
+      ],
+      "score_after": {
+        "POR": 0,
+        "NSH": 0
+      }
+    },
+    {
+      "quarter": 1,
+      "clock": "12:41",
+      "offense": "POR",
+      "down": 1,
+      "distance": 10,
+      "yard_line": "NSH 34",
+      "play_type": "pass",
+      "yards": 34,
+      "description": "M. Holloway deep left to J. Castellanos, TOUCHDOWN.",
+      "player_ids": [
+        "POR-QB1",
+        "POR-WR1"
+      ],
+      "score_after": {
+        "POR": 7,
+        "NSH": 0
+      },
+      "scoring": true
+    },
+    {
+      "quarter": 1,
+      "clock": "9:02",
+      "offense": "NSH",
+      "down": 3,
+      "distance": 6,
+      "yard_line": "NSH 41",
+      "play_type": "pass",
+      "yards": 0,
+      "description": "Q. Mbeki sacked by POR defense at NSH 35 for -6 yards.",
+      "player_ids": [
+        "NSH-QB1"
+      ],
+      "score_after": {
+        "POR": 7,
+        "NSH": 0
+      }
+    },
+    {
+      "quarter": 1,
+      "clock": "2:15",
+      "offense": "NSH",
+      "down": 4,
+      "distance": 7,
+      "yard_line": "POR 31",
+      "play_type": "field_goal",
+      "yards": 0,
+      "description": "O. Quarles 49-yard field goal is GOOD.",
+      "player_ids": [
+        "NSH-K1"
+      ],
+      "score_after": {
+        "POR": 7,
+        "NSH": 3
+      },
+      "scoring": true
+    },
+    {
+      "quarter": 2,
+      "clock": "13:48",
+      "offense": "POR",
+      "down": 2,
+      "distance": 9,
+      "yard_line": "POR 40",
+      "play_type": "run",
+      "yards": -2,
+      "description": "D. Brightwater left end for -2 yards; leaves the game, hamstring.",
+      "player_ids": [
+        "POR-RB1"
+      ],
+      "score_after": {
+        "POR": 7,
+        "NSH": 3
+      },
+      "injury": true
+    },
+    {
+      "quarter": 2,
+      "clock": "13:10",
+      "offense": "POR",
+      "down": 3,
+      "distance": 11,
+      "yard_line": "POR 38",
+      "play_type": "pass",
+      "yards": 0,
+      "description": "M. Holloway pass incomplete deep middle intended for A. Vance.",
+      "player_ids": [
+        "POR-QB1",
+        "POR-WR3"
+      ],
+      "score_after": {
+        "POR": 7,
+        "NSH": 3
+      }
+    },
+    {
+      "quarter": 2,
+      "clock": "8:30",
+      "offense": "NSH",
+      "down": 1,
+      "distance": 10,
+      "yard_line": "POR 22",
+      "play_type": "pass",
+      "yards": 15,
+      "description": "Q. Mbeki pass to R. Abernathy for 15 yards.",
+      "player_ids": [
+        "NSH-QB1",
+        "NSH-TE1"
+      ],
+      "score_after": {
+        "POR": 7,
+        "NSH": 3
+      }
+    },
+    {
+      "quarter": 2,
+      "clock": "7:45",
+      "offense": "NSH",
+      "down": 1,
+      "distance": 3,
+      "yard_line": "POR 3",
+      "play_type": "run",
+      "yards": 3,
+      "description": "M. Sorensen right guard for 3 yards, TOUCHDOWN.",
+      "player_ids": [
+        "NSH-RB1"
+      ],
+      "score_after": {
+        "POR": 7,
+        "NSH": 10
+      },
+      "scoring": true
+    },
+    {
+      "quarter": 2,
+      "clock": "1:58",
+      "offense": "POR",
+      "down": 2,
+      "distance": 5,
+      "yard_line": "NSH 30",
+      "play_type": "pass",
+      "yards": 12,
+      "description": "M. Holloway pass to B. Ashby for 12 yards.",
+      "player_ids": [
+        "POR-QB1",
+        "POR-TE1"
+      ],
+      "score_after": {
+        "POR": 7,
+        "NSH": 10
+      }
+    },
+    {
+      "quarter": 2,
+      "clock": "0:04",
+      "offense": "POR",
+      "down": 4,
+      "distance": 4,
+      "yard_line": "NSH 18",
+      "play_type": "field_goal",
+      "yards": 0,
+      "description": "I. Delacroix 36-yard field goal is GOOD.",
+      "player_ids": [
+        "POR-K1"
+      ],
+      "score_after": {
+        "POR": 10,
+        "NSH": 10
+      },
+      "scoring": true
+    },
+    {
+      "quarter": 3,
+      "clock": "12:30",
+      "offense": "POR",
+      "down": 2,
+      "distance": 6,
+      "yard_line": "POR 45",
+      "play_type": "pass",
+      "yards": 0,
+      "description": "M. Holloway pass intended for J. Castellanos INTERCEPTED at NSH 40, returned 22 yards.",
+      "player_ids": [
+        "POR-QB1",
+        "POR-WR1"
+      ],
+      "score_after": {
+        "POR": 10,
+        "NSH": 10
+      },
+      "turnover": true
+    },
+    {
+      "quarter": 3,
+      "clock": "10:12",
+      "offense": "NSH",
+      "down": 3,
+      "distance": 2,
+      "yard_line": "POR 30",
+      "play_type": "run",
+      "yards": 5,
+      "description": "T. Fairbanks left tackle for 5 yards.",
+      "player_ids": [
+        "NSH-RB2"
+      ],
+      "score_after": {
+        "POR": 10,
+        "NSH": 10
+      }
+    },
+    {
+      "quarter": 3,
+      "clock": "8:51",
+      "offense": "NSH",
+      "down": 2,
+      "distance": 8,
+      "yard_line": "POR 12",
+      "play_type": "pass",
+      "yards": 12,
+      "description": "Q. Mbeki pass to R. Abernathy in the end zone, TOUCHDOWN.",
+      "player_ids": [
+        "NSH-QB1",
+        "NSH-TE1"
+      ],
+      "score_after": {
+        "POR": 10,
+        "NSH": 17
+      },
+      "scoring": true
+    },
+    {
+      "quarter": 3,
+      "clock": "4:20",
+      "offense": "POR",
+      "down": 4,
+      "distance": 1,
+      "yard_line": "NSH 44",
+      "play_type": "run",
+      "yards": 0,
+      "description": "T. Okafor up the middle, stopped for no gain. Turnover on downs.",
+      "player_ids": [
+        "POR-RB2"
+      ],
+      "score_after": {
+        "POR": 10,
+        "NSH": 17
+      },
+      "turnover": true
+    },
+    {
+      "quarter": 3,
+      "clock": "1:05",
+      "offense": "NSH",
+      "down": 3,
+      "distance": 9,
+      "yard_line": "NSH 47",
+      "play_type": "pass",
+      "yards": 0,
+      "description": "Q. Mbeki pass incomplete intended for N. Redfeather. NSH punts.",
+      "player_ids": [
+        "NSH-QB1",
+        "NSH-WR2"
+      ],
+      "score_after": {
+        "POR": 10,
+        "NSH": 17
+      }
+    },
+    {
+      "quarter": 4,
+      "clock": "14:10",
+      "offense": "POR",
+      "down": 1,
+      "distance": 10,
+      "yard_line": "POR 20",
+      "play_type": "pass",
+      "yards": 41,
+      "description": "M. Holloway deep right to C. Pruitt for 41 yards.",
+      "player_ids": [
+        "POR-QB1",
+        "POR-WR2"
+      ],
+      "score_after": {
+        "POR": 10,
+        "NSH": 17
+      }
+    },
+    {
+      "quarter": 4,
+      "clock": "12:02",
+      "offense": "POR",
+      "down": 3,
+      "distance": 1,
+      "yard_line": "NSH 1",
+      "play_type": "run",
+      "yards": 1,
+      "description": "T. Okafor dives in from the 1, TOUCHDOWN.",
+      "player_ids": [
+        "POR-RB2"
+      ],
+      "score_after": {
+        "POR": 17,
+        "NSH": 17
+      },
+      "scoring": true
+    },
+    {
+      "quarter": 4,
+      "clock": "9:15",
+      "offense": "NSH",
+      "down": 3,
+      "distance": 4,
+      "yard_line": "POR 38",
+      "play_type": "pass",
+      "yards": 9,
+      "description": "Q. Mbeki pass to X. Lindqvist for 9 yards.",
+      "player_ids": [
+        "NSH-QB1",
+        "NSH-WR3"
+      ],
+      "score_after": {
+        "POR": 17,
+        "NSH": 17
+      }
+    },
+    {
+      "quarter": 4,
+      "clock": "6:10",
+      "offense": "NSH",
+      "down": 4,
+      "distance": 6,
+      "yard_line": "POR 25",
+      "play_type": "field_goal",
+      "yards": 0,
+      "description": "O. Quarles 43-yard field goal is GOOD.",
+      "player_ids": [
+        "NSH-K1"
+      ],
+      "score_after": {
+        "POR": 17,
+        "NSH": 20
+      },
+      "scoring": true
+    },
+    {
+      "quarter": 4,
+      "clock": "2:00",
+      "offense": "POR",
+      "down": 1,
+      "distance": 10,
+      "yard_line": "POR 25",
+      "play_type": "pass",
+      "yards": 17,
+      "description": "M. Holloway pass to B. Ashby for 17 yards.",
+      "player_ids": [
+        "POR-QB1",
+        "POR-TE1"
+      ],
+      "score_after": {
+        "POR": 17,
+        "NSH": 20
+      }
+    },
+    {
+      "quarter": 4,
+      "clock": "1:22",
+      "offense": "POR",
+      "down": 4,
+      "distance": 3,
+      "yard_line": "NSH 42",
+      "play_type": "pass",
+      "yards": 20,
+      "description": "M. Holloway scrambles, finds J. Castellanos for 20 yards on 4th down.",
+      "player_ids": [
+        "POR-QB1",
+        "POR-WR1"
+      ],
+      "score_after": {
+        "POR": 17,
+        "NSH": 20
+      }
+    },
+    {
+      "quarter": 4,
+      "clock": "0:41",
+      "offense": "POR",
+      "down": 2,
+      "distance": 4,
+      "yard_line": "NSH 22",
+      "play_type": "pass",
+      "yards": 22,
+      "description": "M. Holloway pass to C. Pruitt in the back of the end zone, TOUCHDOWN.",
+      "player_ids": [
+        "POR-QB1",
+        "POR-WR2"
+      ],
+      "score_after": {
+        "POR": 24,
+        "NSH": 20
+      },
+      "scoring": true
+    },
+    {
+      "quarter": 4,
+      "clock": "0:03",
+      "offense": "NSH",
+      "down": 1,
+      "distance": 10,
+      "yard_line": "POR 45",
+      "play_type": "pass",
+      "yards": 0,
+      "description": "Q. Mbeki Hail Mary intended for N. Redfeather, broken up. Game over.",
+      "player_ids": [
+        "NSH-QB1",
+        "NSH-WR2"
+      ],
+      "score_after": {
+        "POR": 24,
+        "NSH": 20
+      }
+    }
+  ]
+}

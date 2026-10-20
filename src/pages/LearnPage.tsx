@@ -118,7 +118,15 @@ function LessonView({ skillId }: { skillId: string }) {
             ))}
           </ul>
           <h2 className="mt-4 font-semibold">Hands-on labs</h2>
-          <p className="mt-1 text-sm">{skill.labs.map((l) => `${l}: ${LABS[l]}`).join(' · ')}</p>
+          <ul className="mt-1 space-y-1 text-sm">
+            {skill.labs.map((l) => (
+              <li key={l}>
+                <Link to={`/labs/${l}`} className="text-field-dark underline">
+                  {l}: {LABS[l]}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 

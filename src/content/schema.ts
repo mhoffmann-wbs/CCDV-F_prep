@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { getSkill } from './blueprint'
+import { LABS, getSkill, type LabId } from './blueprint'
 
 const OptionSchema = z.object({
   id: z.string().regex(/^[A-F]$/),
@@ -54,3 +54,19 @@ export const LessonMetaSchema = z.object({
 })
 
 export type LessonMeta = z.infer<typeof LessonMetaSchema>
+
+/** `export const meta` of each labs/L<n>.mdx file. Lab titles and skills come from the blueprint. */
+export const LabMetaSchema = z.object({
+  labId: z.string().refine((id): id is LabId => id in LABS, 'unknown labId'),
+  updated: z.iso.date(),
+  minutes: z.number().int().positive(),
+  goal: z.string().min(1),
+  /** Folder under labs/ with starter.ts and solution.ts. */
+  folder: z.string().regex(/^L\d+-[a-z0-9-]+$/),
+  /** Checklist shown on the lab page; ids are stored in progress, so don't rename them. */
+  steps: z
+    .array(z.object({ id: z.string().regex(/^[a-z0-9-]+$/), title: z.string().min(1) }))
+    .min(3),
+})
+
+export type LabMeta = z.infer<typeof LabMetaSchema>

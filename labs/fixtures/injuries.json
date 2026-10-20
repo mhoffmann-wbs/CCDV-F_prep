@@ -1,0 +1,32 @@
+[
+  {
+    "player_id": "POR-RB1",
+    "designation": "Questionable",
+    "note": "Hamstring; limited in Thursday practice.",
+    "updated": "2026-10-15"
+  },
+  {
+    "player_id": "NSH-WR1",
+    "designation": "Out",
+    "note": "High ankle sprain; expected to miss 2-3 weeks.",
+    "updated": "2026-10-14"
+  },
+  {
+    "player_id": "SAC-QB1",
+    "designation": "Doubtful",
+    "note": "Concussion protocol; not cleared for contact.",
+    "updated": "2026-10-16"
+  },
+  {
+    "player_id": "BAL-TE1",
+    "designation": "Questionable",
+    "note": "Knee; full participant Friday.",
+    "updated": "2026-10-16"
+  },
+  {
+    "player_id": "POR-WR2",
+    "designation": "Full",
+    "note": "Returned from illness; no limitations.",
+    "updated": "2026-10-15"
+  }
+]
