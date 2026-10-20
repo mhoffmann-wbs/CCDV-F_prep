@@ -1,0 +1,18 @@
+[
+  {
+    "id": "official-3",
+    "skillId": "8.3",
+    "difficulty": 1,
+    "official": true,
+    "stem": "A team needs Claude to call an internal inventory service exposed as a REST API. They want the capability to be reusable across several Claude applications and maintained independently of any one app. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      { "id": "A", "text": "Hard-code the inventory logic into each application's system prompt.", "explanation": "Hard-coding logic into prompts is neither reusable nor maintainable." },
+      { "id": "B", "text": "Build an MCP server that exposes the inventory operations as tools so multiple Claude applications can connect to it.", "explanation": "Correct. An MCP server exposes reusable tools that multiple Claude applications can share and that can be maintained independently." },
+      { "id": "C", "text": "Paste the current inventory data into the context window on every request.", "explanation": "Pasting data gives no live access and wastes context." },
+      { "id": "D", "text": "Rely on a built-in tool, since built-in tools can reach any internal REST API.", "explanation": "Built-in tools do not automatically reach arbitrary internal APIs." }
+    ],
+    "correct": ["B"],
+    "sourceLinks": ["https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542875%2FClaude+Certified+Developer+%E2%80%93+Foundations+Exam+Guide.pdf", "https://modelcontextprotocol.io/docs/learn/architecture"]
+  }
+]

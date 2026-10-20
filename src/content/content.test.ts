@@ -1,0 +1,87 @@
+import { describe, expect, it } from 'vitest'
+import { z } from 'zod'
+import {
+  DOMAINS,
+  EXAM_FORMAT,
+  SKILLS,
+  allocateItems,
+  domainWeight,
+  questionTarget,
+} from './blueprint'
+import { QUESTIONS, questionFiles } from './questions'
+import { QuestionSchema } from './schema'
+
+describe('blueprint', () => {
+  it('skill weights sum to 100', () => {
+    const total = SKILLS.reduce((sum, s) => sum + s.weight, 0)
+    expect(total).toBeCloseTo(100, 5)
+  })
+
+  it('domain weights match Exam Guide §6', () => {
+    expect(DOMAINS.map(domainWeight)).toEqual([14.7, 33.1, 3.1, 2.6, 16.8, 11.0, 8.1, 10.6])
+  })
+
+  it('has 25 skills with ids matching their domain', () => {
+    expect(SKILLS).toHaveLength(25)
+    for (const d of DOMAINS) {
+      d.skills.forEach((s, i) => expect(s.id).toBe(`${d.id}.${i + 1}`))
+    }
+  })
+
+  it('every skill maps to at least one course and lab', () => {
+    for (const s of SKILLS) {
+      expect(s.courses.length, s.id).toBeGreaterThan(0)
+      expect(s.labs.length, s.id).toBeGreaterThan(0)
+    }
+  })
+
+  it('question targets total about 303 (PLAN.md §2)', () => {
+    expect(SKILLS.reduce((sum, s) => sum + questionTarget(s), 0)).toBe(303)
+  })
+
+  it('mock exam allocation sums to 53 and gives heavier skills at least as many items', () => {
+    const alloc = allocateItems()
+    expect([...alloc.values()].reduce((a, b) => a + b, 0)).toBe(EXAM_FORMAT.items)
+    const sorted = [...SKILLS].sort((a, b) => b.weight - a.weight)
+    for (let i = 1; i < sorted.length; i++) {
+      expect(alloc.get(sorted[i - 1].id)!).toBeGreaterThanOrEqual(alloc.get(sorted[i].id)!)
+    }
+  })
+})
+
+describe('question bank', () => {
+  it('every file parses against the schema', () => {
+    for (const [path, raw] of Object.entries(questionFiles)) {
+      const result = z.array(QuestionSchema).safeParse(raw)
+      expect(result.success, `${path}: ${result.error?.message}`).toBe(true)
+    }
+  })
+
+  it('questions live in the file of their domain', () => {
+    for (const [path, raw] of Object.entries(questionFiles)) {
+      const domain = path.match(/domain-(\d)\.json$/)![1]
+      for (const q of raw as { id: string; skillId: string }[]) {
+        expect(q.skillId.split('.')[0], `${q.id} in ${path}`).toBe(domain)
+      }
+    }
+  })
+
+  it('question ids are unique', () => {
+    const ids = QUESTIONS.map((q) => q.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('numbered ids match their skill', () => {
+    for (const q of QUESTIONS.filter((q) => !q.official)) {
+      expect(q.id.startsWith(`q-${q.skillId}-`), q.id).toBe(true)
+    }
+  })
+
+  it('includes the three official Exam Guide samples', () => {
+    expect(QUESTIONS.filter((q) => q.official).map((q) => q.id).sort()).toEqual([
+      'official-1',
+      'official-2',
+      'official-3',
+    ])
+  })
+})

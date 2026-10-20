@@ -1,0 +1,18 @@
+[
+  {
+    "id": "official-1",
+    "skillId": "2.3",
+    "difficulty": 1,
+    "official": true,
+    "stem": "A developer must process 10,000 documents overnight to produce a non-urgent analytics report. Cost is the primary concern, and results are not needed until the following morning. Which approach best fits the requirement?",
+    "selectCount": 1,
+    "options": [
+      { "id": "A", "text": "Send every request synchronously through the Messages API in parallel to finish as quickly as possible.", "explanation": "Sending requests synchronously in parallel does not reduce per-token cost, and speed is not the requirement here." },
+      { "id": "B", "text": "Use the Message Batches API, which processes large asynchronous workloads within a 24-hour window at reduced cost.", "explanation": "Correct. The Message Batches API is designed for latency-tolerant, high-volume workloads at lower cost, which matches an overnight, non-urgent job." },
+      { "id": "C", "text": "Lower max_tokens on synchronous calls to minimize cost.", "explanation": "Lowering max_tokens risks truncated output and does not address the batch-versus-realtime tradeoff." },
+      { "id": "D", "text": "Switch to the smallest available model regardless of output quality.", "explanation": "Blindly downsizing the model sacrifices quality and does not address the batch-versus-realtime tradeoff." }
+    ],
+    "correct": ["B"],
+    "sourceLinks": ["https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542875%2FClaude+Certified+Developer+%E2%80%93+Foundations+Exam+Guide.pdf", "https://platform.claude.com/docs/en/build-with-claude/batch-processing"]
+  }
+]
