@@ -42,3 +42,15 @@ export const QuestionSchema = z
   })
 
 export type Question = z.infer<typeof QuestionSchema>
+
+/** `export const meta` of each lessons/<skillId>.mdx file. */
+export const LessonMetaSchema = z.object({
+  skillId: z.string().refine((id) => getSkill(id) !== undefined, 'unknown skillId'),
+  /** Date the content was last checked against the official docs. */
+  updated: z.iso.date(),
+  tldr: z.string().min(1),
+  /** Official documentation for this skill. Skilljar courses come from the blueprint. */
+  links: z.array(z.object({ title: z.string().min(1), url: z.url() })).min(2),
+})
+
+export type LessonMeta = z.infer<typeof LessonMetaSchema>

@@ -25,10 +25,12 @@ export interface Progress {
   version: typeof VERSION
   questions: Record<string, QuestionStat>
   mockResults: MockResult[]
+  /** Skill ids whose lesson the learner marked as read. */
+  lessonsRead: string[]
 }
 
 function empty(): Progress {
-  return { version: VERSION, questions: {}, mockResults: [] }
+  return { version: VERSION, questions: {}, mockResults: [], lessonsRead: [] }
 }
 
 function load(): Progress {
@@ -87,6 +89,11 @@ export function recordAnswer(questionId: string, correct: boolean, at: number = 
 
 export function recordMockResult(result: MockResult) {
   commit({ ...state, mockResults: [...state.mockResults, result] })
+}
+
+export function setLessonRead(skillId: string, read: boolean) {
+  const others = state.lessonsRead.filter((id) => id !== skillId)
+  commit({ ...state, lessonsRead: read ? [...others, skillId] : others })
 }
 
 export function resetProgress() {

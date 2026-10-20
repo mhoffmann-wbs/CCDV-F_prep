@@ -1,0 +1,85 @@
+export const meta = {
+  skillId: '2.5',
+  updated: '2026-10-20',
+  tldr: 'Know exactly what instructions Claude sees on each surface (API, SDKs, Claude Code, claude.ai), keep trusted instructions apart from untrusted data, design schemas that are hard to misuse, keep sessions clean, and treat plugins as code that runs and costs context in every session.',
+  links: [
+    { title: 'Prompting best practices', url: 'https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview' },
+    { title: 'Structured outputs', url: 'https://platform.claude.com/docs/en/build-with-claude/structured-outputs' },
+    { title: 'Define tools (schemas and descriptions)', url: 'https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools' },
+    { title: 'Agent SDK: modifying system prompts', url: 'https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts' },
+    { title: 'Claude Code: how Claude remembers your project (CLAUDE.md)', url: 'https://code.claude.com/docs/en/memory' },
+    { title: 'Claude Code plugins overview', url: 'https://code.claude.com/docs/en/plugins' },
+  ],
+}
+
+This is the **heaviest single skill on the exam (8.6%)**. Its questions are usually design scenarios: *"Claude behaves differently in X than in Y. Why?"* or *"Which design keeps this app reliable?"*
+
+## Key concepts
+
+### 1. Instructions differ by surface
+
+The same model behaves differently depending on **what ends up in its context**. Know who controls each layer.
+
+| Surface | System prompt | Extra context added for you |
+|---|---|---|
+| **Messages API / client SDKs** | Exactly what you send in `system`. Nothing else is added. | Only your tool definitions and messages. The API is **stateless**, so you resend history every call. |
+| **Claude Agent SDK** | A **minimal default** prompt unless you choose the `claude_code` preset (optionally with `append`) or a custom string | CLAUDE.md is injected **into the conversation** when `settingSources` includes `project` / `user`, not into the system prompt |
+| **Claude Code (CLI, IDE, desktop)** | Claude Code's own prompt (tools, safety, coding guidance) | CLAUDE.md hierarchy, rules, skills list, hook output and file-change notes, added as reminders in the conversation |
+| **claude.ai / Desktop** | Anthropic's product prompt | Your profile preferences, project instructions and knowledge, styles, connectors |
+
+Consequences you should be able to reason about:
+- A prompt that works in claude.ai may fail through the API, because the product prompt, project knowledge and tools it relied on are missing.
+- The Agent SDK's minimal default **omits Claude Code's safety and tool guidance**. If you want CLI-like behavior, choose the `claude_code` preset explicitly. Note that `claude -p` uses the Claude Code prompt by default; the SDK does not.
+- CLAUDE.md is **context, not enforced configuration**. To *guarantee* that something can't happen, use a hook or a permission rule, not a sentence in CLAUDE.md.
+
+### 2. Content boundaries
+
+Keep **trusted instructions** (your system prompt, or operator instructions) apart from **untrusted data** (user uploads, web pages, tool results, emails).
+- Wrap data in clearly labelled tags such as `<scouting_report>…</scouting_report>`, and tell Claude that content inside them is data to analyse, not instructions to follow.
+- Never put user-controlled text into the system prompt. It would gain operator-level authority.
+- Send operator instructions that change mid-session through an operator channel, not by editing earlier turns. On models that support it, that channel is a mid-conversation `system` message, which also keeps the prompt cache intact.
+- Boundaries reduce risk but don't enforce anything. Pair them with least-privilege tools and approval gates (see 7.1 and 7.2).
+
+### 3. Schema design
+
+Schemas apply to tool inputs **and** to structured outputs. Good schemas make the wrong thing hard to do.
+- Use clear, specific names (`get_player_injury_status`, not `lookup`) and a **description that says when to use the tool, and when not to**.
+- Use `enum` for closed sets (positions, injury designations), mark fields `required`, and set `additionalProperties: false`.
+- Use `strict: true` on tools, or structured outputs (`output_config.format`) when downstream code must parse the result. Validate anyway when it matters (see 6.3).
+- Prefer flat, well-named fields over deep nesting, and give units in descriptions (`weight_lbs`, not `weight`).
+- Version schemas the same way you version prompts. A renamed field is a breaking change for every consumer.
+
+### 4. Session hygiene
+
+Context is a budget, and stale context hurts quality.
+- Start a **fresh session per unrelated task**. Leftovers from earlier work (old tool results, abandoned plans) distract the model and cost tokens.
+- In Claude Code: use `/clear` between tasks and `/compact` to summarize a long session. Resume deliberately (`--continue` / `--resume`) instead of piling everything into one endless session.
+- In your own apps: isolate conversation state **per user and per task**, never share histories between users, and prune or compact long histories (see 6.1).
+- Persist what must survive (decisions, progress) **outside** the transcript, in files, memory or a database, so that a fresh session can pick it up.
+
+### 5. Plugin management
+
+A Claude Code **plugin** bundles skills, subagents, hooks, MCP servers and other components into one installable unit. Its manifest lives at `.claude-plugin/plugin.json`. A **marketplace** is a catalog of plugins (`.claude-plugin/marketplace.json`).
+- **Install scopes:** *user* (you, every project), *project* (shared through the committed `.claude/settings.json`), *local* (you, this repo only).
+- An enabled plugin is part of **every** session. Its skill and agent descriptions use context on every turn, its MCP servers run, and its hooks fire, **with your user privileges**. Review it before installing, and disable plugins you don't use.
+- Organizations can allowlist or block marketplaces, and force-install plugins, through managed settings.
+- Use a plugin when you need to **package and share several components together**. A single skill or MCP server works on its own without a plugin.
+
+## Exam traps
+
+- **"Add it to the system prompt / CLAUDE.md"** as the answer to a *guarantee* requirement. Instructions are advisory. Enforcement comes from hooks, permissions, tool design or code.
+- **Assuming the API remembers anything.** It doesn't: no history, no "project", no memory unless you build it.
+- **Assuming the Agent SDK behaves like `claude -p` by default.** It uses a minimal prompt unless you choose the `claude_code` preset.
+- **Putting untrusted content in the system prompt** "so Claude takes it seriously." That gives it operator authority, which is exactly wrong.
+- **One giant session for everything.** It looks efficient, but quality drops and cost rises. Fresh, focused sessions win.
+- **Installing plugins casually.** They run code as you and cost context even when unused.
+
+## On the field
+
+**Gridiron Assistant: one feature, four surfaces.** Your team built a "game preview" prompt in a claude.ai Project that holds the season's stats as project knowledge. It works well. You port it to the API, and the previews suddenly invent player stats.
+
+*Why:* the API call has none of the project knowledge, so Claude has no stats to work from. *Fix:* fetch the stats yourself and pass them as data inside `<team_stats>` tags (or through a `get_team_stats` tool with a strict schema). Tell Claude to use only that data and to say so when something is missing.
+
+Later you move the same feature into an Agent SDK service. Reviewers notice the agent edits files without the usual Claude Code caution. *Why:* the SDK's minimal default prompt. *Fix:* use the `claude_code` preset with `append` for your preview rules, and load your repo's CLAUDE.md through `settingSources: ['project']`.
+
+Try it in **Lab L1** (play-by-play summarizer) and **Lab L7** (Claude Code on the repo).

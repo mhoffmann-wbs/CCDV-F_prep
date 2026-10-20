@@ -67,3 +67,18 @@ describe('mock exam', () => {
     expect(getProgress().mockResults).toHaveLength(1)
   })
 })
+
+describe('learn', () => {
+  it('renders a lesson with its sections and tracks read state', async () => {
+    const user = userEvent.setup()
+    renderAt('/learn/2.5')
+    expect(screen.getByRole('heading', { level: 1, name: /2.5 Claude Application Design/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Exam traps' })).toBeInTheDocument()
+    expect(screen.getByRole('table')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Mark as read' }))
+    expect(getProgress().lessonsRead).toEqual(['2.5'])
+    await user.click(screen.getByRole('button', { name: /Marked as read/ }))
+    expect(getProgress().lessonsRead).toEqual([])
+  })
+})

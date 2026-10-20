@@ -1,10 +1,12 @@
 import { Link, NavLink, Route, Routes } from 'react-router'
 import BlueprintPage from './pages/BlueprintPage'
+import LearnPage from './pages/LearnPage'
 import MockExamPage from './pages/MockExamPage'
 import PracticePage from './pages/PracticePage'
 
 const NAV = [
   { to: '/', label: 'Playbook' },
+  { to: '/learn', label: 'Learn' },
   { to: '/practice', label: 'Practice' },
   { to: '/mock', label: 'Mock exam' },
 ]
@@ -21,7 +23,7 @@ export default function App() {
             <NavLink
               key={item.to}
               to={item.to}
-              end
+              end={item.to === '/'}
               className={({ isActive }) => (isActive ? 'font-semibold underline underline-offset-4' : 'text-chalk/80')}
             >
               {item.label}
@@ -32,6 +34,8 @@ export default function App() {
       <main className="mx-auto max-w-5xl px-4 py-8">
         <Routes>
           <Route path="/" element={<BlueprintPage />} />
+          <Route path="/learn" element={<LearnPage />} />
+          <Route path="/learn/:skillId" element={<LearnPage />} />
           <Route path="/practice" element={<PracticePage />} />
           <Route path="/mock" element={<MockExamPage />} />
         </Routes>

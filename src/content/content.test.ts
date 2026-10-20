@@ -1,3 +1,5 @@
+import { readFileSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import {
@@ -8,6 +10,7 @@ import {
   domainWeight,
   questionTarget,
 } from './blueprint'
+import { LESSONS, REQUIRED_SECTIONS } from './lessons'
 import { QUESTIONS, questionFiles } from './questions'
 import { QuestionSchema } from './schema'
 
@@ -83,5 +86,37 @@ describe('question bank', () => {
       'official-2',
       'official-3',
     ])
+  })
+})
+
+describe('lessons', () => {
+  // Read the raw MDX from disk: the MDX plugin would compile a `?raw` import.
+  const lessonDir = join(import.meta.dirname, 'lessons')
+  const lessonSources = Object.fromEntries(
+    readdirSync(lessonDir)
+      .filter((f) => f.endsWith('.mdx'))
+      .map((f) => [f, readFileSync(join(lessonDir, f), 'utf8')]),
+  )
+
+  it('each file is named after the skill its meta declares', () => {
+    for (const path of Object.keys(lessonSources)) {
+      const fileId = path.match(/^(\d\.\d)\.mdx$/)?.[1]
+      expect(fileId, path).toBeDefined()
+      expect(LESSONS.get(fileId!), path).toBeDefined()
+    }
+  })
+
+  it('every lesson has the required sections in order', () => {
+    for (const [path, source] of Object.entries(lessonSources)) {
+      const positions = REQUIRED_SECTIONS.map((heading) => source.indexOf(`\n${heading}`))
+      expect(positions.every((p) => p >= 0), `${path} is missing a required section`).toBe(true)
+      expect([...positions].sort((a, b) => a - b), `${path} sections out of order`).toEqual(positions)
+    }
+  })
+
+  it('every lesson links only to https URLs', () => {
+    for (const { meta } of LESSONS.values()) {
+      for (const link of meta.links) expect(link.url.startsWith('https://'), link.url).toBe(true)
+    }
   })
 })
