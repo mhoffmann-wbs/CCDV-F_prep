@@ -88,7 +88,7 @@ function LessonView({ skillId }: { skillId: string }) {
         <strong>TL;DR:</strong> {meta.tldr}
       </p>
 
-      <div className="prose prose-neutral max-w-none prose-a:text-field-dark prose-code:before:content-none prose-code:after:content-none">
+      <div className="prose prose-neutral dark:prose-invert max-w-none prose-a:text-field-dark prose-code:before:content-none prose-code:after:content-none">
         <Content components={{ a: ExternalLink }} />
       </div>
 

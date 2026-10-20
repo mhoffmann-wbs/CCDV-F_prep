@@ -116,7 +116,7 @@ function LabView({ labId }: { labId: string }) {
         </ul>
       </section>
 
-      <div className="prose prose-neutral max-w-none prose-a:text-field-dark prose-code:before:content-none prose-code:after:content-none">
+      <div className="prose prose-neutral dark:prose-invert max-w-none prose-a:text-field-dark prose-code:before:content-none prose-code:after:content-none">
         <Content components={{ a: ExternalLink }} />
       </div>
     </article>
