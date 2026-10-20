@@ -1,20 +1,39 @@
-import { Link, Route, Routes } from 'react-router'
+import { Link, NavLink, Route, Routes } from 'react-router'
 import BlueprintPage from './pages/BlueprintPage'
+import MockExamPage from './pages/MockExamPage'
+import PracticePage from './pages/PracticePage'
+
+const NAV = [
+  { to: '/', label: 'Playbook' },
+  { to: '/practice', label: 'Practice' },
+  { to: '/mock', label: 'Mock exam' },
+]
 
 export default function App() {
   return (
     <div className="min-h-screen bg-chalk text-neutral-900">
       <header className="bg-field-dark text-chalk">
-        <nav className="mx-auto flex max-w-5xl items-center gap-6 px-4 py-3">
+        <nav className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
           <Link to="/" className="text-lg font-bold tracking-tight">
             🏈 Gridiron Prep
           </Link>
-          <span className="text-sm text-chalk/70">CCDV-F exam prep</span>
+          {NAV.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end
+              className={({ isActive }) => (isActive ? 'font-semibold underline underline-offset-4' : 'text-chalk/80')}
+            >
+              {item.label}
+            </NavLink>
+          ))}
         </nav>
       </header>
       <main className="mx-auto max-w-5xl px-4 py-8">
         <Routes>
           <Route path="/" element={<BlueprintPage />} />
+          <Route path="/practice" element={<PracticePage />} />
+          <Route path="/mock" element={<MockExamPage />} />
         </Routes>
       </main>
     </div>

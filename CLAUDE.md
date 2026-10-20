@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-**`PLAN.md` is the build plan and sets the order of work.** It covers the skill-by-skill content map, the question-bank targets, the lab specs and the phases (§5 records what is done). Phases 0 and 1 are complete: the scaffold, the blueprint, the question schema, the content tests and the 3 official sample items. Everything marked *planned* below doesn't exist yet. As parts get built, update this file so it describes what actually exists.
+**`PLAN.md` is the build plan and sets the order of work.** It covers the skill-by-skill content map, the question-bank targets, the lab specs and the phases (§5 records what is done). Phases 0–2 are complete: the scaffold, the blueprint, the question schema, the content tests, the quiz engine (practice and mock exam), the progress store, the 3 official sample items and 12 original 2.3 items. Everything marked *planned* below doesn't exist yet. As parts get built, update this file so it describes what actually exists.
 
 ## Purpose
 
@@ -30,14 +30,20 @@ Use these, not third-party prep sites. If the guide gets a new version, update `
 
 ## Architecture
 
-- **Stack**: Vite 8 + React 19 + TypeScript 6, Tailwind v4 (theme colours `field`, `field-dark`, `chalk`, `pigskin` are defined in `src/index.css` via `@theme`), React Router 8 (imported from `react-router`), Zod 4, MDX (`@mdx-js/rollup`, wired up but not used yet), Vitest 5 + RTL, and oxlint for linting. It is a static SPA with no backend. *Planned:* progress stored in `localStorage` behind one versioned storage module.
+- **Stack**: Vite 8 + React 19 + TypeScript 6, Tailwind v4 (theme colours `field`, `field-dark`, `chalk`, `pigskin` are defined in `src/index.css` via `@theme`), React Router 8 (imported from `react-router`), Zod 4, MDX (`@mdx-js/rollup`, wired up but not used yet), Vitest 5 + RTL, and oxlint for linting. It is a static SPA with no backend.
+- **Progress** (`src/progress/store.ts`) is the only module that touches `localStorage`. It is a versioned store: on a version mismatch it discards the stored data, so bump `VERSION` and add a migration in `load()` when the shape changes. Components read it with `useProgress()` (`useSyncExternalStore`).
+- **Quiz engine** (`src/quiz/`):
+  - `grading.ts`: multiple-response items are scored all-or-nothing. `scoreExam` produces the official report shape (pass/fail, scaled score, per-domain results). The scaled score is a linear estimate and the UI must always label it as one.
+  - `sampler.ts`: `buildMockExam` draws each skill's share from `allocateItems()`. When a skill's pool is too small, it fills the gap from the rest of the bank and scales the time limit to the real 120 min / 53 items pace. Pass `seededRng(n)` in tests.
+  - `QuestionView`: renders both single- and multi-select items. It stops users selecting more than `selectCount`, and reveals every option's explanation. It doesn't shuffle options.
+  - Routes in `App.tsx`: `/` (blueprint), `/practice?skill=2.3` or `?domain=2`, `/mock`.
 - **Content is data.** Everything lives under `src/content/`, and the UI renders it generically. To add a lesson, question or lab, add data. Don't add new components for it.
   - `blueprint.ts`: 8 domains and 25 skills (ids like `"2.3"`), exact weights, Skilljar course mapping, lab mapping and exam-format constants. It also holds `questionTarget()` (pool size per skill) and `allocateItems()` (largest-remainder split of the 53 mock items). Mock-exam sampling, readiness scoring and the content tests all derive from this file.
   - `schema.ts`: the Zod `QuestionSchema`, with cross-field checks: `correct.length === selectCount`, correct ids must exist among the options, and `skillId` must be in the blueprint.
   - `questions/domain-<n>.json`: one array per domain. They are loaded and validated through `import.meta.glob` in `questions/index.ts`. Ids are `q-<skillId>-NNN`, or `official-N` for the Exam Guide samples, which also carry `official: true`.
   - *Planned:* `lessons/<skillId>.mdx`, `labs/L<n>.mdx`.
 - **`content.test.ts`** checks blueprint integrity (weights sum to 100, domain weights match the guide, allocation) and question-bank integrity (schema, file/domain match, unique ids). The question *targets* are not enforced by tests. Track them with `npm run content:status`.
-- *Planned:* the **mock exam** draws its items per skill using `allocateItems()`. The scaled score is an estimate and must be labelled as one.
+- **UI tests** (`src/pages/pages.test.tsx`) render `<App>` inside a `MemoryRouter` and run against the real question bank. Adding questions can change which item appears first, so write these tests to be independent of order.
 - *Planned:* **`labs/`** is a separate TS workspace that learners run themselves with their own `ANTHROPIC_API_KEY`, using bundled fictional NFL JSON fixtures. The web app never calls the Claude API and never stores keys.
 
 ## Content rules

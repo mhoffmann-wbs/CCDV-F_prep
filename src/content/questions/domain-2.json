@@ -7,12 +7,470 @@
     "stem": "A developer must process 10,000 documents overnight to produce a non-urgent analytics report. Cost is the primary concern, and results are not needed until the following morning. Which approach best fits the requirement?",
     "selectCount": 1,
     "options": [
-      { "id": "A", "text": "Send every request synchronously through the Messages API in parallel to finish as quickly as possible.", "explanation": "Sending requests synchronously in parallel does not reduce per-token cost, and speed is not the requirement here." },
-      { "id": "B", "text": "Use the Message Batches API, which processes large asynchronous workloads within a 24-hour window at reduced cost.", "explanation": "Correct. The Message Batches API is designed for latency-tolerant, high-volume workloads at lower cost, which matches an overnight, non-urgent job." },
-      { "id": "C", "text": "Lower max_tokens on synchronous calls to minimize cost.", "explanation": "Lowering max_tokens risks truncated output and does not address the batch-versus-realtime tradeoff." },
-      { "id": "D", "text": "Switch to the smallest available model regardless of output quality.", "explanation": "Blindly downsizing the model sacrifices quality and does not address the batch-versus-realtime tradeoff." }
+      {
+        "id": "A",
+        "text": "Send every request synchronously through the Messages API in parallel to finish as quickly as possible.",
+        "explanation": "Sending requests synchronously in parallel does not reduce per-token cost, and speed is not the requirement here."
+      },
+      {
+        "id": "B",
+        "text": "Use the Message Batches API, which processes large asynchronous workloads within a 24-hour window at reduced cost.",
+        "explanation": "Correct. The Message Batches API is designed for latency-tolerant, high-volume workloads at lower cost, which matches an overnight, non-urgent job."
+      },
+      {
+        "id": "C",
+        "text": "Lower max_tokens on synchronous calls to minimize cost.",
+        "explanation": "Lowering max_tokens risks truncated output and does not address the batch-versus-realtime tradeoff."
+      },
+      {
+        "id": "D",
+        "text": "Switch to the smallest available model regardless of output quality.",
+        "explanation": "Blindly downsizing the model sacrifices quality and does not address the batch-versus-realtime tradeoff."
+      }
     ],
-    "correct": ["B"],
-    "sourceLinks": ["https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542875%2FClaude+Certified+Developer+%E2%80%93+Foundations+Exam+Guide.pdf", "https://platform.claude.com/docs/en/build-with-claude/batch-processing"]
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542875%2FClaude+Certified+Developer+%E2%80%93+Foundations+Exam+Guide.pdf",
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing"
+    ]
+  },
+  {
+    "id": "q-2.3-001",
+    "skillId": "2.3",
+    "difficulty": 1,
+    "stem": "A fan app has a chat assistant that answers questions about last night's game. Users say that after a few messages it 'forgets' things they said earlier, such as their favorite team. The backend sends only the latest user message on each request to the Messages API. What is the most likely cause, and what is the fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The Messages API is stateless. Keep the conversation history in the app and send the prior user and assistant turns with every request.",
+        "explanation": "Correct. The Messages API keeps no server-side session. Each request must include the full conversation you want the model to see."
+      },
+      {
+        "id": "B",
+        "text": "The model's context window is too small. Switch to a model with a larger context window.",
+        "explanation": "Context size isn't the problem. A few chat turns are far below any current model's limit, and the earlier turns are never sent in the first place."
+      },
+      {
+        "id": "C",
+        "text": "Set a higher temperature so the model reuses earlier information more readily.",
+        "explanation": "Sampling settings have no effect on information that isn't in the request, and current models don't accept non-default sampling parameters."
+      },
+      {
+        "id": "D",
+        "text": "Pass a session_id parameter so the API can look up earlier turns.",
+        "explanation": "The Messages API has no session_id parameter that restores history. The client owns conversation state."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/working-with-messages"
+    ]
+  },
+  {
+    "id": "q-2.3-002",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "After every week of games, a league analytics team submits about 2,000 recap requests (one per game per angle) through the Message Batches API. Their importer then writes the results into a spreadsheet by row number, in the order the requests were submitted. Several recaps end up attached to the wrong games. What should they change?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Submit the requests one at a time so the batch keeps them in order.",
+        "explanation": "That defeats the point of batching, and the API still guarantees no particular order for results."
+      },
+      {
+        "id": "B",
+        "text": "Give each request a unique custom_id, such as the game ID plus the angle, and match results by custom_id instead of by position.",
+        "explanation": "Correct. Batch results can come back in any order. The custom_id is how each result is matched to its request."
+      },
+      {
+        "id": "C",
+        "text": "Sort the results by the time each one finished before importing them.",
+        "explanation": "Completion order is not submission order either. Only the custom_id reliably identifies a result."
+      },
+      {
+        "id": "D",
+        "text": "Switch to synchronous Messages API calls, because batches can't be used for structured output.",
+        "explanation": "Batches accept the same request parameters as the Messages API. The bug is in how results are matched, not in batching."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing"
+    ]
+  },
+  {
+    "id": "q-2.3-003",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A team builds a 'live game companion' that writes a long play-by-play analysis while the user watches. Users complain that nothing appears for 20–40 seconds, and some long requests fail with client timeouts. Which change best addresses both problems?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use the Message Batches API so long requests run asynchronously.",
+        "explanation": "Batches can take a long time to finish, so they don't suit an interactive feature that needs output within seconds."
+      },
+      {
+        "id": "B",
+        "text": "Lower max_tokens so each response finishes faster.",
+        "explanation": "This cuts the analysis short and only treats the symptom. Users still wait for the whole response before seeing anything."
+      },
+      {
+        "id": "C",
+        "text": "Stream the response and render text deltas as they arrive, using the SDK's helper to collect the final message.",
+        "explanation": "Correct. Streaming shows tokens progressively, which shortens perceived latency, and it avoids HTTP timeouts on long generations. The SDKs recommend it for large max_tokens."
+      },
+      {
+        "id": "D",
+        "text": "Raise the client's retry count so timed-out requests get retried automatically.",
+        "explanation": "Retrying a request that times out repeats the same timeout and multiplies cost, and users still see nothing in the meantime."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-2.3-004",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A fantasy assistant defines two tools, get_player_stats and get_injury_status. For one lineup question, Claude returns a single assistant message containing three tool_use blocks. How should the application send the results back? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Put all three tool_result blocks in a single user message, each with the matching tool_use_id.",
+        "explanation": "Correct. Parallel tool calls are answered together in one user message, matched by tool_use_id. Splitting them across several messages discourages future parallel calls."
+      },
+      {
+        "id": "B",
+        "text": "Send three separate user messages, one tool_result per message, in the order the calls appeared.",
+        "explanation": "Splitting the results breaks the parallel-call pattern and teaches the model to stop making parallel calls."
+      },
+      {
+        "id": "C",
+        "text": "If one tool call fails, still return a tool_result for it, with is_error set to true and a helpful error message.",
+        "explanation": "Correct. Every tool_use needs a matching tool_result. Marking the failure lets Claude recover, for example by retrying or asking the user."
+      },
+      {
+        "id": "D",
+        "text": "Skip any tool call that failed, so the model isn't confused by error text.",
+        "explanation": "A tool_use block left without a matching result makes the conversation invalid and hides the failure from the model."
+      },
+      {
+        "id": "E",
+        "text": "Copy the tool results into the system prompt for the next request.",
+        "explanation": "Tool results belong in tool_result blocks in the user turn. The system prompt is for stable, trusted instructions."
+      }
+    ],
+    "correct": [
+      "A",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"
+    ]
+  },
+  {
+    "id": "q-2.3-005",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A scouting assistant sends the same 30,000-token league rulebook with every request, and the team enabled prompt caching on it. Logs show cache_read_input_tokens is always 0. The system prompt starts with a line like 'Current time: 2026-10-20T17:42:13Z', followed by the rulebook. What is the best fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Increase the cache TTL to 1 hour.",
+        "explanation": "A longer TTL doesn't help. Every request has a different prefix, so there is never a cache entry to read."
+      },
+      {
+        "id": "B",
+        "text": "Move the timestamp and any other per-request content after the cached rulebook (after the last cache breakpoint), so the prefix stays byte-identical.",
+        "explanation": "Correct. Caching works on an exact prefix match. Any changing byte before the breakpoint invalidates everything after it, so stable content must come first."
+      },
+      {
+        "id": "C",
+        "text": "Add more cache_control breakpoints to the rulebook.",
+        "explanation": "Every breakpoint is still preceded by the changing timestamp, so none of them would ever match."
+      },
+      {
+        "id": "D",
+        "text": "Disable streaming, because streamed responses can't use the cache.",
+        "explanation": "Streaming and prompt caching work fine together. The cause is the changing prefix."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-2.3-006",
+    "skillId": "2.3",
+    "difficulty": 1,
+    "stem": "An app asks Claude for a JSON depth chart of a full 53-man roster. Sometimes JSON.parse fails because the output ends mid-object. In those failing responses, stop_reason is \"max_tokens\". What should the application do?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Check stop_reason before parsing. Treat max_tokens as truncated output, and raise max_tokens (streaming if the value is large) or split the task into smaller requests.",
+        "explanation": "Correct. max_tokens means generation hit the cap and the output is incomplete. Detect it explicitly and give the model enough room, or ask for less per request."
+      },
+      {
+        "id": "B",
+        "text": "Wrap JSON.parse in a try/catch and close any open braces automatically.",
+        "explanation": "Patching the JSON hides missing data. You would get a 'valid' depth chart with players silently left out."
+      },
+      {
+        "id": "C",
+        "text": "Retry the identical request until a response parses.",
+        "explanation": "The same request hits the same cap. Retrying wastes money without fixing anything."
+      },
+      {
+        "id": "D",
+        "text": "Treat it as a safety refusal and send the request to a different model.",
+        "explanation": "A refusal has its own stop_reason (\"refusal\"). max_tokens is a length limit, not a policy decision."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons"
+    ]
+  },
+  {
+    "id": "q-2.3-007",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A play-by-play summarizer calls the Messages API on game day, when traffic is high. Which errors should the client normally retry with exponential backoff, respecting any retry-after header? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "400 invalid_request_error",
+        "explanation": "A malformed request fails the same way every time. Fix the request instead of retrying it."
+      },
+      {
+        "id": "B",
+        "text": "429 rate_limit_error",
+        "explanation": "Correct. Rate limits are temporary. Back off, honoring retry-after when it is present, then retry."
+      },
+      {
+        "id": "C",
+        "text": "401 authentication_error",
+        "explanation": "A bad or missing API key won't fix itself. Retrying only adds noise and can trigger alerts."
+      },
+      {
+        "id": "D",
+        "text": "529 overloaded_error",
+        "explanation": "Correct. Overload is a temporary, service-side condition, and retrying with backoff is the recommended response."
+      },
+      {
+        "id": "E",
+        "text": "413 request_too_large",
+        "explanation": "The payload stays too large on every retry. Shrink the request or use a different input method instead."
+      }
+    ],
+    "correct": [
+      "B",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors",
+      "https://platform.claude.com/docs/en/api/rate-limits"
+    ]
+  },
+  {
+    "id": "q-2.3-008",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "Each week, a team's medical staff publishes its injury report as a multi-page PDF. An assistant must answer dozens of different questions about the same report during the week, across many separate requests. Which approach is most efficient?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Convert the PDF to screenshots and send every page as an image with each question.",
+        "explanation": "This re-uploads the whole report with every request and discards the text layer that PDF support can use."
+      },
+      {
+        "id": "B",
+        "text": "Upload the PDF once with the Files API, then reference it by file_id in a document content block in each request.",
+        "explanation": "Correct. The Files API is designed for assets that are reused across requests. You upload once and reference the file by ID instead of re-sending base64 data every time."
+      },
+      {
+        "id": "C",
+        "text": "Paste the raw PDF bytes into the system prompt as text.",
+        "explanation": "Raw PDF bytes aren't readable text. PDFs must be sent as document blocks, either base64-encoded or by file_id."
+      },
+      {
+        "id": "D",
+        "text": "Send the PDF only in the first request of the week. Claude remembers it for later requests.",
+        "explanation": "The API keeps no state between requests. Every request has to include, or reference, the document."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/files",
+      "https://platform.claude.com/docs/en/build-with-claude/pdf-support"
+    ]
+  },
+  {
+    "id": "q-2.3-009",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A sports-media company's security policy requires all AI inference to run inside its existing AWS account, under AWS billing and IAM controls. A developer proposes using Claude through Amazon Bedrock. What else should the developer do before committing to that design?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Nothing. Bedrock offers exactly the same features as the first-party API on the same day.",
+        "explanation": "Feature availability differs across platforms. Some features are first-party only, or arrive on partners later."
+      },
+      {
+        "id": "B",
+        "text": "Check the platform-availability documentation for every feature the design depends on (for example batches, caching or specific tools), and use the platform's own client and model ID format.",
+        "explanation": "Correct. Third-party platforms use their own clients, auth and model ID formats, and support some features differently. Check the requirements against each platform before committing."
+      },
+      {
+        "id": "C",
+        "text": "Use the first-party Anthropic client and point base_url at the Bedrock endpoint.",
+        "explanation": "Each platform has its own client class, with its own authentication. Overriding the URL on the first-party client is not the supported path."
+      },
+      {
+        "id": "D",
+        "text": "Store a first-party Anthropic API key in AWS Secrets Manager, so the app is technically 'in AWS'.",
+        "explanation": "Inference would still run on Anthropic's first-party API, which breaks the policy's intent that inference and billing stay in AWS."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock",
+      "https://platform.claude.com/docs/en/build-with-claude/claude-platform-on-aws"
+    ]
+  },
+  {
+    "id": "q-2.3-010",
+    "skillId": "2.3",
+    "difficulty": 1,
+    "stem": "A league runs two Claude workloads: (1) push alerts that explain a scoring play to fans within seconds of it happening, and (2) a nightly job that writes detailed scouting notes for every player who appeared that day. Which API choice fits each workload?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use the Message Batches API for both, to minimize cost.",
+        "explanation": "Batches are asynchronous and can take hours to finish, which doesn't work for alerts that must go out within seconds."
+      },
+      {
+        "id": "B",
+        "text": "Use real-time Messages API calls for the alerts, and the Message Batches API for the nightly scouting notes.",
+        "explanation": "Correct. Latency-sensitive work goes through the real-time API. High-volume work that can wait goes through batches, at reduced cost."
+      },
+      {
+        "id": "C",
+        "text": "Use real-time Messages API calls for both, because batches don't support long outputs.",
+        "explanation": "Batches accept the same parameters as real-time calls, including long outputs. Sending the nightly job in real time gives up the batch discount for no benefit."
+      },
+      {
+        "id": "D",
+        "text": "Use the Message Batches API for the alerts and real-time calls for the nightly job.",
+        "explanation": "This is backwards. The latency-critical workload ends up on the asynchronous API."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing"
+    ]
+  },
+  {
+    "id": "q-2.3-011",
+    "skillId": "2.3",
+    "difficulty": 3,
+    "stem": "A team turned on prompt caching for a large, stable system prompt holding the league's statistical glossary. They want to confirm, from their production logs, that caching is actually working. What should they monitor?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Lower end-to-end latency on every request.",
+        "explanation": "Latency can vary for many reasons. It is indirect evidence at best, and a cache miss can still be fast."
+      },
+      {
+        "id": "B",
+        "text": "The usage fields in each response: cache_creation_input_tokens on the first write, and non-zero cache_read_input_tokens on later requests with the same prefix.",
+        "explanation": "Correct. The usage block reports cache writes and reads directly, so it is the authoritative signal that caching works."
+      },
+      {
+        "id": "C",
+        "text": "Whether the response text is identical across requests.",
+        "explanation": "Caching reuses processed input. It does not make output deterministic, so identical answers prove nothing about the cache."
+      },
+      {
+        "id": "D",
+        "text": "A cache_hit: true flag in the HTTP response headers.",
+        "explanation": "Cache usage is reported in the response's usage object, not in a header flag."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-2.3-012",
+    "skillId": "2.3",
+    "difficulty": 3,
+    "stem": "A trade-evaluation agent runs with thinking enabled and uses tools such as get_contract and get_cap_space. After the developer added code that removes thinking blocks from earlier assistant turns 'to save tokens', the multi-step tool loop began behaving inconsistently, and some requests are rejected. What is the best guidance?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Send the assistant content back unchanged, including its thinking blocks, on later requests in the tool loop. Use effort settings or context-management features, not hand edits, to control token use.",
+        "explanation": "Correct. Thinking blocks must be passed back unchanged during tool use so the model keeps its reasoning chain. Editing or removing them can cause errors or degraded behavior. Use the supported controls to manage cost."
+      },
+      {
+        "id": "B",
+        "text": "Keep removing thinking blocks, but also reset the conversation after each tool call.",
+        "explanation": "Resetting throws away the context the agent needs for a multi-step evaluation and doesn't fix the protocol violation."
+      },
+      {
+        "id": "C",
+        "text": "Turn thinking off for the whole agent, because thinking and tools can't be combined.",
+        "explanation": "Thinking and tool use are designed to work together. Turning thinking off removes reasoning the task benefits from, and some current models don't allow it at all."
+      },
+      {
+        "id": "D",
+        "text": "Turn the thinking text into a normal text block before sending it back.",
+        "explanation": "Rewriting thinking blocks into another block type is still an edit to the history, and it can feed reasoning summaries back as if they were user-visible text."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+      "https://platform.claude.com/docs/en/build-with-claude/effort"
+    ]
   }
 ]

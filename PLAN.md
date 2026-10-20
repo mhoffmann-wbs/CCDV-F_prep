@@ -103,7 +103,9 @@ The learner runs everything locally with their own `ANTHROPIC_API_KEY`. Data com
 **Status (2026-10-20):**
 - Phase 0 is done for the web app. `labs/` is not set up yet; it is deferred to Phase 5.
 - Phase 1 is done. Lesson and lab schemas will be added along with their phases.
-- The 3 official sample items are seeded. Next step: Phase 2.
+- The 3 official sample items are seeded.
+- Phase 2 is done: the progress store, practice mode, the mock exam (weighted sampler, timer, flag/review, results report) and 12 original 2.3 items.
+- Next step: Phase 3 (lessons, starting with 2.5).
 
 ### Phase 0: Scaffold
 - `git init`. Vite + React + TS, Tailwind, React Router, Zod, Vitest + RTL, ESLint, MDX via `@mdx-js/rollup`
