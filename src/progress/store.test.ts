@@ -16,7 +16,33 @@ describe('progress store', () => {
       correct: 1,
       lastCorrect: false,
       lastAt: 2,
+      streak: 0,
     })
+  })
+
+  it('counts consecutive correct answers and resets the streak on a wrong one', () => {
+    for (const correct of [true, true, false, true, true, true]) recordAnswer('q-2.3-001', correct)
+    expect(getProgress().questions['q-2.3-001']).toMatchObject({ attempts: 6, correct: 5, streak: 3 })
+  })
+
+  it('migrates version 1 data, estimating the streak from the last answer', () => {
+    const v1 = { attempts: 3, correct: 2, lastAt: 5 }
+    localStorage.setItem(
+      'gridiron-prep:progress',
+      JSON.stringify({
+        version: 1,
+        questions: { a: { ...v1, lastCorrect: true }, b: { ...v1, lastCorrect: false } },
+        mockResults: [],
+        lessonsRead: ['2.5'],
+        labSteps: {},
+      }),
+    )
+    reloadProgress()
+    const progress = getProgress()
+    expect(progress.version).toBe(2)
+    expect(progress.questions.a.streak).toBe(1)
+    expect(progress.questions.b.streak).toBe(0)
+    expect(progress.lessonsRead).toEqual(['2.5'])
   })
 
   it('appends mock results', () => {

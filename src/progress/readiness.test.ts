@@ -3,7 +3,7 @@ import { QUESTIONS } from '../content/questions'
 import { skillReadiness, weakAreaQuestions, weightedReadiness } from './readiness'
 import type { Progress } from './store'
 
-const empty: Progress = { version: 1, questions: {}, mockResults: [], lessonsRead: [], labSteps: {} }
+const empty: Progress = { version: 2, questions: {}, mockResults: [], lessonsRead: [], labSteps: {} }
 
 describe('readiness', () => {
   it('is zero with no progress and grows with correct answers', () => {
@@ -11,7 +11,7 @@ describe('readiness', () => {
     const pool = QUESTIONS.filter((q) => q.skillId === '2.5')
     const progress: Progress = {
       ...empty,
-      questions: Object.fromEntries(pool.map((q) => [q.id, { attempts: 1, correct: 1, lastCorrect: true, lastAt: 1 }])),
+      questions: Object.fromEntries(pool.map((q) => [q.id, { attempts: 1, correct: 1, lastCorrect: true, lastAt: 1, streak: 1 }])),
     }
     const skills = skillReadiness(QUESTIONS, progress)
     expect(skills.find((s) => s.skillId === '2.5')!.readiness).toBe(1)

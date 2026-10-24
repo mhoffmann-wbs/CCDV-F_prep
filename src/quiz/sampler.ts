@@ -81,3 +81,37 @@ export function buildMixedSet(bank: readonly Question[], size: number, rng: Rng 
     rng,
   )
 }
+
+/**
+ * Draws a "least mastered" mixed set. The number of questions per skill comes from the same
+ * weighted draw as `buildMixedSet`, so the topic mix matches a normal scrimmage; within each
+ * skill, the questions with the lowest correct-answer streak are chosen (never answered counts
+ * as 0), in random order among equal streaks.
+ */
+export function buildFocusSet(
+  bank: readonly Question[],
+  size: number,
+  streakOf: (questionId: string) => number,
+  rng: Rng = Math.random,
+): Question[] {
+  const perSkill = new Map<string, number>()
+  for (const q of buildMixedSet(bank, size, rng)) perSkill.set(q.skillId, (perSkill.get(q.skillId) ?? 0) + 1)
+  const picked = [...perSkill].flatMap(([skillId, count]) =>
+    orderLeastMastered(
+      bank.filter((q) => q.skillId === skillId),
+      streakOf,
+      rng,
+    ).slice(0, count),
+  )
+  return shuffle(picked, rng)
+}
+
+/** Orders a whole pool lowest streak first, in random order within each streak. */
+export function orderLeastMastered(
+  pool: readonly Question[],
+  streakOf: (questionId: string) => number,
+  rng: Rng = Math.random,
+): Question[] {
+  // Array.prototype.sort is stable, so the shuffle survives within each streak.
+  return shuffle(pool, rng).sort((a, b) => streakOf(a.id) - streakOf(b.id))
+}

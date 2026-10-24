@@ -3,9 +3,9 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
 import App from '../App'
-import { EXAM_FORMAT } from '../content/blueprint'
+import { EXAM_FORMAT, SKILLS } from '../content/blueprint'
 import { QUESTIONS } from '../content/questions'
-import { getProgress, resetProgress } from '../progress/store'
+import { getProgress, recordAnswer, resetProgress } from '../progress/store'
 
 /** Renders the app at `path` and waits for the lazy-loaded page to replace the fallback. */
 async function renderAt(path: string) {
@@ -91,6 +91,32 @@ describe('practice', () => {
     expect(screen.getByText(/\/ 10 correct/)).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'Domain' })).toBeInTheDocument()
     expect(getProgress().mockResults).toHaveLength(0)
+  })
+
+  it('runs a least-mastered scrimmage that picks unmastered questions within each topic', async () => {
+    const user = userEvent.setup()
+    // Leave five questions per skill unmastered: more than a 10-item set draws from one skill.
+    const unmastered = new Set(SKILLS.flatMap((s) => QUESTIONS.filter((q) => q.skillId === s.id).slice(0, 5).map((q) => q.id)))
+    for (const q of QUESTIONS) if (!unmastered.has(q.id)) recordAnswer(q.id, true)
+    await renderAt('/practice')
+    await user.click(screen.getByRole('button', { name: 'Least mastered' }))
+    await user.click(screen.getByRole('link', { name: '10 questions' }))
+    expect(screen.getByText('Mixed scrimmage: least mastered')).toBeInTheDocument()
+    const shown = QUESTIONS.find((q) => screen.queryByText(q.stem))!
+    expect(unmastered.has(shown.id)).toBe(true)
+  })
+
+  it('starts a least-mastered skill session with the questions not yet answered correctly', async () => {
+    const user = userEvent.setup()
+    const pool = QUESTIONS.filter((q) => q.skillId === '7.3')
+    const unmastered = pool.slice(0, 2).map((q) => q.id)
+    for (const q of pool) if (!unmastered.includes(q.id)) recordAnswer(q.id, true)
+    await renderAt('/practice')
+    await user.click(screen.getByRole('button', { name: 'Least mastered' }))
+    await user.click(screen.getByRole('link', { name: /7\.3 Claude Hooks/ }))
+    expect(screen.getByText(/Question 1 of 10/)).toBeInTheDocument()
+    expect(screen.getByText(/: least mastered$/)).toBeInTheDocument()
+    expect(unmastered).toContain(pool.find((q) => screen.queryByText(q.stem))!.id)
   })
 })
 

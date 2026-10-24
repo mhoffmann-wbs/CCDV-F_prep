@@ -4,13 +4,15 @@ import type { DomainScore } from '../quiz/grading'
 // All persisted learner state lives behind this module. Bump VERSION and add a
 // migration in `load()` whenever the shape changes; never read localStorage elsewhere.
 const STORAGE_KEY = 'gridiron-prep:progress'
-const VERSION = 1
+const VERSION = 2
 
 export interface QuestionStat {
   attempts: number
   correct: number
   lastCorrect: boolean
   lastAt: number
+  /** Consecutive correct answers; a wrong answer resets it to 0. */
+  streak: number
 }
 
 export interface MockResult {
@@ -39,12 +41,21 @@ function load(): Progress {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return empty()
-    const parsed = JSON.parse(raw) as Partial<Progress>
+    const parsed = JSON.parse(raw) as { version?: number; questions?: Record<string, Omit<QuestionStat, 'streak'>> }
+    if (parsed.version === 1) return migrateV1(parsed)
     if (parsed.version !== VERSION) return empty()
     return { ...empty(), ...parsed } as Progress
   } catch {
     return empty()
   }
+}
+
+/** v1 had no streak. The best estimate from v1 data is 1 if the last answer was correct, else 0. */
+function migrateV1(v1: { questions?: Record<string, Omit<QuestionStat, 'streak'>> }): Progress {
+  const questions = Object.fromEntries(
+    Object.entries(v1.questions ?? {}).map(([id, stat]) => [id, { ...stat, streak: stat.lastCorrect ? 1 : 0 }]),
+  )
+  return { ...empty(), ...v1, version: VERSION, questions }
 }
 
 let state: Progress = load()
@@ -74,7 +85,7 @@ export function useProgress(): Progress {
 }
 
 export function recordAnswer(questionId: string, correct: boolean, at: number = Date.now()) {
-  const prev = state.questions[questionId] ?? { attempts: 0, correct: 0, lastCorrect: false, lastAt: 0 }
+  const prev = state.questions[questionId] ?? { attempts: 0, correct: 0, lastCorrect: false, lastAt: 0, streak: 0 }
   commit({
     ...state,
     questions: {
@@ -84,6 +95,7 @@ export function recordAnswer(questionId: string, correct: boolean, at: number = 
         correct: prev.correct + (correct ? 1 : 0),
         lastCorrect: correct,
         lastAt: at,
+        streak: correct ? prev.streak + 1 : 0,
       },
     },
   })

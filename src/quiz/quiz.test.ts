@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { EXAM_FORMAT, SKILLS, allocateItems } from '../content/blueprint'
 import type { Question } from '../content/schema'
 import { estimateScaled, isCorrect, scoreExam } from './grading'
-import { buildMixedSet, buildMockExam, seededRng, shuffle } from './sampler'
+import { buildFocusSet, buildMixedSet, buildMockExam, orderLeastMastered, seededRng, shuffle } from './sampler'
 
 function q(id: string, skillId: string, correct: string[] = ['A']): Question {
   return {
@@ -95,6 +95,50 @@ describe('buildMixedSet', () => {
     expect(counts.get(lightest.id) ?? 0).toBeGreaterThan(0)
     expect(counts.get(heaviest.id)!).toBeGreaterThan(counts.get(lightest.id)!)
     expect(counts.size).toBe(SKILLS.length)
+  })
+})
+
+describe('buildFocusSet', () => {
+  const bank = SKILLS.flatMap((s) =>
+    Array.from({ length: 6 }, (_, i) => q(`q-${s.id}-${String(i).padStart(3, '0')}`, s.id)),
+  )
+  // Streaks run 0..5 within each skill, so each skill has exactly one question per streak.
+  const streakOf = (id: string) => Number(id.slice(-3))
+  const countBySkill = (items: Question[]) =>
+    items.reduce((m, x) => m.set(x.skillId, (m.get(x.skillId) ?? 0) + 1), new Map<string, number>())
+
+  it('keeps the same topic mix as a normal scrimmage', () => {
+    for (let seed = 0; seed < 10; seed++) {
+      const focus = buildFocusSet(bank, 25, streakOf, seededRng(seed))
+      const mixed = buildMixedSet(bank, 25, seededRng(seed))
+      expect(focus).toHaveLength(25)
+      expect(countBySkill(focus)).toEqual(countBySkill(mixed))
+    }
+  })
+
+  it('takes the lowest-streak questions within each topic', () => {
+    for (let seed = 0; seed < 10; seed++) {
+      const set = buildFocusSet(bank, 25, streakOf, seededRng(seed))
+      for (const [skillId, count] of countBySkill(set)) {
+        const streaks = set.filter((x) => x.skillId === skillId).map((x) => streakOf(x.id))
+        expect(streaks.sort(), skillId).toEqual(Array.from({ length: count }, (_, i) => i))
+      }
+    }
+  })
+})
+
+describe('orderLeastMastered', () => {
+  it('keeps the whole pool, lowest streak first, shuffled within each streak', () => {
+    const pool = Array.from({ length: 12 }, (_, i) => q(`q-2.3-${String(i).padStart(3, '0')}`, '2.3'))
+    const streakOf = (id: string) => Number(id.slice(-3)) % 3
+    const firsts = new Set<string>()
+    for (let seed = 0; seed < 20; seed++) {
+      const ordered = orderLeastMastered(pool, streakOf, seededRng(seed))
+      expect(ordered).toHaveLength(12)
+      expect(ordered.map((x) => streakOf(x.id))).toEqual([0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2])
+      firsts.add(ordered[0].id)
+    }
+    expect(firsts.size).toBeGreaterThan(1)
   })
 })
 
