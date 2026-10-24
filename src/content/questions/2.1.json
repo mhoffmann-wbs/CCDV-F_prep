@@ -366,5 +366,76 @@
       "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
       "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
     ]
+  },
+  {
+    "id": "q-2.1-011",
+    "skillId": "2.1",
+    "difficulty": 2,
+    "stem": "Every night, a club summarizes about 2,000 practice-report transcripts that coaches read the next morning. The job makes real-time API calls in a tight loop, hits 429 rate-limit errors and costs more than budgeted. Nobody waits on any single summary. Which design best fits the requirements?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep the real-time loop and add more parallel workers so the job finishes before the 429s accumulate",
+        "explanation": "More parallel calls push harder against the same rate limits and don't lower the cost."
+      },
+      {
+        "id": "B",
+        "text": "Stream every response so each summary starts arriving sooner",
+        "explanation": "Streaming improves perceived latency for a waiting user. Here nobody is waiting, so it addresses neither rate limits nor cost."
+      },
+      {
+        "id": "C",
+        "text": "Move to the most capable model so each summary needs fewer retries",
+        "explanation": "A larger model raises the cost per summary and does nothing about the request volume that triggers the 429s."
+      },
+      {
+        "id": "D",
+        "text": "Submit the transcripts through the Message Batches API and collect the results before morning",
+        "explanation": "Correct. Batch processing is asynchronous and lower-cost, and it suits work with an overnight deadline that nobody waits on in real time."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "https://platform.claude.com/docs/en/api/rate-limits"
+    ]
+  },
+  {
+    "id": "q-2.1-012",
+    "skillId": "2.1",
+    "difficulty": 2,
+    "stem": "A year after launch, a new engineer proposes moving a club's Claude integration from Amazon Bedrock to the first-party Claude API to use a newer feature. Nobody remembers why Bedrock was chosen, and the original architect has left. Which practice would have best prevented this uncertainty?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A decision record tracing the platform choice to its requirement, for example \"AWS billing required by procurement\"",
+        "explanation": "Correct. Tracing each design decision to the requirement behind it keeps the reason available after people leave, so the team can check whether the constraint still holds before changing course."
+      },
+      {
+        "id": "B",
+        "text": "Choosing the platform with the most features at the start, so later migrations are never needed",
+        "explanation": "Feature count was not the constraint. Without a record, a later team still can't tell which requirement the choice served."
+      },
+      {
+        "id": "C",
+        "text": "A longer onboarding period in which the architect explains the system to each new hire in person",
+        "explanation": "Knowledge held by one person is lost when that person leaves, which is exactly what happened here."
+      },
+      {
+        "id": "D",
+        "text": "Detailed code comments in the API client describing how each request is built",
+        "explanation": "Comments explain how the code works, not why the platform was chosen. The business constraint would still be undocumented."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model"
+    ]
   }
 ]

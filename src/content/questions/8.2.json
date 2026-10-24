@@ -215,5 +215,152 @@
     "sourceLinks": [
       "https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts"
     ]
+  },
+  {
+    "id": "q-8.2-007",
+    "skillId": "8.2",
+    "difficulty": 1,
+    "stem": "A team writes a small program that exposes depth-chart lookup tools over MCP. Claude Code launches it as a local subprocess over stdio. In a design review, someone describes Claude Code as \"our MCP server\". Which description of the roles is correct?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Claude Code is the server because it hosts the model, and the team's program is a client that feeds it data",
+        "explanation": "This reverses the roles. The side that exposes tools is the server; the AI application that uses them is the host."
+      },
+      {
+        "id": "B",
+        "text": "The program can't be an MCP server, because servers must run remotely and be reached over HTTP",
+        "explanation": "\"Server\" says nothing about location. A local subprocess talking over stdio is still an MCP server."
+      },
+      {
+        "id": "C",
+        "text": "Both are peers, so either can be called the server depending on which one sends the first message",
+        "explanation": "MCP roles are fixed by function, not by who speaks first. The host always creates the client; the server always provides capabilities."
+      },
+      {
+        "id": "D",
+        "text": "Claude Code is the host and creates a client for the connection; the team's program is the server",
+        "explanation": "Correct. The host is the AI application, it creates one MCP client per server, and the program that provides the tools is the server, wherever it runs."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://modelcontextprotocol.io/docs/learn/architecture"
+    ]
+  },
+  {
+    "id": "q-8.2-008",
+    "skillId": "8.2",
+    "difficulty": 2,
+    "stem": "A developer connected a play-by-play stats MCP server to Claude Code with `claude mcp add`, and it works for them. Teammates who clone the repository don't get the server. The team wants everyone on the project to get it automatically, while each person keeps their own API token. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Re-add the server with user scope so it is available in every project on every machine",
+        "explanation": "User scope is personal to one machine's user config. It isn't shared with teammates through the repository."
+      },
+      {
+        "id": "B",
+        "text": "Add it with project scope so it is written to a committed `.mcp.json` that references the token as an environment variable",
+        "explanation": "Correct. Project scope is shared through `.mcp.json` in the repo, and a variable reference keeps each person's token out of the committed file."
+      },
+      {
+        "id": "C",
+        "text": "Keep local scope and paste the server's command line into CLAUDE.md so teammates can copy it",
+        "explanation": "CLAUDE.md is context for Claude, not MCP configuration, so the server still isn't configured for anyone else."
+      },
+      {
+        "id": "D",
+        "text": "Commit the developer's own config file, token included, so the server works identically for everyone",
+        "explanation": "This publishes a personal secret to everyone with repo access and to Git history."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/mcp"
+    ]
+  },
+  {
+    "id": "q-8.2-009",
+    "skillId": "8.2",
+    "difficulty": 2,
+    "stem": "A local stdio MCP server needs a key for a commercial player-stats API. A developer plans to implement the MCP OAuth 2.1 authorization flow inside the server so Claude Code can authenticate it. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Implement the full OAuth 2.1 flow anyway, since every MCP server must use it",
+        "explanation": "The MCP authorization flow is for HTTP-based servers. The spec says stdio servers shouldn't use it."
+      },
+      {
+        "id": "B",
+        "text": "Have Claude pass the key as an argument on every tool call so the server never stores it",
+        "explanation": "This puts the secret into the model's context and tool inputs, where it can leak through output or logs."
+      },
+      {
+        "id": "C",
+        "text": "Read the key from an environment variable set in the server's launch configuration",
+        "explanation": "Correct. For stdio servers the spec recommends taking credentials from the environment, and the host can supply them when it starts the subprocess."
+      },
+      {
+        "id": "D",
+        "text": "Hard-code the key in the server source, since a local subprocess can't be reached from the network",
+        "explanation": "Not being reachable from the network doesn't protect source code. The key would end up in the repository and every copy of it."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://modelcontextprotocol.io/specification/latest/basic/authorization",
+      "https://code.claude.com/docs/en/mcp"
+    ]
+  },
+  {
+    "id": "q-8.2-010",
+    "skillId": "8.2",
+    "difficulty": 3,
+    "stem": "While developing a Streamable HTTP MCP server for a club's scouting notes, an engineer runs it on their laptop listening on `0.0.0.0` with no header checks. A reviewer warns that malicious web pages open in the engineer's browser could reach it. Which TWO changes best address this? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Bind the server to `127.0.0.1` instead of all network interfaces",
+        "explanation": "Correct. Listening only on localhost keeps other machines on the network from reaching the server."
+      },
+      {
+        "id": "B",
+        "text": "Switch to the legacy HTTP+SSE transport, which browsers can't reach",
+        "explanation": "The legacy transport is also HTTP and is deprecated. It doesn't add protection against browser requests."
+      },
+      {
+        "id": "C",
+        "text": "Skip authentication altogether, because a local server isn't exposed to the internet",
+        "explanation": "The reviewer's point is that a browser can reach local servers. Removing authentication makes that worse."
+      },
+      {
+        "id": "D",
+        "text": "Validate the `Origin` header on incoming connections and reject unexpected origins",
+        "explanation": "Correct. The transport spec requires Origin validation to stop web pages, for example through DNS rebinding, from talking to a local server."
+      },
+      {
+        "id": "E",
+        "text": "Log every request body to stdout so suspicious calls are easy to spot",
+        "explanation": "Logging doesn't block anything, and request bodies may contain sensitive scouting data."
+      }
+    ],
+    "correct": [
+      "A",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://modelcontextprotocol.io/specification/latest/basic/transports"
+    ]
   }
 ]

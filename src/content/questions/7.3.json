@@ -216,5 +216,146 @@
     "sourceLinks": [
       "https://code.claude.com/docs/en/hooks"
     ]
+  },
+  {
+    "id": "q-7.3-007",
+    "skillId": "7.3",
+    "difficulty": 1,
+    "stem": "A team wants Claude Code to see linter errors immediately after every file it edits, so it can fix them in the same turn. This must happen every time, without relying on Claude remembering to run the linter. Which hook fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A `PreToolUse` hook on `Edit|Write` that runs the linter on the target file just before each edit is applied",
+        "explanation": "Before the edit, the file still holds the old content, so linting it can't report problems in the change."
+      },
+      {
+        "id": "B",
+        "text": "A `SessionStart` hook that runs the linter once on the whole repository",
+        "explanation": "This runs once when the session begins, not after each edit, so new errors go unreported."
+      },
+      {
+        "id": "C",
+        "text": "A line in CLAUDE.md telling Claude to always run the linter after editing",
+        "explanation": "CLAUDE.md is a request Claude interprets. The requirement is that it happens every time, which needs a hook."
+      },
+      {
+        "id": "D",
+        "text": "A `PostToolUse` hook on `Edit|Write` that lints the edited file and returns errors to Claude",
+        "explanation": "Correct. `PostToolUse` runs after the tool, so it sees the new content and can feed the errors back to Claude. It can't undo the edit, but feedback is all that's needed here."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/hooks-guide"
+    ]
+  },
+  {
+    "id": "q-7.3-008",
+    "skillId": "7.3",
+    "difficulty": 2,
+    "stem": "Claude Code keeps declaring a roster-import fix \"done\" while the test suite is still failing. The team wants Claude to keep working until the tests pass, rather than ending its turn early. Which hook event best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A `Stop` hook that runs the tests and, if they fail, tells Claude to continue",
+        "explanation": "Correct. `Stop` fires when Claude is about to finish, and it can keep Claude working, for example until the tests pass."
+      },
+      {
+        "id": "B",
+        "text": "A `PreToolUse` hook on `Bash` that refuses every command except the test runner",
+        "explanation": "This would stop Claude from doing the work needed to fix the code, and it doesn't stop Claude from ending its turn."
+      },
+      {
+        "id": "C",
+        "text": "A `UserPromptSubmit` hook that appends \"make sure tests pass\" to each prompt",
+        "explanation": "This only adds a request to the prompt. Claude can still stop early, which is the problem described."
+      },
+      {
+        "id": "D",
+        "text": "A `PreCompact` hook that runs the tests before the conversation is summarized",
+        "explanation": "`PreCompact` fires before compaction, which is unrelated to when Claude ends its turn."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/hooks"
+    ]
+  },
+  {
+    "id": "q-7.3-009",
+    "skillId": "7.3",
+    "difficulty": 2,
+    "stem": "Analysts sometimes paste a scouting-database password into their Claude Code prompts by mistake. The security team wants such prompts stopped before Claude processes them, with a message telling the analyst why. Which hook fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A `PreToolUse` hook that scans every tool input for credential patterns and denies matches",
+        "explanation": "`PreToolUse` sees tool calls, not the prompt. By then Claude has already processed the pasted password."
+      },
+      {
+        "id": "B",
+        "text": "A `UserPromptSubmit` hook that detects credential patterns and blocks the prompt with a reason",
+        "explanation": "Correct. `UserPromptSubmit` runs when the prompt is submitted, before Claude processes it, and it can block the prompt."
+      },
+      {
+        "id": "C",
+        "text": "A `PostToolUse` hook that removes credentials from tool results after each call",
+        "explanation": "This acts after tools run and doesn't touch the prompt itself, so the password still reaches Claude."
+      },
+      {
+        "id": "D",
+        "text": "A CLAUDE.md rule telling Claude to ignore, and never repeat, any credentials that appear in user prompts",
+        "explanation": "Claude would still receive the password; an instruction to ignore it doesn't prevent the exposure."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/hooks"
+    ]
+  },
+  {
+    "id": "q-7.3-010",
+    "skillId": "7.3",
+    "difficulty": 3,
+    "stem": "A security team notes that a cloned repository's `.claude/settings.json`, or an installed plugin, can define hooks that run shell commands as the developer. They want only hooks they have reviewed and deployed centrally to run on company machines. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a settings deny rule for `Bash(*)` so no hook command can execute",
+        "explanation": "Permission rules govern Claude's tool calls, not hook commands. A blanket Bash deny would also break normal work."
+      },
+      {
+        "id": "B",
+        "text": "Ask every developer to read each repository's hook scripts before opening it in Claude Code",
+        "explanation": "Reviewing hooks is good practice, but a request to developers is not enforcement, and the team wants a guarantee."
+      },
+      {
+        "id": "C",
+        "text": "Deploy the reviewed hooks through managed settings and set `allowManagedHooksOnly`",
+        "explanation": "Correct. Managed settings can't be overridden, and restricting hooks to managed hooks blocks those defined by repositories, user settings or plugins."
+      },
+      {
+        "id": "D",
+        "text": "Start Claude Code in `plan` mode so hooks only run once a plan has been approved",
+        "explanation": "Permission modes control Claude's tool calls. They don't decide which sources may define hooks."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/hooks",
+      "https://code.claude.com/docs/en/settings"
+    ]
   }
 ]

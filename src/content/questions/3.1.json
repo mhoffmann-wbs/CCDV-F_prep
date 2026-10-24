@@ -328,5 +328,152 @@
       "https://code.claude.com/docs/en/memory",
       "https://code.claude.com/docs/en/sub-agents"
     ]
+  },
+  {
+    "id": "q-3.1-010",
+    "skillId": "3.1",
+    "difficulty": 1,
+    "stem": "A developer opens Claude Code for the first time in an existing scouting-database repository. They want every future session to know the build and test commands and the team's naming conventions, with as little manual writing as possible. Which first step best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run `/compact` at the end of each session so the conventions carry over to the next one",
+        "explanation": "`/compact` summarizes the current conversation. It does not carry knowledge into new sessions, which each start with a fresh context window."
+      },
+      {
+        "id": "B",
+        "text": "Run `/init` to draft a CLAUDE.md from the codebase, then trim it to the facts every session needs",
+        "explanation": "Correct. `/init` drafts the project CLAUDE.md, which loads at the start of every session. Trimming it keeps the per-session context cost low."
+      },
+      {
+        "id": "C",
+        "text": "Write the commands and conventions into a skill so they load only when someone types its name",
+        "explanation": "Facts needed in every session belong in CLAUDE.md. A skill's body loads only when invoked, so Claude would not know the build commands otherwise."
+      },
+      {
+        "id": "D",
+        "text": "Explain the conventions in chat once and rely on the conversation history for later sessions",
+        "explanation": "A new session does not see earlier conversations. Chat-only explanations have to be repeated every time."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/commands"
+    ]
+  },
+  {
+    "id": "q-3.1-011",
+    "skillId": "3.1",
+    "difficulty": 2,
+    "stem": "Over several weeks, a developer corrected Claude Code about how the team names play-by-play fixture files, and Claude now gets it right on their laptop. A colleague who cloned the same repository gets the old, wrong naming. What explains this, and which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The colleague's model is older; pinning the same model in both users' settings will share the learned behaviour",
+        "explanation": "Model choice doesn't explain it. The learned rule lives in memory files, not in the model."
+      },
+      {
+        "id": "B",
+        "text": "The colleague has auto memory disabled; turning it on with `/memory` will sync the developer's notes to them",
+        "explanation": "Turning on auto memory starts the colleague's own local notes. It does not copy another machine's memory."
+      },
+      {
+        "id": "C",
+        "text": "Auto memory is stored per machine under `~/.claude/`; put the naming rule in the committed project CLAUDE.md",
+        "explanation": "Correct. Auto memory is machine-local, so the corrections never left the developer's laptop. A team-wide convention belongs in the project CLAUDE.md, which is committed and shared."
+      },
+      {
+        "id": "D",
+        "text": "The colleague must resume the developer's old sessions with `claude --resume` to inherit the corrections",
+        "explanation": "Sessions are local too, and resuming a conversation is not a sharing mechanism for conventions."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/memory"
+    ]
+  },
+  {
+    "id": "q-3.1-012",
+    "skillId": "3.1",
+    "difficulty": 2,
+    "stem": "Twenty minutes into a refactor of a depth-chart module, a developer realises Claude has been heading in the wrong direction: several files were edited and the conversation is full of reasoning built on a bad assumption. They want both the code and the conversation back to how they were before the refactor began. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run `/clear` to start an empty conversation and continue from there",
+        "explanation": "`/clear` starts a fresh conversation but leaves the edited files as they are."
+      },
+      {
+        "id": "B",
+        "text": "Run `git checkout .` and keep going in the same conversation",
+        "explanation": "This restores the files but leaves the bad assumption in the conversation, so Claude is likely to repeat it."
+      },
+      {
+        "id": "C",
+        "text": "Run `/compact` with a note that the earlier approach was wrong",
+        "explanation": "`/compact` summarizes the conversation; it doesn't undo file edits, and the summary may still carry the bad reasoning."
+      },
+      {
+        "id": "D",
+        "text": "Run `/rewind` and restore both the code and the conversation to the checkpoint before the refactor",
+        "explanation": "Correct. `/rewind` can roll back the conversation, the code or both to an earlier checkpoint, which is exactly the stated need."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/commands"
+    ]
+  },
+  {
+    "id": "q-3.1-013",
+    "skillId": "3.1",
+    "difficulty": 3,
+    "stem": "A league's IT team manages all developer laptops. Policy says no developer may use Claude Code's auto mode, and Claude must never run `rm -rf` in any permission mode. Individual developers must not be able to override either rule. Which TWO measures best fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add \"never use auto mode and never run rm -rf\" to every repository's CLAUDE.md",
+        "explanation": "CLAUDE.md is guidance Claude reads, not enforcement, and it doesn't stop a developer from choosing auto mode."
+      },
+      {
+        "id": "B",
+        "text": "Set `disableAutoMode` in managed settings",
+        "explanation": "Correct. Managed settings sit above user and project settings and can't be overridden, and this key removes auto mode."
+      },
+      {
+        "id": "C",
+        "text": "Ask developers to start Claude Code with `bypassPermissions` so prompts never interrupt the policy",
+        "explanation": "Bypass mode removes approval prompts altogether, which weakens control rather than enforcing the policy."
+      },
+      {
+        "id": "D",
+        "text": "Put a deny rule for the command in each developer's user settings file",
+        "explanation": "A user-level file is under the developer's control, so the rule can be removed. The policy needs a level developers can't change."
+      },
+      {
+        "id": "E",
+        "text": "Add a deny rule for `Bash(rm -rf *)` in managed settings",
+        "explanation": "Correct. Deny rules apply in every permission mode, including bypass, and placing the rule in managed settings stops developers from removing it."
+      }
+    ],
+    "correct": [
+      "B",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/permission-modes",
+      "https://code.claude.com/docs/en/settings"
+    ]
   }
 ]

@@ -727,5 +727,181 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/build-with-claude/vision"
     ]
+  },
+  {
+    "id": "q-2.3-020",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A multi-club scouting app uploads each club's documents through the Files API with one company API key. To let analysts ask about a document, the front end sends its `file_id` to the back end, which passes it straight into the Messages request. A security review flags this. Which design best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep the design but make `file_id` values longer and harder to guess",
+        "explanation": "Obscure IDs can still leak or be shared, and the back end would still accept them from anyone."
+      },
+      {
+        "id": "B",
+        "text": "Upload every document again on each request instead of using the Files API",
+        "explanation": "This removes the benefit of uploading once and doesn't fix the missing access check."
+      },
+      {
+        "id": "C",
+        "text": "Map files to owners server-side and never accept a `file_id` from users",
+        "explanation": "Correct. Files are scoped to the workspace, not to an end user, so any valid ID works for any caller. The app must decide which files a user may reference."
+      },
+      {
+        "id": "D",
+        "text": "Ask Claude in the system prompt to refuse documents that belong to another club",
+        "explanation": "Claude can't see who owns a file, and a prompt is not access control. The check belongs in the back end."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/files"
+    ]
+  },
+  {
+    "id": "q-2.3-021",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "During a busy weekend, a few hundred requests in a 10,000-request Message Batches job come back with result type `expired`. Finance asks whether they were billed, and the analytics team needs every result. Which response best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "They were billed at the batch rate; switch the whole job to real-time calls to avoid paying for expired requests",
+        "explanation": "Expired requests aren't billed, and moving everything to real time would double the price of the work that did succeed."
+      },
+      {
+        "id": "B",
+        "text": "They weren't billed; resubmit just the expired requests, identified by `custom_id`, in a new batch",
+        "explanation": "Correct. Requests not processed within 24 hours expire without charge. Resubmitting only those, keyed by `custom_id`, completes the dataset at batch price."
+      },
+      {
+        "id": "C",
+        "text": "They weren't billed, but expired requests can't be retried, so the missing results are lost",
+        "explanation": "Nothing stops you sending the same requests again. Expiry just means they weren't processed in time."
+      },
+      {
+        "id": "D",
+        "text": "They were billed in full; ask support to refund them and wait for the batch to finish them later",
+        "explanation": "There is nothing to refund, and an expired request is never processed by that batch."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing"
+    ]
+  },
+  {
+    "id": "q-2.3-022",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A nightly job writes a scouting note for each of 1,500 players. A developer wants each request in a Message Batches job to call `get_stats` and `get_injuries` tools, read the results and then write the note. Which design best fits the Batch API?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add both tools to every batch request and let each request run its own tool loop to completion",
+        "explanation": "Batch requests are single-shot. A response that asks for a tool can't receive the result inside the batch."
+      },
+      {
+        "id": "B",
+        "text": "Stream each batch request so the tool calls are handled as they arrive",
+        "explanation": "Streaming isn't available inside a batch, and it wouldn't add a tool loop anyway."
+      },
+      {
+        "id": "C",
+        "text": "Use the real-time API for all 1,500 notes, since batches can't use any data",
+        "explanation": "Batches can use any data you include in the request. Giving up the batch discount isn't necessary."
+      },
+      {
+        "id": "D",
+        "text": "Fetch each player's stats and injuries first, then put that data in the batch request",
+        "explanation": "Correct. Gathering the data in code before submission turns each note into a single-shot request, which is what the Batch API processes at half price."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing"
+    ]
+  },
+  {
+    "id": "q-2.3-023",
+    "skillId": "2.3",
+    "difficulty": 1,
+    "stem": "A season-review generator uses a very large `max_tokens`, so the SDK requires streaming. The team doesn't show partial text to anyone; it only needs the finished message. Its hand-written code joins text deltas and occasionally breaks on `ping` events and multiple content blocks. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Turn streaming off and keep the large `max_tokens` with a longer client timeout",
+        "explanation": "Long non-streaming requests are what the SDK's streaming requirement is meant to prevent, and they risk HTTP timeouts."
+      },
+      {
+        "id": "B",
+        "text": "Keep streaming, but collect the result with the SDK's final-message helper",
+        "explanation": "Correct. The SDK's helper (`get_final_message()` in Python, `finalMessage()` in TypeScript) handles every event type and assembles the complete message, so the team keeps streaming's timeout protection without parsing events by hand."
+      },
+      {
+        "id": "C",
+        "text": "Filter out `ping` events and keep only the first content block in the custom assembler",
+        "explanation": "Dropping later blocks loses content, and this keeps the team maintaining event handling the SDK already provides."
+      },
+      {
+        "id": "D",
+        "text": "Lower `max_tokens` so the SDK no longer requires streaming",
+        "explanation": "The reviews would be truncated. The output length is a requirement, not something to cut for convenience."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-2.3-024",
+    "skillId": "2.3",
+    "difficulty": 3,
+    "stem": "A week-long rules-research agent keeps appending tool results to one conversation. Responses start ending early with `stop_reason: \"model_context_window_exceeded\"`. A developer proposes raising `max_tokens` to fix it. Which response best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Raise `max_tokens` as proposed, since the response was cut off before Claude finished",
+        "explanation": "`max_tokens` caps the output only. The limit being hit here is the total context, so a bigger cap can't help."
+      },
+      {
+        "id": "B",
+        "text": "Retry the same request, because the stop is a transient server-side condition",
+        "explanation": "The context will be just as full on the retry. The condition comes from the conversation's size."
+      },
+      {
+        "id": "C",
+        "text": "Shrink the context: clear stale tool results, compact, or use sub-agents",
+        "explanation": "Correct. This stop means generation reached the context window limit, so the fix is to send less context, not to allow more output."
+      },
+      {
+        "id": "D",
+        "text": "Treat the partial output as complete, since the agent had already gathered enough material",
+        "explanation": "The answer was cut off, so using it as complete silently ships unfinished work."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "https://platform.claude.com/docs/en/build-with-claude/context-windows"
+    ]
   }
 ]

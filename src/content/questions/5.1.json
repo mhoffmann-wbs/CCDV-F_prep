@@ -581,5 +581,148 @@
       "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
       "https://platform.claude.com/docs/en/about-claude/pricing"
     ]
+  },
+  {
+    "id": "q-5.1-017",
+    "skillId": "5.1",
+    "difficulty": 1,
+    "stem": "Users of a halftime-analysis feature complain that nothing appears on screen for about 20 seconds after they ask a question, although the full answer then arrives at once. The request is sent without streaming. A product manager proposes turning on fast mode. Which response best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Agree: fast mode raises output speed, so the first words will appear sooner",
+        "explanation": "Fast mode speeds up output throughput, not time to first token. Without streaming, users still wait for the complete answer."
+      },
+      {
+        "id": "B",
+        "text": "Switch to the largest model, which reasons faster on analysis questions",
+        "explanation": "A larger model doesn't show text sooner. Without streaming, the wait is for the whole response either way."
+      },
+      {
+        "id": "C",
+        "text": "Stream the response so text appears as soon as it is generated",
+        "explanation": "Correct. The complaint is about time to first visible text. Streaming shows output as it is produced, which is the lever for that."
+      },
+      {
+        "id": "D",
+        "text": "Raise `max_tokens` so the model has room to answer more quickly",
+        "explanation": "`max_tokens` is a ceiling on length. Raising it doesn't make anything appear sooner."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "https://platform.claude.com/docs/en/build-with-claude/fast-mode"
+    ]
+  },
+  {
+    "id": "q-5.1-018",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "A team moves a salary-cap analysis feature from Claude Opus 5 to Claude Opus 5.5 by changing only the model ID. The requests don't set effort. Answers to hard cap questions are now noticeably shallower, and output tokens per request have dropped. What is the most likely cause?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The newer model is less capable at numerical reasoning than the one it replaced",
+        "explanation": "This jumps to a capability conclusion without checking the request settings, which did change implicitly."
+      },
+      {
+        "id": "B",
+        "text": "Effort defaults differ by model and this one's is lower; set effort explicitly",
+        "explanation": "Correct. With effort unset, each model applies its own default. A lower default means less thinking and terser answers, so set the level explicitly and re-tune it with the evals."
+      },
+      {
+        "id": "C",
+        "text": "The prompt cache was invalidated by the model change, which makes answers shorter",
+        "explanation": "A cache miss affects cost and latency, not how deeply the model reasons."
+      },
+      {
+        "id": "D",
+        "text": "`max_tokens` is now too low because the new model needs more output tokens",
+        "explanation": "The answers aren't truncated. Output dropped, which points at how much the model chose to spend, not at a hard cap."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
+    ]
+  },
+  {
+    "id": "q-5.1-019",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "An assistant sends an 800,000-token archive of league rulings with every request, and the team has just enabled prompt caching on it. An engineer says caching will also free up most of the context window for longer conversations. Which statement is accurate?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "True: cached tokens are stored outside the window and no longer count toward it",
+        "explanation": "Cached content is still part of the request the model reads, so it still occupies the window."
+      },
+      {
+        "id": "B",
+        "text": "True, but only with the 1-hour cache TTL rather than the 5-minute one",
+        "explanation": "The TTL controls how long the cache entry lives. It doesn't change how much of the window the content uses."
+      },
+      {
+        "id": "C",
+        "text": "Partly true: half of the cached tokens count toward the window",
+        "explanation": "There is no partial counting. Every token in the request occupies the window."
+      },
+      {
+        "id": "D",
+        "text": "False: cached tokens still fill the window; caching changes price, not size",
+        "explanation": "Correct. Caching makes repeated input cheaper and faster to process, but the model still reads it, so it still uses context."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "https://platform.claude.com/docs/en/build-with-claude/context-windows"
+    ]
+  },
+  {
+    "id": "q-5.1-020",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "A ticket-support triage prompt lists three sample fan emails with their correct categories, pasted inline after the instructions. One sample says \"Please cancel my order and refund me.\" Claude sometimes responds as if it should cancel an order, instead of categorizing the real email. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Wrap each sample in `<example>` tags inside an `<examples>` block",
+        "explanation": "Correct. Structured, clearly marked examples keep Claude from mistaking sample content for instructions or for the email it must categorize."
+      },
+      {
+        "id": "B",
+        "text": "Remove all examples and rely on zero-shot instructions only",
+        "explanation": "This throws away a reliable way to pin down the output format to fix a formatting problem in the prompt."
+      },
+      {
+        "id": "C",
+        "text": "Add more examples in the same inline style so the pattern becomes clearer",
+        "explanation": "More unmarked examples add more text that can be confused with instructions."
+      },
+      {
+        "id": "D",
+        "text": "Put the examples in the system prompt so Claude treats them as authoritative",
+        "explanation": "Giving sample text operator authority makes it more likely to be read as instructions, not less."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview"
+    ]
   }
 ]

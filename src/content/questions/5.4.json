@@ -294,5 +294,147 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/manage-claude/usage-cost-api"
     ]
+  },
+  {
+    "id": "q-5.4-009",
+    "skillId": "5.4",
+    "difficulty": 1,
+    "stem": "A ticketing assistant caches its 12,000-token system prompt, but `cache_read_input_tokens` is zero on every request. The system prompt begins with the line `Current time: <timestamp>`, filled in per request so Claude knows the date. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add three more `cache_control` breakpoints inside the system prompt so some part of it gets cached",
+        "explanation": "The timestamp is at the very start, so every later breakpoint also sits after changed bytes. More breakpoints still produce no reads."
+      },
+      {
+        "id": "B",
+        "text": "Move the timestamp out of the cached prefix, for example into the user message after the breakpoint",
+        "explanation": "Correct. Caching is a prefix match, so any changing byte early in the prefix invalidates everything after it. Volatile content belongs after the last breakpoint."
+      },
+      {
+        "id": "C",
+        "text": "Switch to the 1-hour cache TTL so entries survive long enough to be read",
+        "explanation": "The entries never match in the first place. A longer TTL doesn't help a prefix that changes on every request."
+      },
+      {
+        "id": "D",
+        "text": "Round the timestamp to the nearest second so consecutive requests are more likely to match",
+        "explanation": "Requests seconds apart would still differ, so the prefix still changes almost every time."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-5.4-010",
+    "skillId": "5.4",
+    "difficulty": 2,
+    "stem": "A team's cost model for a game-strategy assistant multiplied the length of the visible answers by the output price. The real bill is about three times the forecast. The app uses adaptive thinking, and thinking is not displayed to users. What best explains the gap, and what should change?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Hidden thinking is free, so the gap must come from input; trim the system prompt",
+        "explanation": "Hiding thinking changes what is returned, not what is billed. The premise is wrong."
+      },
+      {
+        "id": "B",
+        "text": "Output is billed per character, not per token; recompute the forecast by character count",
+        "explanation": "Billing is per token. Switching to characters would make the model less accurate, not more."
+      },
+      {
+        "id": "C",
+        "text": "The pricing page must be out of date; ask the vendor to correct the invoice",
+        "explanation": "The invoice reflects real usage. The forecast left out a whole category of output tokens."
+      },
+      {
+        "id": "D",
+        "text": "Thinking tokens are billed as output even when hidden; model from `usage.output_tokens` and tune effort",
+        "explanation": "Correct. `output_tokens` includes thinking. Forecasting from logged usage captures it, and effort is the lever for how much the model spends."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/pricing",
+      "https://platform.claude.com/docs/en/build-with-claude/effort"
+    ]
+  },
+  {
+    "id": "q-5.4-011",
+    "skillId": "5.4",
+    "difficulty": 2,
+    "stem": "To cut costs on a weekly team-report generator, a developer lowers `max_tokens` from 8,000 to 1,000. Many reports now end mid-sentence, the pipeline retries them, and the total bill goes up. Which approach best fits the original goal?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Restore a safe `max_tokens`, then lower effort and tighten the output instructions",
+        "explanation": "Correct. `max_tokens` is a hard cap, so setting it too low causes truncation and paid retries. Effort and instructions reduce spend without cutting answers off, and cost per completed report shows the real effect."
+      },
+      {
+        "id": "B",
+        "text": "Keep the 1,000 cap and stitch truncated reports together across several follow-up requests",
+        "explanation": "Each follow-up resends the context and adds turns, so this is likely to cost more than one complete answer."
+      },
+      {
+        "id": "C",
+        "text": "Lower `max_tokens` further so truncated attempts waste fewer tokens before the retry",
+        "explanation": "More truncation means more retries. The waste grows rather than shrinks."
+      },
+      {
+        "id": "D",
+        "text": "Disable retries so truncated reports are delivered as they are",
+        "explanation": "This lowers the bill by shipping broken reports, which doesn't meet the feature's purpose."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "https://platform.claude.com/docs/en/about-claude/pricing"
+    ]
+  },
+  {
+    "id": "q-5.4-012",
+    "skillId": "5.4",
+    "difficulty": 2,
+    "stem": "A lightweight fan-trivia bot marks its 300-token system prompt with `cache_control`. Requests succeed with no errors, but `cache_creation_input_tokens` and `cache_read_input_tokens` are always zero. What is the most likely explanation?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Caching only works with the Message Batches API, not with real-time requests",
+        "explanation": "Prompt caching works on ordinary Messages requests. The batch API is a separate cost lever."
+      },
+      {
+        "id": "B",
+        "text": "The cache needs a warm-up period of about an hour before it starts serving reads",
+        "explanation": "There is no warm-up period. A cacheable prefix is written on the first request and can be read on the next."
+      },
+      {
+        "id": "C",
+        "text": "The prefix is below the model's minimum cacheable length, so it silently isn't cached",
+        "explanation": "Correct. Prefixes shorter than the model-dependent minimum don't cache, and the API raises no error, so zero cache fields are the only sign."
+      },
+      {
+        "id": "D",
+        "text": "`cache_control` is only accepted on user messages, so a system-prompt marker is ignored",
+        "explanation": "System prompt blocks can carry `cache_control`; it is a common place to put a breakpoint."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
   }
 ]

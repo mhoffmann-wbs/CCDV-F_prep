@@ -27,8 +27,12 @@
         "explanation": "Splitting results across messages is the wrong shape and teaches Claude to stop making parallel calls. Return them together."
       }
     ],
-    "correct": ["A"],
-    "sourceLinks": ["https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"]
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"
+    ]
   },
   {
     "id": "q-1.3-002",
@@ -58,8 +62,12 @@
         "explanation": "This throws away the conversation for a recoverable failure. Claude can often finish the task without that one call."
       }
     ],
-    "correct": ["B"],
-    "sourceLinks": ["https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"]
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"
+    ]
   },
   {
     "id": "q-1.3-003",
@@ -89,7 +97,9 @@
         "explanation": "This might hide the symptom by degrading the reports, and the loop would still misreport any truncation that happens."
       }
     ],
-    "correct": ["C"],
+    "correct": [
+      "C"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
       "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons"
@@ -123,7 +133,9 @@
         "explanation": "Correct. pause_turn means a long server-tool turn paused. Sending the conversation back, including the paused content, lets Claude resume."
       }
     ],
-    "correct": ["D"],
+    "correct": [
+      "D"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool"
@@ -157,8 +169,12 @@
         "explanation": "Resuming restores one conversation. It doesn't carry a fact into new conversations and drags the whole old transcript back in."
       }
     ],
-    "correct": ["A"],
-    "sourceLinks": ["https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool"]
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool"
+    ]
   },
   {
     "id": "q-1.3-006",
@@ -193,7 +209,10 @@
         "explanation": "The two are designed to work together. Claude gets a warning to save important information before results are cleared."
       }
     ],
-    "correct": ["A", "B"],
+    "correct": [
+      "A",
+      "B"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
       "https://platform.claude.com/docs/en/build-with-claude/context-editing"
@@ -227,8 +246,12 @@
         "explanation": "One call can't persist state across a crash or wait for a human. Those need an orchestration layer."
       }
     ],
-    "correct": ["B"],
-    "sourceLinks": ["https://docs.langchain.com/oss/python/langgraph/overview"]
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://docs.langchain.com/oss/python/langgraph/overview"
+    ]
   },
   {
     "id": "q-1.3-008",
@@ -258,8 +281,12 @@
         "explanation": "Regex parsing is brittle, and the team would rebuild validation, retries and injection by hand."
       }
     ],
-    "correct": ["C"],
-    "sourceLinks": ["https://pydantic.dev/docs/ai/overview/"]
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://pydantic.dev/docs/ai/overview/"
+    ]
   },
   {
     "id": "q-1.3-009",
@@ -289,7 +316,9 @@
         "explanation": "Correct. Strands describes itself as a model-driven approach, with built-in MCP, multi-agent patterns and first-class support for providers including Anthropic and Bedrock."
       }
     ],
-    "correct": ["D"],
+    "correct": [
+      "D"
+    ],
     "sourceLinks": [
       "https://strandsagents.com/",
       "https://github.com/strands-agents/harness-sdk"
@@ -323,7 +352,9 @@
         "explanation": "Memory is for durable facts across sessions, not for branching an in-progress conversation."
       }
     ],
-    "correct": ["A"],
+    "correct": [
+      "A"
+    ],
     "sourceLinks": [
       "https://code.claude.com/docs/en/agent-sdk/sessions",
       "https://code.claude.com/docs/en/agent-sdk/agent-loop"
@@ -357,7 +388,9 @@
         "explanation": "Hidden side channels make the loop hard to debug, and Claude doesn't see the findings in its context."
       }
     ],
-    "correct": ["B"],
+    "correct": [
+      "B"
+    ],
     "sourceLinks": [
       "https://www.anthropic.com/research/building-effective-agents",
       "https://code.claude.com/docs/en/agent-sdk/subagents"
@@ -391,8 +424,12 @@
         "explanation": "Tool results are tool_result content blocks in the user turn. The system prompt is for instructions."
       }
     ],
-    "correct": ["C"],
-    "sourceLinks": ["https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"]
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"
+    ]
   },
   {
     "id": "q-1.3-013",
@@ -422,7 +459,9 @@
         "explanation": "Correct. Memory persists state across restarts and sessions, while context editing or compaction keep the working window small. Long-running agents often use both."
       }
     ],
-    "correct": ["D"],
+    "correct": [
+      "D"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
       "https://www.anthropic.com/research/effective-harnesses-for-long-running-agents"
@@ -461,7 +500,10 @@
         "explanation": "Forcing tool_choice doesn't limit calls to one, and current models reject forced tool_choice anyway."
       }
     ],
-    "correct": ["A", "B"],
+    "correct": [
+      "A",
+      "B"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
       "https://code.claude.com/docs/en/agent-sdk/agent-loop"
@@ -500,10 +542,155 @@
         "explanation": "Tool design matters whatever runs the loop. A framework doesn't write good tool descriptions for you."
       }
     ],
-    "correct": ["A", "B"],
+    "correct": [
+      "A",
+      "B"
+    ],
     "sourceLinks": [
       "https://www.anthropic.com/research/building-effective-agents",
       "https://www.anthropic.com/research/writing-tools-for-agents"
+    ]
+  },
+  {
+    "id": "q-1.3-016",
+    "skillId": "1.3",
+    "difficulty": 1,
+    "stem": "A hand-written agent loop keeps calling Claude while `stop_reason` is `tool_use`. Now and then a research task gets stuck calling the same search tool more than 200 times, running up a large bill before anyone notices. Which safeguard belongs in the loop?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Remove the search tool so Claude can only answer from what it already knows",
+        "explanation": "This breaks the feature for every task to stop a rare runaway. The loop itself needs a limit."
+      },
+      {
+        "id": "B",
+        "text": "Add a system-prompt line asking Claude not to search more than necessary",
+        "explanation": "An instruction may reduce the problem, but it doesn't put a hard bound on turns or spend."
+      },
+      {
+        "id": "C",
+        "text": "Cap turns (and ideally spend), stopping with a clear status when the cap is hit",
+        "explanation": "Correct. A hard cap in code bounds the worst case whatever the model does, and a clear status lets the app report or escalate the unfinished task."
+      },
+      {
+        "id": "D",
+        "text": "Lower `max_tokens` so each turn in the loop costs less",
+        "explanation": "Cheaper turns don't stop an unbounded number of them, and a low cap can truncate useful responses."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "https://www.anthropic.com/engineering/building-effective-agents"
+    ]
+  },
+  {
+    "id": "q-1.3-017",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "A team built its scouting agent on an agent framework. The agent sometimes ignores a rule the team is sure it wrote, but the developers can't see the exact prompt and tool definitions the framework sends to Claude. Which response best follows Anthropic's guidance?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Inspect the raw requests and responses the framework produces, and learn how it builds them",
+        "explanation": "Correct. Anthropic's guidance is that if you use a framework, you must understand the underlying code. Seeing the real prompt is the first step to finding why the rule is lost."
+      },
+      {
+        "id": "B",
+        "text": "Repeat the rule in several places in the framework's configuration until the agent follows it",
+        "explanation": "Without seeing what is actually sent, this is guesswork and may make the prompt worse."
+      },
+      {
+        "id": "C",
+        "text": "Switch to a different framework with more built-in agent patterns",
+        "explanation": "More abstraction doesn't address the real problem, which is that the team can't see what Claude receives."
+      },
+      {
+        "id": "D",
+        "text": "Move to a larger model, which is better at following rules hidden deep in long prompts",
+        "explanation": "The rule may not be in the prompt at all. Changing models without looking at the request treats a symptom."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/engineering/building-effective-agents"
+    ]
+  },
+  {
+    "id": "q-1.3-018",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "A recap agent built with the Agent SDK must always use the league's approved team abbreviations. The rule is known in advance and never changes. A developer proposes storing it with the memory tool so the agent can \"remember\" it. Where should the rule live?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "In the memory tool's `/memories` directory, so Claude can choose to read it when needed",
+        "explanation": "The memory tool suits facts the agent learns over time. A fixed rule shouldn't depend on Claude deciding to look it up."
+      },
+      {
+        "id": "B",
+        "text": "In the first user message of each session, so it is close to the task",
+        "explanation": "A first message can be summarized away by compaction in long sessions, and it depends on every caller remembering to include it."
+      },
+      {
+        "id": "C",
+        "text": "In a database the recap tool queries whenever it writes a team name",
+        "explanation": "That's possible for the data itself, but the instruction to use the abbreviations still has to reach Claude every time."
+      },
+      {
+        "id": "D",
+        "text": "In the system prompt or CLAUDE.md, where stable rules are supplied with every request",
+        "explanation": "Correct. Rules that are known up front and always apply belong where they are loaded every time. Long-term memory is for what the agent learns."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
+      "https://code.claude.com/docs/en/memory"
+    ]
+  },
+  {
+    "id": "q-1.3-019",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "A parent agent has spent twenty turns with a GM discussing a trade for a backup quarterback named in the conversation. It then delegates to a sub-agent with the task \"check his injury history\". The sub-agent reports on the wrong player. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Give the sub-agent read access to the parent's full message history",
+        "explanation": "This defeats the purpose of a sub-agent, which is to work in a small, separate context."
+      },
+      {
+        "id": "B",
+        "text": "Send a self-contained task naming the player, his ID and what the GM needs to know",
+        "explanation": "Correct. A sub-agent has its own history and sees only what it is sent. The delegation must carry everything needed to do the task."
+      },
+      {
+        "id": "C",
+        "text": "Switch the sub-agent to a more capable model so it can infer which player is meant",
+        "explanation": "No model can recover information it was never given. The brief itself is incomplete."
+      },
+      {
+        "id": "D",
+        "text": "Stop using sub-agents and have the parent read all injury reports itself",
+        "explanation": "This gives up the context isolation sub-agents provide, when the actual fix is a better brief."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/engineering/building-effective-agents"
     ]
   }
 ]

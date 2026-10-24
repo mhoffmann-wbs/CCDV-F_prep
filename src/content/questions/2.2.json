@@ -292,5 +292,153 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
     ]
+  },
+  {
+    "id": "q-2.2-009",
+    "skillId": "2.2",
+    "difficulty": 1,
+    "stem": "A ticket-triage assistant built on Claude has been live for a month. Each week the team reviews thumbs-down feedback, turns the worst cases into new eval items, and ships a revised prompt once it passes the updated eval set. Which life-cycle phases does this weekly loop connect?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Plan and design, because every prompt revision is effectively a new project with its own requirements",
+        "explanation": "Revising a live system against its existing success criteria is not a new project. Treating it as one adds sign-off overhead without changing what the team learns."
+      },
+      {
+        "id": "B",
+        "text": "Build and retire, because each new prompt version replaces and retires the one before it",
+        "explanation": "Replacing a prompt version is a routine change, not retirement. Retire means decommissioning the whole system: revoking keys, archiving and deleting data."
+      },
+      {
+        "id": "C",
+        "text": "Requirements and deploy, since feedback is a form of requirement and the prompt is redeployed",
+        "explanation": "Feedback can refine requirements, but the loop described is driven by a live system's behaviour, which is what the operate and maintain phases cover."
+      },
+      {
+        "id": "D",
+        "text": "Operate and maintain: production signals feed fixes that are re-evaluated before release",
+        "explanation": "Correct. Watching live behaviour is operating the system; turning failures into eval cases and verified fixes is maintaining it. Launch is not the end of the life cycle."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.2-010",
+    "skillId": "2.2",
+    "difficulty": 2,
+    "stem": "A team is setting up the operate-phase dashboard for a live Claude-based injury-report summarizer. Which set of signals best supports operating the system day to day?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Monthly total token spend, checked against the budget at the end of each billing period",
+        "explanation": "Spend matters, but a monthly total arrives too late to catch an outage or a quality drop, and it says nothing about errors or output quality."
+      },
+      {
+        "id": "B",
+        "text": "Commits per week to the prompt repository and the unit-test coverage of the wrapper code",
+        "explanation": "These describe the development process, not how the running system behaves for users."
+      },
+      {
+        "id": "C",
+        "text": "Latency, error rates such as 429 and 529, stop reasons, cost per request and sampled quality scores",
+        "explanation": "Correct. Together these show availability, capacity, refusals or truncation, spend and output quality, which is what operating a live LLM feature requires."
+      },
+      {
+        "id": "D",
+        "text": "The model's published benchmark results, re-read every quarter to confirm the model is still strong",
+        "explanation": "Public benchmarks don't change with your traffic and don't measure your task. They can't tell you whether your system is healthy today."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors",
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.2-011",
+    "skillId": "2.2",
+    "difficulty": 2,
+    "stem": "Two hours after a prompt update ships, a fantasy-football bot starts recommending injured players. The previous prompt version is still tagged in the repository. Which TWO actions best fit a sound life-cycle response? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Roll back to the previous prompt version now, then investigate the regression offline",
+        "explanation": "Correct. Restoring a known-good version stops the user impact first; diagnosis can then happen without pressure."
+      },
+      {
+        "id": "B",
+        "text": "Hotfix the live prompt directly in production and keep adjusting it until complaints stop",
+        "explanation": "Untested edits in production can create new regressions and leave no reviewed version to roll back to."
+      },
+      {
+        "id": "C",
+        "text": "Add the failing injured-player cases to the eval set so the fix and future changes are tested against them",
+        "explanation": "Correct. Turning a production failure into a permanent eval case closes the loop between operate and maintain and prevents the same regression from shipping again."
+      },
+      {
+        "id": "D",
+        "text": "Switch to a larger model at the same time, since a stronger model should avoid this kind of mistake",
+        "explanation": "Changing the model during an incident adds a second variable, makes the cause harder to find and may bring new behaviour of its own."
+      },
+      {
+        "id": "E",
+        "text": "Leave the new version running and wait for a week of data before deciding whether it is a real problem",
+        "explanation": "A clear, user-visible regression with a ready rollback target should be reverted now, not observed."
+      }
+    ],
+    "correct": [
+      "A",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.2-012",
+    "skillId": "2.2",
+    "difficulty": 3,
+    "stem": "A sportsbook compliance team must approve any change to its Claude-based bet-slip explainer. The team wants evidence of how a candidate replacement model behaves on real production inputs before any customer sees its output. Offline evals have already passed. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run the candidate in shadow mode: send it a copy of live requests, log and compare its outputs, and show customers only the current model's answers",
+        "explanation": "Correct. Shadow traffic produces evidence on real inputs with zero customer exposure, which is exactly the constraint the compliance team set."
+      },
+      {
+        "id": "B",
+        "text": "Canary the candidate to 5% of customers and compare complaint rates between the two groups",
+        "explanation": "A canary is a good rollout step, but it shows the new model's output to real customers, which the stated constraint rules out."
+      },
+      {
+        "id": "C",
+        "text": "Re-run the offline eval set several more times with different random seeds",
+        "explanation": "Repeating the same offline set adds no information about real production inputs, which is what the team asked for."
+      },
+      {
+        "id": "D",
+        "text": "Switch all traffic over at night when volume is low and switch back if anything looks wrong",
+        "explanation": "Low traffic still means real customers see unapproved output, and night-time volume is too small to be representative."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
+    ]
   }
 ]

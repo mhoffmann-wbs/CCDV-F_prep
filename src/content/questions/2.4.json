@@ -803,5 +803,111 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/api/errors"
     ]
+  },
+  {
+    "id": "q-2.4-023",
+    "skillId": "2.4",
+    "difficulty": 1,
+    "stem": "A developer adds a line `// allow test runner` above a new permission rule in the repository's `.claude/settings.json`. Afterwards, none of the project's settings seem to take effect. What is the most likely cause?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Permission rules must be listed in alphabetical order, and the new rule is out of place",
+        "explanation": "Rule order isn't a JSON validity requirement. The file breaks for a more basic reason."
+      },
+      {
+        "id": "B",
+        "text": "JSON doesn't allow comments, so the file no longer parses as valid JSON",
+        "explanation": "Correct. JSON has no comment syntax (and no trailing commas). A single `//` line makes the whole file invalid, so none of its settings load."
+      },
+      {
+        "id": "C",
+        "text": "Project settings only load after `claude --resume`, so the session must be resumed",
+        "explanation": "Settings load at session start. Resuming doesn't repair an unparseable file."
+      },
+      {
+        "id": "D",
+        "text": "Comments are allowed, but only in `settings.local.json`, not in the shared file",
+        "explanation": "Both files are JSON. Neither accepts comments."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/settings"
+    ]
+  },
+  {
+    "id": "q-2.4-024",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A preseason job generated 5,000 player blurbs one at a time and took hours. A developer rewrote it to start all 5,000 requests at once with `Promise.all`. Now most requests fail with 429 `rate_limit_error` within seconds. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Go back to awaiting each request one at a time, which never hits the limit",
+        "explanation": "This avoids 429s but returns to the hours-long run the rewrite was meant to fix."
+      },
+      {
+        "id": "B",
+        "text": "Wrap `Promise.all` in a loop that restarts the whole job whenever any request fails",
+        "explanation": "Restarting repeats successful work and fires the same burst again."
+      },
+      {
+        "id": "C",
+        "text": "Raise the SDK's `max_retries` to 20 so the client keeps retrying until the limit clears",
+        "explanation": "Thousands of clients retrying at once keep the rate limit saturated. The burst itself is the problem."
+      },
+      {
+        "id": "D",
+        "text": "Run requests concurrently but cap how many are in flight at once",
+        "explanation": "Correct. Bounded concurrency keeps most of the speedup while staying under the rate limit, so requests succeed instead of failing together."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/rate-limits"
+    ]
+  },
+  {
+    "id": "q-2.4-025",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A pull request written with Claude Code says \"All tests pass and the edge cases are handled.\" The reviewer has limited time and must decide how much to trust this summary. Which review practice best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Accept the summary, since Claude generated both the code and the tests together",
+        "explanation": "A claim isn't evidence, and tests written alongside the code can share its blind spots."
+      },
+      {
+        "id": "B",
+        "text": "Reject AI-written pull requests until a human rewrites the change by hand",
+        "explanation": "This discards useful work. AI-written code needs the same review standard as anyone else's, not a ban."
+      },
+      {
+        "id": "C",
+        "text": "Ask for evidence, such as CI results or test output, and review the diff",
+        "explanation": "Correct. Review AI-written changes like a new teammate's: check verifiable evidence, then review correctness, edge cases and fit."
+      },
+      {
+        "id": "D",
+        "text": "Ask Claude in the same session to confirm again that all tests pass",
+        "explanation": "A second claim from the same source is still a claim, not verification."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/common-workflows",
+      "https://code.claude.com/docs/en/code-review-local"
+    ]
   }
 ]

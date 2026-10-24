@@ -293,5 +293,147 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
     ]
+  },
+  {
+    "id": "q-6.3-009",
+    "skillId": "6.3",
+    "difficulty": 2,
+    "stem": "A rules-desk tool sends the league rulebook as a document with `citations: {enabled: true}` and also sets `output_config.format` so the answer comes back as JSON. Every request now fails with a 400. Officials need both a cited answer and machine-readable fields. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Switch from `output_config.format` to the older `output_format` parameter, which works with citations",
+        "explanation": "`output_format` is deprecated and is still structured outputs, so it doesn't remove the conflict."
+      },
+      {
+        "id": "B",
+        "text": "Get the cited answer first, then turn it into JSON in a separate structured-output call",
+        "explanation": "Correct. Citations and structured outputs can't be combined in one request. Splitting the work keeps the citations and still produces validated JSON."
+      },
+      {
+        "id": "C",
+        "text": "Keep both features and retry the request, since the 400 is a temporary validation error",
+        "explanation": "A 400 fails the same way every time. The two features are incompatible, so retrying can't succeed."
+      },
+      {
+        "id": "D",
+        "text": "Drop citations and ask Claude to paste rulebook passages into a JSON field instead",
+        "explanation": "Pasted quotes aren't verified citations, so officials lose the guarantee that the cited text really comes from the document."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "https://platform.claude.com/docs/en/build-with-claude/citations"
+    ]
+  },
+  {
+    "id": "q-6.3-010",
+    "skillId": "6.3",
+    "difficulty": 1,
+    "stem": "An agent's `update_depth_chart` tool sometimes receives calls with a missing `player_id` or with extra fields the handler doesn't expect, and the handler crashes. The team wants the tool arguments to match the schema every time. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Repeat the parameter list in the tool description in capital letters",
+        "explanation": "Stronger wording may help, but it's still a request. It doesn't guarantee that the arguments match the schema."
+      },
+      {
+        "id": "B",
+        "text": "Wrap the handler in a try/except and silently skip calls that crash",
+        "explanation": "This hides the failures and drops depth-chart updates without telling anyone."
+      },
+      {
+        "id": "C",
+        "text": "Ask Claude for the arguments as free text and parse them with a regular expression instead",
+        "explanation": "Free text is less constrained than a tool schema, so this makes mismatches more likely."
+      },
+      {
+        "id": "D",
+        "text": "Set `strict: true` on the tool, with `required` and `additionalProperties: false`",
+        "explanation": "Correct. Strict tool use constrains the tool input to the schema, so required fields are present and unexpected ones are excluded."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use"
+    ]
+  },
+  {
+    "id": "q-6.3-011",
+    "skillId": "6.3",
+    "difficulty": 2,
+    "stem": "A roster bot decides which team a tool call refers to by checking whether the serialized tool input string contains `\"team\":\"KC\"`. After a model upgrade, the check starts missing calls that clearly target that team, although the tool inputs look correct when logged. What is the most robust fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add more string patterns that cover spaces and different quote styles",
+        "explanation": "This chases one serialization detail after another. The next change in escaping breaks it again."
+      },
+      {
+        "id": "B",
+        "text": "Pin the old model permanently so the input string keeps its previous format",
+        "explanation": "This postpones the problem until that model is retired and blocks every other upgrade."
+      },
+      {
+        "id": "C",
+        "text": "Parse the tool input as JSON and compare the `team` field's value",
+        "explanation": "Correct. Different models can escape JSON strings differently. Parsing the input and reading the field is independent of serialization details."
+      },
+      {
+        "id": "D",
+        "text": "Ask Claude in the system prompt to always format tool inputs without spaces",
+        "explanation": "This depends on the model's formatting habits instead of fixing a fragile parser."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"
+    ]
+  },
+  {
+    "id": "q-6.3-012",
+    "skillId": "6.3",
+    "difficulty": 2,
+    "stem": "A replay-review assistant asks Claude to put its ruling inside `<verdict>` tags, and the parser requires the entire response to match `^<verdict>(.*)</verdict>$`. Parsing fails whenever Claude adds a short sentence before the tags, although the verdict itself is correct. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Extract the `<verdict>` content wherever it appears, ignoring surrounding text",
+        "explanation": "Correct. Tag-based extraction should find the tagged part and ignore surrounding text. If an exact shape is truly required, structured outputs is the stronger tool."
+      },
+      {
+        "id": "B",
+        "text": "Retry the request until the response contains nothing but the tags",
+        "explanation": "Retrying discards correct verdicts and adds cost and latency to fix a parser problem."
+      },
+      {
+        "id": "C",
+        "text": "Prefill the assistant turn with `<verdict>` so Claude can't write anything before it",
+        "explanation": "Assistant prefill is rejected on current models, so this request would fail with a 400."
+      },
+      {
+        "id": "D",
+        "text": "Treat any response that fails the match as an \"inconclusive\" ruling",
+        "explanation": "This turns correct verdicts into wrong outcomes just because of extra text."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
+    ]
   }
 ]

@@ -294,5 +294,154 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/models/overview"
     ]
+  },
+  {
+    "id": "q-5.3-009",
+    "skillId": "5.3",
+    "difficulty": 2,
+    "stem": "A league's research agent runs for hours, synthesizing years of rule changes and injury data into policy proposals. On the team's eval set, an Opus-tier model at high effort still misses key interactions between rules. Latency doesn't matter, and the budget allows a higher per-token price if quality improves. Which next step best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move to a Haiku-tier model and run it several times, keeping the most common answer",
+        "explanation": "Repeating a less capable model doesn't close a reasoning gap that a stronger tier already shows."
+      },
+      {
+        "id": "B",
+        "text": "Evaluate the Fable tier on the same eval set and adopt it if it closes the gap",
+        "explanation": "Correct. Fable is the most capable widely released tier, meant for long agent sessions and deep research when Opus at high effort still falls short. Latency and price are explicitly acceptable here."
+      },
+      {
+        "id": "C",
+        "text": "Lower Opus's effort so it completes more research passes in the same time",
+        "explanation": "Lower effort trades quality for speed and cost, which is the opposite of what this team needs."
+      },
+      {
+        "id": "D",
+        "text": "Keep the current setup and add more instructions telling Claude to consider rule interactions",
+        "explanation": "Prompt work is worth trying, but the scenario says the eval gap persists at high effort and the budget allows a stronger tier. Measuring that tier is the direct test."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model"
+    ]
+  },
+  {
+    "id": "q-5.3-010",
+    "skillId": "5.3",
+    "difficulty": 2,
+    "stem": "After moving a playbook-summary feature from Claude Opus 4.6 to a newer Opus release, the team notices that `usage.input_tokens` is higher for identical prompts, a few summaries now stop with `max_tokens`, and the monthly cost forecast is off. The prompts haven't changed. What best explains this, and what should they do?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The newer model writes longer summaries; add \"be concise\" to the prompt and keep the old limits",
+        "explanation": "This doesn't explain why input tokens rose for identical prompts, which points at how text is counted, not at output style."
+      },
+      {
+        "id": "B",
+        "text": "The usage numbers are wrong during the rollout; wait a billing cycle for them to settle",
+        "explanation": "Usage reflects how the request was tokenized. Waiting leaves the truncation and the bad forecast in place."
+      },
+      {
+        "id": "C",
+        "text": "Prompt caching broke during the migration; add more cache breakpoints to bring token counts down",
+        "explanation": "Caching changes how input is billed, not how many input tokens the text contains, and it doesn't affect output truncation."
+      },
+      {
+        "id": "D",
+        "text": "A new tokenizer counts the same text as more tokens; recount and fix limits and estimates",
+        "explanation": "Correct. The same text can produce more tokens under a newer tokenizer, so limits and estimates tuned for the old model need re-baselining."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide",
+      "https://platform.claude.com/docs/en/build-with-claude/token-counting"
+    ]
+  },
+  {
+    "id": "q-5.3-011",
+    "skillId": "5.3",
+    "difficulty": 3,
+    "stem": "A stats-extraction service forces a tool call with `tool_choice: {\"type\": \"tool\", \"name\": \"record_stats\"}`, purely to get JSON back. After an upgrade to Claude Opus 5.5, every request fails with a 400 saying this `tool_choice` type isn't supported for the model. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Switch to `tool_choice: {\"type\": \"any\"}`, which still guarantees that some tool gets called",
+        "explanation": "`any` is also a forced choice, and it is rejected on this model as well."
+      },
+      {
+        "id": "B",
+        "text": "End the messages with an assistant turn starting with `{` so Claude continues the JSON",
+        "explanation": "Assistant prefill is rejected on current models too, so this trades one 400 for another."
+      },
+      {
+        "id": "C",
+        "text": "Use structured outputs, or `auto` with a `strict` tool plus an instruction to call it",
+        "explanation": "Correct. Structured outputs suits a call that only existed to get JSON. Otherwise `auto` plus `strict: true` keeps arguments schema-valid while the prompt steers Claude to call the tool."
+      },
+      {
+        "id": "D",
+        "text": "Pin the service to the previous model indefinitely so the request shape never has to change",
+        "explanation": "This postpones the change until that model is retired, and the service then fails with no time to migrate."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide",
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-5.3-012",
+    "skillId": "5.3",
+    "difficulty": 2,
+    "stem": "A team proposes an Opus-tier orchestrator that hands the reading of 200 game logs to Haiku-tier worker sub-agents, to cut cost compared with running everything on Opus. Each worker receives the same long league-rules preamble. Which TWO considerations should shape the decision? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Compare cost per completed task against the simpler option of one model at a lower effort level",
+        "explanation": "Correct. A single capable model at lower effort is often competitive, and only measuring whole tasks shows which design really costs less."
+      },
+      {
+        "id": "B",
+        "text": "Skip measurement, since a Haiku-tier worker is always cheaper overall than an Opus-tier one",
+        "explanation": "Per-token price isn't per-task cost. Retries, extra turns and orchestration overhead can erase the difference."
+      },
+      {
+        "id": "C",
+        "text": "The workers can reuse the orchestrator's cached copy of the preamble, so the preamble is nearly free",
+        "explanation": "Caches are scoped to a model, so a cache written by the Opus orchestrator doesn't serve Haiku workers."
+      },
+      {
+        "id": "D",
+        "text": "Prompt caches are model-scoped, so the preamble is cached separately for the worker model",
+        "explanation": "Correct. Each model keeps its own cache. The design must account for writing and reading the preamble under the worker model."
+      },
+      {
+        "id": "E",
+        "text": "Use a Fable-tier model for the workers so they never need the orchestrator to check their output",
+        "explanation": "This raises cost on the highest-volume part of the system, the opposite of the stated goal."
+      }
+    ],
+    "correct": [
+      "A",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
   }
 ]

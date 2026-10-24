@@ -293,5 +293,152 @@
       "https://platform.claude.com/docs/en/api/errors",
       "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
     ]
+  },
+  {
+    "id": "q-4.1-009",
+    "skillId": "4.1",
+    "difficulty": 1,
+    "stem": "A season-preview generator asks Claude for a long JSON document. About one request in ten fails to parse, always because the JSON ends abruptly. The logs show HTTP 200 and `stop_reason: \"max_tokens\"` for exactly those requests. What should the team do?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add \"always return complete, valid JSON\" to the system prompt and keep parsing as before",
+        "explanation": "The output wasn't malformed by choice. Claude was cut off at the token limit, which no instruction can override."
+      },
+      {
+        "id": "B",
+        "text": "Raise `max_tokens` (streaming if it gets large) and check `stop_reason` before parsing",
+        "explanation": "Correct. `max_tokens` means the output was truncated. Give it room, and treat a truncated response as incomplete instead of parsing it."
+      },
+      {
+        "id": "C",
+        "text": "Retry each failed request until the JSON parses, since the failures look random",
+        "explanation": "With the same limit, the same long documents hit the same cap. Retrying wastes calls on a deterministic cause."
+      },
+      {
+        "id": "D",
+        "text": "Repair the JSON by closing any open brackets and quotes before parsing it",
+        "explanation": "This hides missing content. The previews would silently lose whatever Claude never got to write."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons"
+    ]
+  },
+  {
+    "id": "q-4.1-010",
+    "skillId": "4.1",
+    "difficulty": 2,
+    "stem": "A stats service wraps every Claude call in `try/except Exception` and retries anything that fails five more times with a fixed one-second delay. Invalid requests take minutes to surface as errors, and during overload spikes the service floods the API. The service uses the official Python SDK with default settings. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Catch the SDK's typed errors, most specific first; fail fast on 4xx and let the SDK's built-in backoff retry 429s and 5xx",
+        "explanation": "Correct. The SDK already retries connection errors, 429 and 5xx with exponential backoff, so the extra loop multiplies the retries. A 400 fails the same way every time and should surface at once."
+      },
+      {
+        "id": "B",
+        "text": "Keep the broad catch but raise the delay to ten seconds so retries spread out further",
+        "explanation": "Invalid requests would then take even longer to surface, and a fixed delay still isn't backoff."
+      },
+      {
+        "id": "C",
+        "text": "Match the error message text for words like \"overloaded\" or \"rate\" and retry only those",
+        "explanation": "Message text isn't a stable interface. The SDK raises typed exceptions so callers don't have to string-match."
+      },
+      {
+        "id": "D",
+        "text": "Set the SDK's `max_retries` to 0 and keep the custom five-retry loop as the only retry layer",
+        "explanation": "This still retries 400s and still uses a fixed delay, so neither problem goes away."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  },
+  {
+    "id": "q-4.1-011",
+    "skillId": "4.1",
+    "difficulty": 2,
+    "stem": "A research assistant uses Anthropic's server-side web search tool to compile opponent tendencies. On long research questions, users sometimes see a half-finished answer. The trace shows HTTP 200 with `stop_reason: \"pause_turn\"`, and the harness treats every 200 as a final answer. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Raise `max_tokens`, because `pause_turn` means the output was truncated",
+        "explanation": "Truncation is reported as `max_tokens`. `pause_turn` is a different signal: the server-tool loop paused."
+      },
+      {
+        "id": "B",
+        "text": "Treat `pause_turn` as an error and retry the original request from the start",
+        "explanation": "Starting over discards the work already done and may pause again at the same point."
+      },
+      {
+        "id": "C",
+        "text": "Remove the web search tool, since it makes responses incomplete",
+        "explanation": "The tool works as designed. The harness just isn't handling one of its stop reasons."
+      },
+      {
+        "id": "D",
+        "text": "On `pause_turn`, send the conversation back with the paused assistant turn so Claude resumes",
+        "explanation": "Correct. `pause_turn` means a long server-tool turn was paused; sending the turn back lets Claude continue where it stopped."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons"
+    ]
+  },
+  {
+    "id": "q-4.1-012",
+    "skillId": "4.1",
+    "difficulty": 2,
+    "stem": "A player-safety analysis app occasionally gets HTTP 200 responses with `stop_reason: \"refusal\"`. The current code ignores `stop_reason` and shows whatever text is in `content`, so users sometimes see an empty or partial answer. Which TWO changes best fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Retry the same request in a loop until a response comes back without a refusal",
+        "explanation": "A safety decline isn't a transient error. Retrying blindly wastes calls and is likely to be declined again."
+      },
+      {
+        "id": "B",
+        "text": "Raise the SDK's `max_retries` so the client retries refusals automatically",
+        "explanation": "The SDK retries failed HTTP calls such as 429 and 5xx. A refusal arrives as a successful 200, so client retries never apply."
+      },
+      {
+        "id": "C",
+        "text": "Check `stop_reason` before reading `content`, and show a clear message on the refusal path",
+        "explanation": "Correct. A 200 isn't necessarily a usable answer. Branching on `stop_reason` keeps refused output away from users."
+      },
+      {
+        "id": "D",
+        "text": "Treat refusals as a model bug and switch to a smaller model, which declines less often",
+        "explanation": "Swapping models without understanding why requests were declined is guesswork, and it may hurt quality elsewhere."
+      },
+      {
+        "id": "E",
+        "text": "Log `stop_details` (its category and explanation) with the request ID for review",
+        "explanation": "Correct. `stop_details` says why the request was declined, which is what the team needs to decide whether to change the prompt or the feature."
+      }
+    ],
+    "correct": [
+      "C",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
   }
 ]

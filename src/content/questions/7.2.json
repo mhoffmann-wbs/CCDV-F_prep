@@ -258,5 +258,111 @@
       "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
       "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/"
     ]
+  },
+  {
+    "id": "q-7.2-008",
+    "skillId": "7.2",
+    "difficulty": 1,
+    "stem": "A club's marketing agent can draft and send emails to all 60,000 season-ticket holders. A drafting mistake would reach every fan and can't be recalled. The team still wants the agent to do the drafting. Which guardrail best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Require a human to approve each bulk send before the tool executes it",
+        "explanation": "Correct. Irreversible, high-impact actions call for human approval. The agent keeps the drafting work, and a person confirms the one step that can't be undone."
+      },
+      {
+        "id": "B",
+        "text": "Tell the agent in its system prompt to double-check every email carefully before sending it",
+        "explanation": "A prompt instruction is advisory. It reduces mistakes but doesn't stop one from reaching every fan."
+      },
+      {
+        "id": "C",
+        "text": "Log every email the agent sends so the team can review them each Monday morning",
+        "explanation": "A weekly review finds the problem after 60,000 fans have already received the email."
+      },
+      {
+        "id": "D",
+        "text": "Switch to a larger model, which makes fewer drafting mistakes on long emails",
+        "explanation": "A stronger model lowers the error rate but still allows an unrecallable mistake through with no check."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/secure-deployment"
+    ]
+  },
+  {
+    "id": "q-7.2-009",
+    "skillId": "7.2",
+    "difficulty": 2,
+    "stem": "A scouting agent reads public web pages and runs Python on a club's private draft board. The security team worries that instructions hidden in a web page could make the agent send the draft board to an attacker's server. Input screening is already in place. Which additional layer best limits the damage if an injection gets through?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a sentence to the system prompt forbidding the agent from uploading data anywhere",
+        "explanation": "A successful injection is exactly the case where the model may not follow its instructions, so this layer fails in the same way as the one it backs up."
+      },
+      {
+        "id": "B",
+        "text": "Run the agent in a sandboxed container whose network egress is limited to an allowlist of needed domains",
+        "explanation": "Correct. An infrastructure control fails differently from prompt-level defences: even a fully hijacked agent can't reach a server outside the allowlist."
+      },
+      {
+        "id": "C",
+        "text": "Use a second, more capable model to rephrase every web page before the agent reads it",
+        "explanation": "Rephrasing may weaken some injections, but it is another model-level defence and doesn't stop data leaving the network."
+      },
+      {
+        "id": "D",
+        "text": "Review the agent's logs at the end of each week for any unusual outbound requests",
+        "explanation": "Monitoring helps detect incidents, but a weekly review comes long after the draft board has leaked."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks"
+    ]
+  },
+  {
+    "id": "q-7.2-010",
+    "skillId": "7.2",
+    "difficulty": 3,
+    "stem": "A SaaS vendor hosts one Claude-based assistant for 30 football clubs. Every club's private scouting reports sit in a shared vector store. A club must never see another club's reports, even if a user asks cleverly. Which design best enforces this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Put each user's club name in the system prompt and instruct Claude to quote only that club's reports",
+        "explanation": "Other clubs' reports would still be retrieved into context, and a prompt instruction can be talked around."
+      },
+      {
+        "id": "B",
+        "text": "Run an output filter that removes any other club's name from responses before display",
+        "explanation": "Filters miss paraphrases, and the data has already reached the model. Isolation should stop it being retrieved at all."
+      },
+      {
+        "id": "C",
+        "text": "Ask users to confirm their club at the start of each chat and trust the answer for retrieval",
+        "explanation": "A self-reported club is an unverified claim, so anyone can name a rival club."
+      },
+      {
+        "id": "D",
+        "text": "Filter retrieval in code by the authenticated user's tenant, so other clubs' reports never reach the model",
+        "explanation": "Correct. Tenant isolation enforced in the retrieval layer, from a verified identity, means the model never sees data it isn't allowed to reveal."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/secure-deployment"
+    ]
   }
 ]

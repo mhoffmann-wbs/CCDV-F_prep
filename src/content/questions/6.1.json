@@ -27,7 +27,9 @@
         "explanation": "The irrelevant plays still fill the context and dilute attention, even if the model tries to ignore them."
       }
     ],
-    "correct": ["A"],
+    "correct": [
+      "A"
+    ],
     "sourceLinks": [
       "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
       "https://www.anthropic.com/research/writing-tools-for-agents"
@@ -61,7 +63,9 @@
         "explanation": "This discards useful conversation along with the stale results. Targeted clearing keeps what is still needed."
       }
     ],
-    "correct": ["B"],
+    "correct": [
+      "B"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "https://platform.claude.com/docs/en/build-with-claude/compaction"
@@ -95,7 +99,9 @@
         "explanation": "Summarization instructions change what the summary says. They don't fix a history that drops the compaction block."
       }
     ],
-    "correct": ["C"],
+    "correct": [
+      "C"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/build-with-claude/compaction-threshold",
       "https://platform.claude.com/docs/en/build-with-claude/compaction"
@@ -129,8 +135,12 @@
         "explanation": "Correct. Compaction can drop early instructions, while CLAUDE.md content is re-injected on every request. That is where persistent rules belong."
       }
     ],
-    "correct": ["D"],
-    "sourceLinks": ["https://code.claude.com/docs/en/agent-sdk/agent-loop"]
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/agent-loop"
+    ]
   },
   {
     "id": "q-6.1-005",
@@ -160,7 +170,9 @@
         "explanation": "Rewriting the system prompt changes the cached prefix itself and adds the stale results back into context."
       }
     ],
-    "correct": ["A"],
+    "correct": [
+      "A"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
@@ -194,7 +206,9 @@
         "explanation": "This changes the system prompt every cycle, which breaks caching, and still fills context with raw logs."
       }
     ],
-    "correct": ["B"],
+    "correct": [
+      "B"
+    ],
     "sourceLinks": [
       "https://code.claude.com/docs/en/agent-sdk/subagents",
       "https://code.claude.com/docs/en/agent-sdk/agent-loop"
@@ -228,7 +242,9 @@
         "explanation": "Summarizing the transcript is a workaround. Passing just the structured output avoids the transcript entirely."
       }
     ],
-    "correct": ["C"],
+    "correct": [
+      "C"
+    ],
     "sourceLinks": [
       "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
       "https://www.anthropic.com/research/building-effective-agents"
@@ -262,8 +278,12 @@
         "explanation": "Correct. exclude_tools lists tools whose uses and results are never cleared. Constraints that apply all session can also live in the system prompt."
       }
     ],
-    "correct": ["D"],
-    "sourceLinks": ["https://platform.claude.com/docs/en/build-with-claude/context-editing"]
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-editing"
+    ]
   },
   {
     "id": "q-6.1-009",
@@ -293,7 +313,9 @@
         "explanation": "Descriptions are how the model chooses the right tool. Removing them saves tokens but makes selection worse."
       }
     ],
-    "correct": ["C"],
+    "correct": [
+      "C"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool",
       "https://code.claude.com/docs/en/agent-sdk/agent-loop"
@@ -332,7 +354,10 @@
         "explanation": "This keeps all the stale data in context and changes the system prompt each time, which breaks caching."
       }
     ],
-    "correct": ["A", "B"],
+    "correct": [
+      "A",
+      "B"
+    ],
     "sourceLinks": [
       "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents",
       "https://platform.claude.com/docs/en/build-with-claude/context-editing"
@@ -371,10 +396,196 @@
         "explanation": "Context editing is applied before the prompt reaches Claude. The client keeps its full, unmodified history and needs no sync."
       }
     ],
-    "correct": ["A", "B"],
+    "correct": [
+      "A",
+      "B"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "https://platform.claude.com/docs/en/build-with-claude/compaction"
+    ]
+  },
+  {
+    "id": "q-6.1-012",
+    "skillId": "6.1",
+    "difficulty": 1,
+    "stem": "A film-study agent's answers get vaguer and miss details once its conversation passes about 600,000 tokens, most of it old play-by-play output it no longer needs. A product manager proposes moving to a model with a larger context window. Which response best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Agree: a larger window gives the model more room, so recall will improve",
+        "explanation": "More room doesn't stop attention spreading thinner over irrelevant tokens. The problem is what's in the window, not its size."
+      },
+      {
+        "id": "B",
+        "text": "Remove the irrelevant tokens: prune tool output, clear or compact stale history",
+        "explanation": "Correct. Recall degrades as context fills with noise (context rot). Taking out what the task no longer needs addresses the cause, and it also lowers cost and latency."
+      },
+      {
+        "id": "C",
+        "text": "Repeat the key instructions at the end of every user message so they stay visible",
+        "explanation": "This adds tokens without removing the bloat that is causing the degradation."
+      },
+      {
+        "id": "D",
+        "text": "Lower the effort level so the model spends less attention on the old content",
+        "explanation": "Effort controls how much the model reasons. It doesn't remove irrelevant content from context."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "https://platform.claude.com/docs/en/build-with-claude/context-windows"
+    ]
+  },
+  {
+    "id": "q-6.1-013",
+    "skillId": "6.1",
+    "difficulty": 2,
+    "stem": "An agent migrates a club's 400 stats scripts to a new data format over several days and many separate sessions. Each new session re-reads the codebase to work out which scripts are done, sometimes migrating a script twice. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep one session open for the whole migration so the history holds all progress",
+        "explanation": "A single multi-day session fills with stale output and invites drift. It also loses everything if the session ends."
+      },
+      {
+        "id": "B",
+        "text": "Paste a summary of yesterday's chat into the first message of each new session",
+        "explanation": "Manual summaries are inconsistent and depend on someone remembering. They aren't a durable record of which scripts are done."
+      },
+      {
+        "id": "C",
+        "text": "Enable compaction so earlier sessions are summarized automatically into the next one",
+        "explanation": "Compaction summarizes within a conversation. It doesn't carry state into a new session."
+      },
+      {
+        "id": "D",
+        "text": "Have the agent keep a progress file, updated per script and read at session start",
+        "explanation": "Correct. Structured notes persisted outside the window survive session resets and give each session an exact, cheap record of what's done."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
+    ]
+  },
+  {
+    "id": "q-6.1-014",
+    "skillId": "6.1",
+    "difficulty": 2,
+    "stem": "A draft-prep agent loads the full text of all 300 prospect scouting reports into context at the start of every session \"in case they're needed\". A typical session touches about a dozen prospects. Which design best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep prospect IDs in context and fetch a full report with a tool when needed",
+        "explanation": "Correct. Just-in-time retrieval keeps only references in context and loads detail when the task needs it, so most sessions stay small."
+      },
+      {
+        "id": "B",
+        "text": "Keep loading all reports but enable prompt caching so the repeated text costs less",
+        "explanation": "Caching cuts the price of the repeated text but not its size, so the irrelevant reports still dilute the model's attention."
+      },
+      {
+        "id": "C",
+        "text": "Summarize all 300 reports into one long overview and load that at the start of each session",
+        "explanation": "This still front-loads mostly irrelevant content, and the summary loses the detail needed for the prospects that matter."
+      },
+      {
+        "id": "D",
+        "text": "Load the reports in alphabetical batches of 50 and clear each batch after a few turns",
+        "explanation": "This shuffles irrelevant content in and out instead of loading only what the session needs."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"
+    ]
+  },
+  {
+    "id": "q-6.1-015",
+    "skillId": "6.1",
+    "difficulty": 1,
+    "stem": "To save on caching costs, a merchandise chatbot appends every fan's messages to one long shared conversation history. A fan asks about their order and is shown another fan's shipping address. Which change best addresses the root cause?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Tell Claude in the system prompt never to mention details from other customers",
+        "explanation": "Other fans' data would still be in context, and a prompt instruction doesn't reliably keep it out of answers."
+      },
+      {
+        "id": "B",
+        "text": "Clear old tool results more often so fewer addresses remain in the shared history",
+        "explanation": "Clearing reduces exposure but leaves the shared design that mixes users' data together."
+      },
+      {
+        "id": "C",
+        "text": "Give each fan their own conversation history, starting a fresh session per user",
+        "explanation": "Correct. Context should be isolated per user. One user's data then never enters another user's request."
+      },
+      {
+        "id": "D",
+        "text": "Add an output filter that removes addresses from every response",
+        "explanation": "This also blocks a fan's own address and misses other personal details. The data shouldn't be in the shared context at all."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-windows"
+    ]
+  },
+  {
+    "id": "q-6.1-016",
+    "skillId": "6.1",
+    "difficulty": 3,
+    "stem": "A fantasy-projection agent calls five stats tools in sequence. Each returns thousands of rows that are only used to compute one final number per player, yet every intermediate result lands in the conversation. Which TWO changes best keep the intermediate data out of context? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move to a model with a larger context window so the rows fit comfortably",
+        "explanation": "The rows would fit but still crowd out what matters and still cost input tokens on every later turn."
+      },
+      {
+        "id": "B",
+        "text": "Use programmatic tool calling so code execution calls the tools and only the final numbers reach context",
+        "explanation": "Correct. When code orchestrates the tool calls, the intermediate results stay inside the execution environment and only the output enters the conversation."
+      },
+      {
+        "id": "C",
+        "text": "Enable compaction on every turn so each batch of rows is summarized right away",
+        "explanation": "The rows still enter context first, and constant compaction loses detail and cache reuse."
+      },
+      {
+        "id": "D",
+        "text": "Ask Claude to ignore the raw rows and focus only on the final numbers",
+        "explanation": "The rows remain in context whatever Claude is asked to attend to."
+      },
+      {
+        "id": "E",
+        "text": "Change the tools to return only the fields the next step needs, truncating and saying so",
+        "explanation": "Correct. Pruning at the source means the noise never enters context, and noting the truncation tells Claude more is available."
+      }
+    ],
+    "correct": [
+      "B",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/programmatic-tool-calling"
     ]
   }
 ]

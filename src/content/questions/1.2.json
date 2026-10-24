@@ -27,7 +27,9 @@
         "explanation": "The hosted cloud sandbox runs on Anthropic's infrastructure, which conflicts with the requirement to run on the team's own cluster."
       }
     ],
-    "correct": ["A"],
+    "correct": [
+      "A"
+    ],
     "sourceLinks": [
       "https://code.claude.com/docs/en/agent-sdk/overview",
       "https://code.claude.com/docs/en/agent-sdk/hosting"
@@ -61,7 +63,9 @@
         "explanation": "This requires writing the loop, the tools, the sandbox and the persistence, which is all the work the startup wants to avoid."
       }
     ],
-    "correct": ["B"],
+    "correct": [
+      "B"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/managed-agents/overview",
       "https://code.claude.com/docs/en/agent-sdk/hosting"
@@ -95,8 +99,12 @@
         "explanation": "Current models reject non-default sampling parameters, and predictable output still isn't an enforced guarantee."
       }
     ],
-    "correct": ["C"],
-    "sourceLinks": ["https://code.claude.com/docs/en/agent-sdk/hooks"]
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/hooks"
+    ]
   },
   {
     "id": "q-1.2-004",
@@ -126,8 +134,12 @@
         "explanation": "Correct. The docs warn that a Write|Edit hook doesn't run when Claude writes the same file through Bash. Match Bash as well, or sandbox it."
       }
     ],
-    "correct": ["D"],
-    "sourceLinks": ["https://code.claude.com/docs/en/agent-sdk/hooks"]
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/hooks"
+    ]
   },
   {
     "id": "q-1.2-005",
@@ -157,8 +169,12 @@
         "explanation": "There is a fixed precedence for conflicting decisions, so no extra prompt is needed to resolve them."
       }
     ],
-    "correct": ["A"],
-    "sourceLinks": ["https://code.claude.com/docs/en/agent-sdk/hooks"]
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/hooks"
+    ]
   },
   {
     "id": "q-1.2-006",
@@ -188,7 +204,9 @@
         "explanation": "Custom tools don't require a hand-written loop. The Tool Runner executes them, and the team wants to avoid writing the loop."
       }
     ],
-    "correct": ["B"],
+    "correct": [
+      "B"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner",
       "https://code.claude.com/docs/en/agent-sdk/overview"
@@ -222,7 +240,9 @@
         "explanation": "Managed Agents is in beta, which the compliance policy forbids, even though its server-side sessions would handle the pause."
       }
     ],
-    "correct": ["C"],
+    "correct": [
+      "C"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
       "https://platform.claude.com/docs/en/managed-agents/overview"
@@ -256,7 +276,9 @@
         "explanation": "Correct. The hosting guide's multi-tenant steps are empty setting sources, auto memory turned off, and a per-tenant config directory and cwd, so no tenant's files load for another."
       }
     ],
-    "correct": ["D"],
+    "correct": [
+      "D"
+    ],
     "sourceLinks": [
       "https://code.claude.com/docs/en/agent-sdk/hosting",
       "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts"
@@ -290,8 +312,12 @@
         "explanation": "The SDK starts in default mode, not bypass. Permission modes control approvals, not the safety text in the system prompt."
       }
     ],
-    "correct": ["A"],
-    "sourceLinks": ["https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts"]
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts"
+    ]
   },
   {
     "id": "q-1.2-010",
@@ -321,7 +347,9 @@
         "explanation": "The company runs an environment worker that polls a work queue. MCP tunnels are a separate feature for reaching private MCP servers."
       }
     ],
-    "correct": ["B"],
+    "correct": [
+      "B"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/managed-agents/self-hosted-sandboxes",
       "https://platform.claude.com/docs/en/managed-agents/choosing-an-environment"
@@ -360,8 +388,13 @@
         "explanation": "This scatters the configuration across sessions, so there is no versioned record of which instructions produced a report."
       }
     ],
-    "correct": ["A", "B"],
-    "sourceLinks": ["https://platform.claude.com/docs/en/managed-agents/overview"]
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/managed-agents/overview"
+    ]
   },
   {
     "id": "q-1.2-012",
@@ -391,7 +424,9 @@
         "explanation": "Correct. This is the hybrid pattern: ephemeral containers that hydrate from a SessionStore and resume the stored session, which the docs say is required for it."
       }
     ],
-    "correct": ["D"],
+    "correct": [
+      "D"
+    ],
     "sourceLinks": [
       "https://code.claude.com/docs/en/agent-sdk/hosting",
       "https://code.claude.com/docs/en/agent-sdk/sessions"
@@ -430,7 +465,10 @@
         "explanation": "Claude picks subagents from their descriptions, so this belongs in each subagent's description field."
       }
     ],
-    "correct": ["A", "B"],
+    "correct": [
+      "A",
+      "B"
+    ],
     "sourceLinks": [
       "https://code.claude.com/docs/en/agent-sdk/hooks",
       "https://code.claude.com/docs/en/agent-sdk/agent-loop"
@@ -469,7 +507,10 @@
         "explanation": "The Tool Runner is a loop helper with no sandbox or hosting. You supply and host every tool."
       }
     ],
-    "correct": ["A", "B"],
+    "correct": [
+      "A",
+      "B"
+    ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/managed-agents/overview",
       "https://code.claude.com/docs/en/agent-sdk/hosting"
@@ -503,7 +544,9 @@
         "explanation": "Plan mode stops Claude editing source files so it can propose changes. It isn't a general approval flow for Bash."
       }
     ],
-    "correct": ["C"],
+    "correct": [
+      "C"
+    ],
     "sourceLinks": [
       "https://code.claude.com/docs/en/agent-sdk/agent-loop",
       "https://code.claude.com/docs/en/agent-sdk/permissions"
@@ -537,10 +580,155 @@
         "explanation": "A smaller per-response cap risks truncation and doesn't limit how many turns run, so total cost isn't bounded."
       }
     ],
-    "correct": ["B"],
+    "correct": [
+      "B"
+    ],
     "sourceLinks": [
       "https://code.claude.com/docs/en/agent-sdk/agent-loop",
       "https://code.claude.com/docs/en/agent-sdk/hosting"
+    ]
+  },
+  {
+    "id": "q-1.2-017",
+    "skillId": "1.2",
+    "difficulty": 1,
+    "stem": "A developer builds a repo-cleanup agent with the client SDK's Tool Runner, expecting Claude to read files and run shell commands out of the box. Claude replies that it has no way to access the files. What explains this, and which option fits the developer's expectation?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The Tool Runner needs a beta header before its built-in tools turn on; add the header",
+        "explanation": "No header adds file or shell tools to the Tool Runner. It has no built-in tools at all."
+      },
+      {
+        "id": "B",
+        "text": "The model in use doesn't support tools; switch to a model that does",
+        "explanation": "Current models all support tool use. The problem is that no file or shell tools were defined."
+      },
+      {
+        "id": "C",
+        "text": "The Tool Runner only runs tools you define; the Agent SDK ships built-in ones",
+        "explanation": "Correct. The Tool Runner is a loop helper in the regular client SDK. The Agent SDK packages Claude Code's harness, including Read, Edit, Bash and similar tools."
+      },
+      {
+        "id": "D",
+        "text": "Claude needs permission first; add \"you may read files\" to the system prompt",
+        "explanation": "No prompt gives Claude a tool that doesn't exist. Tools must be defined or come with the harness."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner",
+      "https://code.claude.com/docs/en/agent-sdk/overview"
+    ]
+  },
+  {
+    "id": "q-1.2-018",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "An Agent SDK analytics agent runs SQL against the stats warehouse through a `run_query` tool. Queries without a `LIMIT` clause sometimes scan the whole warehouse. The team doesn't want those calls rejected; it wants every query to run with at most 1,000 rows. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A `PreToolUse` hook that denies any query without `LIMIT`, so Claude retries with one",
+        "explanation": "This works, but it rejects calls the team wanted to run and costs an extra turn each time."
+      },
+      {
+        "id": "B",
+        "text": "A `PostToolUse` hook that trims results to 1,000 rows after the query finishes",
+        "explanation": "The full scan has already happened by then. Trimming afterwards doesn't stop the expensive query."
+      },
+      {
+        "id": "C",
+        "text": "A system-prompt rule telling Claude to always add `LIMIT 1000` to its queries",
+        "explanation": "A prompt asks; it doesn't guarantee. Some queries would still go out unbounded."
+      },
+      {
+        "id": "D",
+        "text": "A `PreToolUse` hook returning `updatedInput` with `LIMIT 1000` added",
+        "explanation": "Correct. A `PreToolUse` hook can rewrite a call's input before it runs, which enforces the limit deterministically without rejecting the query."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/hooks"
+    ]
+  },
+  {
+    "id": "q-1.2-019",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "A league's compliance team requires the complete, verbatim transcript of every long-running Agent SDK investigation agent to be archived. The agent runs long enough that its history is compacted, after which earlier turns exist only as a summary. Which mechanism best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A `PreCompact` hook that archives the full transcript before compaction runs",
+        "explanation": "Correct. `PreCompact` fires just before the history is summarized, which is the last point at which the verbatim transcript exists."
+      },
+      {
+        "id": "B",
+        "text": "A `Stop` hook that saves the full conversation once the agent finishes its work",
+        "explanation": "By the time the agent stops, earlier turns may already have been replaced by a summary."
+      },
+      {
+        "id": "C",
+        "text": "A system-prompt instruction asking Claude to copy each turn into a log file",
+        "explanation": "This depends on the model remembering, costs context and tool calls, and isn't a guarantee."
+      },
+      {
+        "id": "D",
+        "text": "Turning compaction off so the transcript never gets summarized",
+        "explanation": "Long investigations would then run out of context. The goal is to archive, not to stop managing context."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/hooks",
+      "https://code.claude.com/docs/en/agent-sdk/agent-loop"
+    ]
+  },
+  {
+    "id": "q-1.2-020",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "A club is building a Managed Agents agent whose sandboxed tools call the ticketing vendor's API with a bearer token. A developer proposes putting the token in the agent's system prompt so its bash commands can use it. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Put the token in the system prompt but tell Claude never to repeat it in replies",
+        "explanation": "The secret would sit in the model's context, where an injection or a mistake can leak it. \"Never repeat\" isn't a control."
+      },
+      {
+        "id": "B",
+        "text": "Store it as a vault credential, added at egress and never visible in the sandbox",
+        "explanation": "Correct. Vault credentials are stored by Anthropic and substituted into outgoing requests, so neither the model nor code in the sandbox ever sees the token."
+      },
+      {
+        "id": "C",
+        "text": "Write the token to a file in the session container at the start of every session",
+        "explanation": "Anything in the sandbox can read the file, including code an injected instruction makes Claude run."
+      },
+      {
+        "id": "D",
+        "text": "Pass the token as a tool argument that Claude fills in on each call",
+        "explanation": "Claude would need the token in context to fill it in, so this has the same exposure as the system prompt."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/managed-agents/overview",
+      "https://code.claude.com/docs/en/agent-sdk/secure-deployment"
     ]
   }
 ]

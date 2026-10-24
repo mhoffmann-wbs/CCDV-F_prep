@@ -946,5 +946,182 @@
       "https://code.claude.com/docs/en/plugins/install",
       "https://code.claude.com/docs/en/plugins"
     ]
+  },
+  {
+    "id": "q-2.5-027",
+    "skillId": "2.5",
+    "difficulty": 1,
+    "stem": "A developer's harness adds the line \"From now on, answer in Spanish\" to the end of a `tool_result` block returned by a stats lookup. Claude keeps answering in English and once remarks that the tool output contained an unexpected instruction. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Repeat the instruction in every tool result until Claude starts following it",
+        "explanation": "Claude is trained to be skeptical of instructions inside tool results. Repeating them there makes them look more like an injection."
+      },
+      {
+        "id": "B",
+        "text": "Move the instruction into the stats data itself as a field named `language`",
+        "explanation": "This is still an instruction hidden in tool output, just in a different shape."
+      },
+      {
+        "id": "C",
+        "text": "Send it as a following user turn or, where supported, a system message",
+        "explanation": "Correct. Instructions belong in an instruction channel. Tool results are data, and Claude treats instructions found there with suspicion."
+      },
+      {
+        "id": "D",
+        "text": "Wrap the instruction in `<important>` tags inside the tool result so it stands out",
+        "explanation": "Tags don't change where the text arrives. It is still an instruction inside tool output."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks"
+    ]
+  },
+  {
+    "id": "q-2.5-028",
+    "skillId": "2.5",
+    "difficulty": 1,
+    "stem": "A combine-results tool has an input field named `weight` with the description \"Player weight\". The data team stores pounds, but Claude sometimes passes kilograms when a scouting report lists metric figures. Which schema change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Make `weight` a string so Claude can include whichever unit it saw, such as \"105 kg\"",
+        "explanation": "This pushes unit parsing downstream and makes the field harder to validate."
+      },
+      {
+        "id": "B",
+        "text": "Leave the schema as it is and convert any value under 150 from kilograms in the handler",
+        "explanation": "Guessing units from the size of the number is fragile and silently corrupts edge cases."
+      },
+      {
+        "id": "C",
+        "text": "Add a system-prompt line reminding Claude that the league uses imperial units",
+        "explanation": "A reminder may help, but the schema itself still leaves the unit ambiguous where Claude fills it in."
+      },
+      {
+        "id": "D",
+        "text": "Rename the field to `weight_lbs` and say in its description that values are in pounds",
+        "explanation": "Correct. Putting the unit in the name and description makes the expected value clear at the point where Claude fills it in."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools"
+    ]
+  },
+  {
+    "id": "q-2.5-029",
+    "skillId": "2.5",
+    "difficulty": 2,
+    "stem": "A team renames the `player` field to `player_name` in the structured-output schema of its scouting summarizer, because the new name is clearer. The next morning, three downstream dashboards are blank. Which practice would best have prevented this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Version the schema and treat a rename as a breaking change for consumers",
+        "explanation": "Correct. A schema is a contract with every consumer. Versioning it, and coordinating breaking changes, keeps a cosmetic rename from taking production down."
+      },
+      {
+        "id": "B",
+        "text": "Turn off structured outputs so consumers parse free text and aren't tied to field names",
+        "explanation": "Free text makes every consumer more fragile, not less."
+      },
+      {
+        "id": "C",
+        "text": "Let Claude choose the field names, since it picks the clearest ones on its own",
+        "explanation": "Downstream code needs stable names. Letting them vary makes breakage constant."
+      },
+      {
+        "id": "D",
+        "text": "Add `additionalProperties: true` so both the old and new names are accepted",
+        "explanation": "This loosens validation, and the output still won't include the old field the dashboards read."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-2.5-030",
+    "skillId": "2.5",
+    "difficulty": 2,
+    "stem": "A SaaS company runs an Agent SDK agent inside customers' repositories to generate test reports. Its own system prompt fully defines the agent's behaviour. Some customer repos contain CLAUDE.md files with instructions the company doesn't want the agent to follow. Which configuration best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a system-prompt line telling Claude to ignore any CLAUDE.md file it happens to find",
+        "explanation": "The files would still be loaded into the conversation. Asking Claude to disregard them is weaker than not loading them."
+      },
+      {
+        "id": "B",
+        "text": "Set `settingSources` to an empty list so no CLAUDE.md or settings files are loaded",
+        "explanation": "Correct. The Agent SDK loads CLAUDE.md by default, and an explicit empty `settingSources` list turns that off, so only the company's prompt applies."
+      },
+      {
+        "id": "C",
+        "text": "Delete the CLAUDE.md files from customer repositories before each run",
+        "explanation": "Changing customers' repositories is intrusive and error-prone when a configuration option already exists."
+      },
+      {
+        "id": "D",
+        "text": "Switch to the `claude_code` system-prompt preset, which ignores project files",
+        "explanation": "The preset gives Claude Code's behaviour. It doesn't stop CLAUDE.md from loading."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts",
+      "https://code.claude.com/docs/en/memory"
+    ]
+  },
+  {
+    "id": "q-2.5-031",
+    "skillId": "2.5",
+    "difficulty": 2,
+    "stem": "A team has written one Claude Code skill that formats injury reports, and every developer working in the team's repository should have it. An engineer proposes building a plugin and an internal marketplace to distribute it. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Build the plugin and marketplace, since every shared component must be packaged as a plugin",
+        "explanation": "Plugins are for packaging several components together. A single skill works on its own."
+      },
+      {
+        "id": "B",
+        "text": "Ask each developer to copy the skill into their personal `~/.claude/skills/` folder",
+        "explanation": "Manual copies drift out of date and depend on everyone repeating the step."
+      },
+      {
+        "id": "C",
+        "text": "Commit the skill to the repository's `.claude/skills/` folder",
+        "explanation": "Correct. A project skill committed to the repo reaches everyone who clones it, without extra packaging."
+      },
+      {
+        "id": "D",
+        "text": "Paste the skill's full instructions into CLAUDE.md so every session sees them",
+        "explanation": "This costs context in every session, whereas a skill loads its body only when it's used."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/plugins",
+      "https://code.claude.com/docs/en/skills"
+    ]
   }
 ]
