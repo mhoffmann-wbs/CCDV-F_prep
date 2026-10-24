@@ -1,6 +1,6 @@
 export const meta = {
   skillId: '6.2',
-  updated: '2026-10-20',
+  updated: '2026-10-24',
   tldr: 'Write prompts a new colleague could follow: say what you want and why, show 3–5 diverse tagged examples, put each instruction in the right component, constrain output positively or with structured outputs (not prefill), iterate against evals, and mark untrusted input as data.',
   links: [
     { title: 'Prompting best practices', url: 'https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices' },
@@ -66,7 +66,7 @@ Expect scenarios where a prompt "mostly works" and you must pick the **smallest 
 ## Exam traps
 
 - **Prefilling an open brace** to force JSON. That's a 400 on current models. Use structured outputs.
-- **"Set temperature to 0"** for consistency. Sampling parameters are rejected on current models such as Claude Opus 5.5.
+- **"Set temperature to 0"** for consistency. Sampling parameters are rejected on current models such as Claude Opus 5.5, and at any value on API version `2026-10-21`.
 - **More CAPS and MUSTs** for an ignored rule. Give the reason and place the rule correctly instead.
 - **Near-identical examples.** Diversity is the point.
 - **User text in the system prompt**, or your own instructions inside a `tool_result`.

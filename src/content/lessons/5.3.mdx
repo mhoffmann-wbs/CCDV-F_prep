@@ -1,12 +1,13 @@
 export const meta = {
   skillId: '5.3',
-  updated: '2026-10-20',
+  updated: '2026-10-24',
   tldr: 'Pick the tier by the task, measure it with evals, and tune effort before you switch models. Haiku is fastest and cheapest, Sonnet balances speed and intelligence, Opus is the default for hard agentic work, and Fable sits above Opus. Every model upgrade is a migration: request shapes that worked before (sampling knobs, prefill, thinking budgets, forced tool choice) can return 400s on the next release.',
   links: [
     { title: 'Choosing the right model', url: 'https://platform.claude.com/docs/en/about-claude/models/choosing-a-model' },
     { title: 'Models overview', url: 'https://platform.claude.com/docs/en/models/overview' },
     { title: 'Migration guides', url: 'https://platform.claude.com/docs/en/about-claude/models/migration-guide' },
     { title: 'Model deprecations', url: 'https://platform.claude.com/docs/en/about-claude/model-deprecations' },
+    { title: 'API version 2026-10-21 migration (sampling parameters removed)', url: 'https://platform.claude.com/docs/en/api/migration-2026-10-21' },
   ],
 }
 
@@ -37,7 +38,7 @@ Latency rises and price per token rises as you go up the table. The current mode
 
 New models change defaults and remove options that conflict with how they work. Recent examples from the migration guides:
 
-- **Sampling parameters**: non-default `temperature`, `top_p`, `top_k` now return 400.
+- **Sampling parameters**: non-default `temperature`, `top_p`, `top_k` now return 400, and on API version `2026-10-21` any value does, on every model.
 - **Assistant prefill**: a final assistant turn is rejected; use structured outputs or instructions.
 - **Thinking**: `budget_tokens` is rejected; thinking is on by default, and on some models can't be disabled.
 - **Effort defaults** differ between models, and levels are recalibrated between releases.

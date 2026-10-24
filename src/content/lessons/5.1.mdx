@@ -1,6 +1,6 @@
 export const meta = {
   skillId: '5.1',
-  updated: '2026-10-20',
+  updated: '2026-10-24',
   tldr: 'Claude generates one token at a time inside a context window that holds everything, including its own output and thinking. Outputs are never fully deterministic, and current models reject sampling knobs, so you steer with prompts, examples, effort and validation. Adaptive thinking plus effort replaces fixed thinking budgets; fast mode buys output speed, not intelligence.',
   links: [
     { title: 'Glossary (tokens, temperature, context window)', url: 'https://platform.claude.com/docs/en/about-claude/glossary' },
@@ -10,6 +10,7 @@ export const meta = {
     { title: 'Effort', url: 'https://platform.claude.com/docs/en/build-with-claude/effort' },
     { title: 'Fast mode', url: 'https://platform.claude.com/docs/en/build-with-claude/fast-mode' },
     { title: 'Prompting best practices (examples)', url: 'https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices' },
+    { title: 'API version 2026-10-21 migration (sampling parameters removed)', url: 'https://platform.claude.com/docs/en/api/migration-2026-10-21' },
   ],
 }
 
@@ -36,7 +37,7 @@ The context window is the model's working memory for **one request**, and it is 
 
 Sampling picks each token from a probability distribution. `temperature` controls how adventurous that choice is.
 - **Even at temperature 0, outputs are not fully deterministic.** Identical requests can produce different outputs, on the first-party API and on cloud providers alike.
-- **On current models, sampling parameters are effectively gone.** Non-default `temperature`, `top_p` or `top_k` values return a 400 error. Migration guides say to remove them and steer with prompting.
+- **On current models, sampling parameters are effectively gone.** Non-default `temperature`, `top_p` or `top_k` values return a 400 error, and on API version `2026-10-21` sending any of them at all, even at the default value, returns a 400 on every model. Migration guides say to remove them and steer with prompting.
 - So you get consistency through **design**, not knobs: clear instructions, examples, structured outputs or strict tools for format, validation of the result, and evals that run each case more than once.
 
 ### 4. Extended vs adaptive thinking, and effort
@@ -77,7 +78,7 @@ Sampling picks each token from a probability distribution. `temperature` control
 
 ## Exam traps
 
-- **"Set temperature to 0 to make it deterministic."** It never fully was, and on current models non-default sampling values are rejected.
+- **"Set temperature to 0 to make it deterministic."** It never fully was, and on current models non-default sampling values are rejected (on API version `2026-10-21`, any value is).
 - **Sending `budget_tokens` to a current model.** It returns a 400. Use adaptive thinking and effort.
 - **Choosing fast mode to fix "nothing appears for 20 seconds".** That's time to first token. Streaming fixes it.
 - **Treating effort as a hard budget.** Only `max_tokens` is a hard limit, and thinking eats into it.

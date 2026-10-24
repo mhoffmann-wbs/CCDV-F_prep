@@ -1,6 +1,6 @@
 export const meta = {
   skillId: '4.1',
-  updated: '2026-10-20',
+  updated: '2026-10-24',
   tldr: 'Classify the failure first: retryable (429, 500, 529, network) or a request you must fix (400, 401, 403, 404, 413). Then decide whether it lives in the integration layer or in the model output, using the request ID, stop_reason and a trace of exactly what Claude saw.',
   links: [
     { title: 'API errors', url: 'https://platform.claude.com/docs/en/api/errors' },
@@ -17,7 +17,7 @@ Expect a symptom (an error code, a log excerpt or a bad answer) and a question a
 
 | Status (`error.type`) | Meaning | Strategy |
 |---|---|---|
-| 400 `invalid_request_error` | Bad request shape or parameter, for example prefill, `temperature` or forced `tool_choice` on a model that rejects them | **Fix the request.** Retrying the same body won't help |
+| 400 `invalid_request_error` | Bad request shape or parameter, for example prefill or forced `tool_choice` on a model that rejects them, or any `temperature` on API version `2026-10-21` | **Fix the request.** Retrying the same body won't help |
 | 401 / 403 / 404 | Bad key, no permission, wrong model ID | Fix credentials, access or ID |
 | 413 `request_too_large` | Body over the size limit (32 MB for Messages) | Shrink or split the input |
 | 429 `rate_limit_error` | Rate limit hit | Back off, honouring `retry-after` |
