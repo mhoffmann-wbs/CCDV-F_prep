@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { EXAM_FORMAT } from '../content/blueprint'
 import { QUESTIONS } from '../content/questions'
 import { recordAnswer, recordMockResult } from '../progress/store'
@@ -52,6 +53,13 @@ function MockIntro({ onStart }: { onStart: () => void }) {
         The real CCDV-F has {EXAM_FORMAT.items} items in {EXAM_FORMAT.minutes} minutes. Items are drawn by
         blueprint weight. There is no feedback until you submit, and you can flag items and review them before
         submitting.
+      </p>
+      <p className="text-sm text-neutral-600">
+        Want a mixed set without the clock and with feedback after every item? Run a{' '}
+        <Link to="/practice" className="text-field-dark underline">
+          mixed scrimmage
+        </Link>{' '}
+        on the Practice page.
       </p>
       {preview.shortfall > 0 && (
         <p className="rounded border border-amber-300 bg-amber-50 p-3 text-sm">

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { EXAM_FORMAT, SKILLS, allocateItems } from '../content/blueprint'
 import type { Question } from '../content/schema'
 import { estimateScaled, isCorrect, scoreExam } from './grading'
-import { buildMockExam, seededRng, shuffle } from './sampler'
+import { buildMixedSet, buildMockExam, seededRng, shuffle } from './sampler'
 
 function q(id: string, skillId: string, correct: string[] = ['A']): Question {
   return {
@@ -67,6 +67,34 @@ describe('buildMockExam', () => {
     expect(exam.shortfall).toBe(EXAM_FORMAT.items - 20)
     expect(exam.minutes).toBe(Math.round((120 * 20) / 53))
     expect(new Set(exam.questions.map((x) => x.id)).size).toBe(20)
+  })
+})
+
+describe('buildMixedSet', () => {
+  const bank = SKILLS.flatMap((s) =>
+    Array.from({ length: 10 }, (_, i) => q(`q-${s.id}-${String(i).padStart(3, '0')}`, s.id)),
+  )
+
+  it('returns the requested number of distinct items, capped at the bank size', () => {
+    const set = buildMixedSet(bank, 25, seededRng(4))
+    expect(set).toHaveLength(25)
+    expect(new Set(set.map((x) => x.id)).size).toBe(25)
+    expect(buildMixedSet(bank.slice(0, 5), 25, seededRng(4))).toHaveLength(5)
+  })
+
+  it('favours heavier skills and still reaches light ones across sessions', () => {
+    const counts = new Map<string, number>()
+    for (let seed = 0; seed < 200; seed++) {
+      for (const item of buildMixedSet(bank, 10, seededRng(seed))) {
+        counts.set(item.skillId, (counts.get(item.skillId) ?? 0) + 1)
+      }
+    }
+    const byWeight = [...SKILLS].sort((a, b) => a.weight - b.weight)
+    const lightest = byWeight[0]
+    const heaviest = byWeight[byWeight.length - 1]
+    expect(counts.get(lightest.id) ?? 0).toBeGreaterThan(0)
+    expect(counts.get(heaviest.id)!).toBeGreaterThan(counts.get(lightest.id)!)
+    expect(counts.size).toBe(SKILLS.length)
   })
 })
 

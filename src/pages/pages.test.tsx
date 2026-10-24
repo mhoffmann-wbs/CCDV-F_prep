@@ -60,6 +60,38 @@ describe('practice', () => {
     await user.click(boxes[2])
     expect(boxes.filter((b) => (b as HTMLInputElement).checked)).toHaveLength(2)
   })
+
+  it('runs an untimed mixed scrimmage across domains with immediate feedback', async () => {
+    const user = userEvent.setup()
+    await renderAt('/practice')
+    await user.click(screen.getByRole('link', { name: '10 questions' }))
+    expect(screen.getByText('Mixed scrimmage')).toBeInTheDocument()
+    expect(screen.getByText(/Question 1 of 10/)).toBeInTheDocument()
+    expect(screen.queryByLabelText('time remaining')).not.toBeInTheDocument()
+
+    const shown = QUESTIONS.find((q) => screen.queryByText(q.stem))!
+    const pick = shown.options.slice(0, shown.selectCount)
+    for (const option of pick) {
+      await user.click(screen.getByRole(shown.selectCount > 1 ? 'checkbox' : 'radio', { name: new RegExp(escapeRegExp(option.text)) }))
+    }
+    await user.click(screen.getByRole('button', { name: 'Check answer' }))
+    expect(screen.getByText(pick[0].explanation)).toBeInTheDocument()
+    expect(getProgress().questions[shown.id]).toMatchObject({ attempts: 1 })
+
+    // Play out the rest of the set; the end screen breaks the score down by domain.
+    await user.click(screen.getByRole('button', { name: 'Next play' }))
+    for (let i = 1; i < 10; i++) {
+      const current = QUESTIONS.find((q) => screen.queryByText(q.stem))!
+      const role = current.selectCount > 1 ? 'checkbox' : 'radio'
+      for (const box of screen.getAllByRole(role).slice(0, current.selectCount)) await user.click(box)
+      await user.click(screen.getByRole('button', { name: 'Check answer' }))
+      await user.click(screen.getByRole('button', { name: /Next play|Finish/ }))
+    }
+    expect(screen.getByText(/Drive complete: Mixed scrimmage/)).toBeInTheDocument()
+    expect(screen.getByText(/\/ 10 correct/)).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: 'Domain' })).toBeInTheDocument()
+    expect(getProgress().mockResults).toHaveLength(0)
+  })
 })
 
 describe('mock exam', () => {

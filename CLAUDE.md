@@ -34,9 +34,9 @@ Use these, not third-party prep sites. If the guide gets a new version, update `
 - **Progress** (`src/progress/store.ts`) is the only module that touches `localStorage`. It is a versioned store: on a version mismatch it discards the stored data, so bump `VERSION` and add a migration in `load()` when the shape changes. Components read it with `useProgress()` (`useSyncExternalStore`).
 - **Quiz engine** (`src/quiz/`):
   - `grading.ts`: multiple-response items are scored all-or-nothing. `scoreExam` produces the official report shape (pass/fail, scaled score, per-domain results). The scaled score is a linear estimate and the UI must always label it as one.
-  - `sampler.ts`: `buildMockExam` draws each skill's share from `allocateItems()`. When a skill's pool is too small, it fills the gap from the rest of the bank and scales the time limit to the real 120 min / 53 items pace. Pass `seededRng(n)` in tests.
+  - `sampler.ts`: `buildMockExam` draws each skill's share from `allocateItems()`. When a skill's pool is too small, it fills the gap from the rest of the bank and scales the time limit to the real 120 min / 53 items pace. Pass `seededRng(n)` in tests. `buildMixedSet` draws the untimed mixed scrimmage by weighted random sampling (skill chance ∝ blueprint weight), so short sets still reach light skills; practice mode reveals answers per item and does not record a mock result.
   - `QuestionView`: renders both single- and multi-select items. It stops users selecting more than `selectCount`, and reveals every option's explanation. It doesn't shuffle options.
-  - Routes in `App.tsx`: `/` (blueprint), `/learn` and `/learn/:skillId`, `/practice?skill=2.3` or `?domain=2`, `/mock`.
+  - Routes in `App.tsx`: `/` (blueprint), `/learn` and `/learn/:skillId`, `/practice?skill=2.3`, `?domain=2`, `?mix=25` (mixed scrimmage) or `?weak=1`, `/mock`.
 - **TypeScript projects**:
   - `tsconfig.app.json` covers app code and excludes tests.
   - `tsconfig.test.json` covers tests, adds Node types and allows `node:fs`.

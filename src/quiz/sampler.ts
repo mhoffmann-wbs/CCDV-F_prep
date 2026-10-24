@@ -59,3 +59,25 @@ export function buildMockExam(bank: readonly Question[], rng: Rng = Math.random)
     shortfall: EXAM_FORMAT.items - questions.length,
   }
 }
+
+/**
+ * Draws an untimed mixed practice set across the whole blueprint. Unlike the mock exam's fixed
+ * per-skill allocation (which, at small sizes, would only ever pick the heaviest skills), this
+ * samples without replacement with each skill's chance proportional to its weight, so short sets
+ * match the blueprint on average and every skill shows up over a few sessions.
+ */
+export function buildMixedSet(bank: readonly Question[], size: number, rng: Rng = Math.random): Question[] {
+  const poolSize = new Map<string, number>()
+  for (const q of bank) poolSize.set(q.skillId, (poolSize.get(q.skillId) ?? 0) + 1)
+  const weight = new Map(SKILLS.map((s) => [s.id, s.weight]))
+  // Efraimidis–Spirakis: key = u^(1/w); the largest keys form a weighted sample.
+  const keyed = bank.map((q) => {
+    const w = (weight.get(q.skillId) ?? 0) / (poolSize.get(q.skillId) ?? 1)
+    return { q, key: w > 0 ? Math.pow(rng(), 1 / w) : -1 }
+  })
+  keyed.sort((a, b) => b.key - a.key)
+  return shuffle(
+    keyed.slice(0, size).map((k) => k.q),
+    rng,
+  )
+}

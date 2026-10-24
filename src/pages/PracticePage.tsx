@@ -1,21 +1,29 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { DOMAINS, getSkill } from '../content/blueprint'
+import { DOMAINS, EXAM_FORMAT, getSkill } from '../content/blueprint'
 import { QUESTIONS } from '../content/questions'
 import { weakAreaQuestions } from '../progress/readiness'
 import { getProgress, recordAnswer } from '../progress/store'
 import QuestionView from '../quiz/QuestionView'
-import { isCorrect } from '../quiz/grading'
-import { shuffle } from '../quiz/sampler'
+import { isCorrect, scoreExam } from '../quiz/grading'
+import { DomainTable } from '../quiz/ScoreReportView'
+import { buildMixedSet, shuffle } from '../quiz/sampler'
+
+/** Sizes offered for a mixed scrimmage; the last one matches the real exam length. */
+const MIX_SIZES = [10, 25, EXAM_FORMAT.items]
 
 export default function PracticePage() {
   const [params] = useSearchParams()
   const skillId = params.get('skill')
   const domainId = params.get('domain')
+  const mix = Number(params.get('mix'))
 
   if (params.get('weak')) {
     // Snapshot progress once so answering during the drill doesn't reshuffle it.
     return <PracticeSession key="weak" pool={weakAreaQuestions(QUESTIONS, getProgress())} label="Weak-area drill" />
+  }
+  if (mix > 0) {
+    return <PracticeSession key={`mix|${mix}`} pool={buildMixedSet(QUESTIONS, mix)} label="Mixed scrimmage" />
   }
   if (!skillId && !domainId) return <PracticePicker />
 
@@ -34,8 +42,27 @@ function PracticePicker() {
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Practice reps</h1>
       <p className="text-neutral-600">
-        Pick a domain or a single skill. You get immediate feedback, with an explanation for every option.
+        Pick a domain or a single skill, or run a mixed scrimmage across the whole blueprint. You get
+        immediate feedback, with an explanation for every option.
       </p>
+      <section className="rounded-lg border border-neutral-200 bg-white p-4">
+        <h2 className="font-semibold">Mixed scrimmage</h2>
+        <p className="mt-1 text-sm text-neutral-600">
+          Questions from every domain, drawn by blueprint weight like the mock exam, but untimed and with the
+          answer revealed after each item.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {MIX_SIZES.map((n) => (
+            <Link
+              key={n}
+              to={`?mix=${n}`}
+              className="rounded border border-field px-3 py-1 text-sm text-field-dark hover:bg-field/10"
+            >
+              {n} questions
+            </Link>
+          ))}
+        </div>
+      </section>
       {DOMAINS.map((domain) => {
         const domainCount = QUESTIONS.filter((q) => q.skillId.startsWith(`${domain.id}.`)).length
         return (
@@ -84,11 +111,14 @@ function PracticeSession({ pool, label }: { pool: typeof QUESTIONS; label: strin
   const [index, setIndex] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
   const [revealed, setRevealed] = useState(false)
-  const [score, setScore] = useState({ answered: 0, correct: 0 })
+  const [answers, setAnswers] = useState<Record<string, string[]>>({})
 
   if (questions.length === 0) {
     return <p>No questions for this selection yet.</p>
   }
+
+  const answered = questions.filter((q) => q.id in answers)
+  const score = scoreExam(answered, answers)
 
   const done = index >= questions.length
   if (done) {
@@ -96,8 +126,10 @@ function PracticeSession({ pool, label }: { pool: typeof QUESTIONS; label: strin
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">Drive complete: {label}</h1>
         <p>
-          {score.correct} / {score.answered} correct.
+          {score.correct} / {score.total} correct.
         </p>
+        {/* A single-skill or single-domain drill would just repeat the total. */}
+        {score.byDomain.length > 1 && <DomainTable byDomain={score.byDomain} />}
         <Link to="/practice" className="underline">
           Back to practice
         </Link>
@@ -110,7 +142,7 @@ function PracticeSession({ pool, label }: { pool: typeof QUESTIONS; label: strin
   function check() {
     const correct = isCorrect(question, selected)
     recordAnswer(question.id, correct)
-    setScore((s) => ({ answered: s.answered + 1, correct: s.correct + (correct ? 1 : 0) }))
+    setAnswers((a) => ({ ...a, [question.id]: selected }))
     setRevealed(true)
   }
 
@@ -125,7 +157,7 @@ function PracticeSession({ pool, label }: { pool: typeof QUESTIONS; label: strin
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 text-sm text-neutral-600">
         <span>{label}</span>
         <span>
-          Question {index + 1} of {questions.length} · {score.correct}/{score.answered} correct
+          Question {index + 1} of {questions.length} · {score.correct}/{score.total} correct
         </span>
       </div>
       <QuestionView question={question} selected={selected} onChange={setSelected} revealed={revealed} />
