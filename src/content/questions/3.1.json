@@ -475,5 +475,75 @@
       "https://code.claude.com/docs/en/permission-modes",
       "https://code.claude.com/docs/en/settings"
     ]
+  },
+  {
+    "id": "q-3.1-014",
+    "skillId": "3.1",
+    "difficulty": 2,
+    "stem": "A team's `/scout-report` skill runs a long procedure: it reads dozens of files and produces a one-page summary. Every time it runs, the main conversation fills with the intermediate file reads, and later work in the session suffers. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move the procedure into CLAUDE.md so it is always loaded and needs fewer reads",
+        "explanation": "This adds context to every session and doesn't stop the file reads landing in the conversation."
+      },
+      {
+        "id": "B",
+        "text": "Set `context: fork` in the skill's frontmatter to run it in a forked context",
+        "explanation": "Correct. A forked context keeps the skill's intermediate work out of the main conversation, which receives only the result."
+      },
+      {
+        "id": "C",
+        "text": "Run `/clear` after each report so the file reads are removed",
+        "explanation": "This also throws away everything else in the session that the developer still needs."
+      },
+      {
+        "id": "D",
+        "text": "Set `disable-model-invocation: true` so the skill uses less context",
+        "explanation": "That setting controls who can trigger the skill, not where its work happens."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/skills"
+    ]
+  },
+  {
+    "id": "q-3.1-015",
+    "skillId": "3.1",
+    "difficulty": 1,
+    "stem": "Early in a Claude Code session, before much work has been done, a developer notices that the context is already well filled. They want to see what is taking up the space, such as CLAUDE.md, MCP tools or skills, before deciding what to trim. Which command best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "`/context`, which shows what is using the window",
+        "explanation": "Correct. `/context` breaks down what is occupying the window, so the developer can see what to trim."
+      },
+      {
+        "id": "B",
+        "text": "`/compact`, which summarizes the conversation so far",
+        "explanation": "Compacting summarizes the conversation without showing what was using the space, and the startup load would remain."
+      },
+      {
+        "id": "C",
+        "text": "`/init`, which regenerates the project's CLAUDE.md",
+        "explanation": "`/init` drafts or improves CLAUDE.md. It doesn't report context usage."
+      },
+      {
+        "id": "D",
+        "text": "`/rewind`, which restores an earlier checkpoint",
+        "explanation": "Rewinding rolls back the conversation or code. It doesn't show what fills the window."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/commands"
+    ]
   }
 ]

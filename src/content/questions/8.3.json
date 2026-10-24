@@ -437,5 +437,111 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview"
     ]
+  },
+  {
+    "id": "q-8.3-012",
+    "skillId": "8.3",
+    "difficulty": 1,
+    "stem": "A team installs a Skill for formatting weekly injury reports. Its `SKILL.md` body is detailed and correct, but its `description` reads only \"Helpers.\" Claude never uses the Skill unless someone types its name. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move the whole Skill body into CLAUDE.md so Claude always sees it",
+        "explanation": "This loads the full procedure into every session and gives up the Skill's on-demand loading."
+      },
+      {
+        "id": "B",
+        "text": "Make the body longer and more detailed so Claude recognizes when it applies",
+        "explanation": "Until the Skill triggers, Claude sees only the name and description. The body plays no part in the decision."
+      },
+      {
+        "id": "C",
+        "text": "Rewrite the description to say what the Skill does and when to use it",
+        "explanation": "Correct. The description is what Claude sees at startup and uses to decide whether to load the Skill, so it must name the task and the situations it fits."
+      },
+      {
+        "id": "D",
+        "text": "Set `disable-model-invocation: true` so the Skill is picked up more reliably",
+        "explanation": "That setting does the opposite: only a person can trigger the Skill."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/skills"
+    ]
+  },
+  {
+    "id": "q-8.3-013",
+    "skillId": "8.3",
+    "difficulty": 2,
+    "stem": "A team uploads a custom Skill to the Claude API. Its bundled script calls the club's live stats REST API, and the calls always fail with network errors, although the same script works on a developer's laptop. Requests include the code execution tool. Which design best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Raise the script's network timeout, since the container is slower than a laptop",
+        "explanation": "The container has no network access, so no timeout will let the call through."
+      },
+      {
+        "id": "B",
+        "text": "Expose the stats API via a tool or MCP server; keep the Skill for know-how",
+        "explanation": "Correct. API Skills run in the code-execution container without network access. New access belongs in a tool or MCP server; the Skill can still teach Claude how to use it."
+      },
+      {
+        "id": "C",
+        "text": "Put the stats API key in `SKILL.md` so the script can authenticate from the container",
+        "explanation": "Authentication isn't the problem, and secrets don't belong in Skill files."
+      },
+      {
+        "id": "D",
+        "text": "Remove the code execution tool so the Skill runs in the application's own process",
+        "explanation": "API Skills need the code execution tool to run at all. Removing it disables the Skill."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/code-execution-tool"
+    ]
+  },
+  {
+    "id": "q-8.3-014",
+    "skillId": "8.3",
+    "difficulty": 2,
+    "stem": "A roster-validation Skill describes a long, fully deterministic salary-cap check as 300 lines of step-by-step prose in `SKILL.md`. It costs a lot of context whenever the Skill triggers, and Claude applies the steps slightly differently each time. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Split the prose across several Skills so each one loads less text",
+        "explanation": "The same logic still enters context as prose, and Claude still applies it by interpretation."
+      },
+      {
+        "id": "B",
+        "text": "Move the check into CLAUDE.md so it is always in context and applied consistently",
+        "explanation": "This costs context in every session, and prose stays prose wherever it lives."
+      },
+      {
+        "id": "C",
+        "text": "Add \"follow every step exactly\" at the top of the prose",
+        "explanation": "Emphasis doesn't make interpreted prose deterministic or shorter."
+      },
+      {
+        "id": "D",
+        "text": "Bundle the check as a script the Skill runs, so only its output enters context",
+        "explanation": "Correct. A script runs the logic the same way every time, and with progressive disclosure only its output reaches context, not its code."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/skills"
+    ]
   }
 ]

@@ -511,5 +511,40 @@
       "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
       "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview"
     ]
+  },
+  {
+    "id": "q-6.2-015",
+    "skillId": "6.2",
+    "difficulty": 1,
+    "stem": "A stadium voice assistant's system prompt says \"NEVER use ellipses.\" Claude still uses them now and then, and a teammate proposes adding \"THIS IS CRITICAL\" in capitals. The real reason for the rule is that the text-to-speech engine reads \"...\" aloud as \"dot dot dot\". Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Explain why: replies are read aloud and the speech engine can't say ellipses",
+        "explanation": "Correct. Giving the reason behind an instruction helps Claude follow it and apply it to similar cases, such as other symbols that don't read well aloud."
+      },
+      {
+        "id": "B",
+        "text": "Add \"THIS IS CRITICAL\" and repeat the rule three times in the prompt",
+        "explanation": "More emphasis rarely fixes an ignored rule, and it can make Claude over-apply instructions elsewhere."
+      },
+      {
+        "id": "C",
+        "text": "Prefill the assistant turn so the reply starts without punctuation",
+        "explanation": "Assistant prefill is rejected on current models, and it wouldn't control punctuation later in the reply."
+      },
+      {
+        "id": "D",
+        "text": "Lower the effort level so Claude writes shorter replies with less punctuation",
+        "explanation": "Effort affects how much the model works, not which punctuation it chooses."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview"
+    ]
   }
 ]

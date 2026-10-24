@@ -909,5 +909,181 @@
       "https://code.claude.com/docs/en/common-workflows",
       "https://code.claude.com/docs/en/code-review-local"
     ]
+  },
+  {
+    "id": "q-2.4-026",
+    "skillId": "2.4",
+    "difficulty": 1,
+    "stem": "Before releasing a new login flow for a fan app, a developer wants Claude Code to look specifically for vulnerabilities in the branch's changes, such as injection or unsafe handling of tokens. Which built-in option best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "`/simplify`, which reviews the branch's changes and cleans them up",
+        "explanation": "`/simplify` suggests cleanups. It doesn't hunt for bugs or vulnerabilities."
+      },
+      {
+        "id": "B",
+        "text": "`/compact`, so Claude can hold the whole branch in context",
+        "explanation": "`/compact` summarizes the conversation. It isn't a review tool."
+      },
+      {
+        "id": "C",
+        "text": "`/init`, which re-scans the codebase and updates CLAUDE.md",
+        "explanation": "`/init` drafts or improves CLAUDE.md. It doesn't review changes."
+      },
+      {
+        "id": "D",
+        "text": "`/security-review`, which checks the changes for vulnerabilities",
+        "explanation": "Correct. `/security-review` is the built-in review focused on security issues in the pending changes."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/commands",
+      "https://code.claude.com/docs/en/code-review-local"
+    ]
+  },
+  {
+    "id": "q-2.4-027",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A roster API returns player JSON. Sometimes `injury_status` is `null`, and sometimes the key is missing entirely. Downstream code treats both differently by accident and occasionally crashes on `undefined`. The team generates this JSON with structured outputs. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Make `injury_status` required and nullable; handle `null` deliberately",
+        "explanation": "Correct. Being explicit about null versus missing removes the ambiguity: the key is always present, and `null` has one documented meaning."
+      },
+      {
+        "id": "B",
+        "text": "Let Claude decide per response whether to include the key, depending on the data",
+        "explanation": "This is the source of the inconsistency, not a fix for it."
+      },
+      {
+        "id": "C",
+        "text": "Wrap every field access in try/catch so missing keys never crash the service",
+        "explanation": "This hides the problem and still treats null and missing inconsistently."
+      },
+      {
+        "id": "D",
+        "text": "Use the string \"null\" instead of JSON `null` so the field always has a value",
+        "explanation": "A magic string is easy to confuse with real data and still needs special handling."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-2.4-028",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A team asks Claude Code to migrate a 300-file scouting app from one web framework to another \"in one go\". The first attempt produces a huge diff that nobody can review, and the app no longer starts. Which way of working best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Repeat the one-shot attempt with a more detailed prompt about the new framework",
+        "explanation": "A better prompt still yields one unreviewable change. The process is the problem."
+      },
+      {
+        "id": "B",
+        "text": "Let Claude merge the big diff and fix whatever breaks in production",
+        "explanation": "This turns the migration into a production incident."
+      },
+      {
+        "id": "C",
+        "text": "Explore, get a plan in plan mode, review it, then migrate incrementally",
+        "explanation": "Correct. For large refactors, explore and plan first, then code in small verified steps. Plan mode yields a plan the team can review before any edit."
+      },
+      {
+        "id": "D",
+        "text": "Turn on `bypassPermissions` so Claude can finish the migration without interruptions",
+        "explanation": "Fewer prompts don't make a big-bang change reviewable, and bypass mode is for isolated sandboxes."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/common-workflows"
+    ]
+  },
+  {
+    "id": "q-2.4-029",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A Node.js service handles many concurrent Claude calls with `async`/`await`. When someone uploads a 50 MB play-by-play file, the handler parses and transforms it synchronously, and every other in-flight request stalls until it finishes. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add `await` before the parsing call so it no longer blocks",
+        "explanation": "`await` on synchronous CPU work doesn't move it off the event loop. The stall remains."
+      },
+      {
+        "id": "B",
+        "text": "Move the parsing off the event loop, e.g. to a worker thread or job queue",
+        "explanation": "Correct. The event loop must stay free for I/O. Heavy CPU work belongs in a worker or a background job."
+      },
+      {
+        "id": "C",
+        "text": "Raise the timeout on the Claude calls so they survive the stall",
+        "explanation": "This hides the symptom for Claude calls while every request is still blocked."
+      },
+      {
+        "id": "D",
+        "text": "Stream the Claude responses so they arrive faster during uploads",
+        "explanation": "Streaming can't help while the event loop is blocked and can't process any events."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-2.4-030",
+    "skillId": "2.4",
+    "difficulty": 1,
+    "stem": "A developer sets up a GitHub Actions workflow that runs Claude Code on pull requests and pastes the Claude API key directly into the committed workflow YAML so it works on the first try. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use a repository secret in the workflow and rotate the exposed key",
+        "explanation": "Correct. Keys never go in git. A repository secret keeps the value out of the code, and the committed key must be treated as leaked."
+      },
+      {
+        "id": "B",
+        "text": "Keep the key in the YAML but make the repository private to the team",
+        "explanation": "Everyone with repo access, every clone and the git history still hold the key."
+      },
+      {
+        "id": "C",
+        "text": "Move the key into CLAUDE.md so Claude Code can find it during the run",
+        "explanation": "CLAUDE.md is committed too, and it puts the key into the model's context."
+      },
+      {
+        "id": "D",
+        "text": "Base64-encode the key in the YAML so it isn't readable",
+        "explanation": "Base64 is an encoding, not encryption. Anyone can decode it."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/github-actions"
+    ]
   }
 ]

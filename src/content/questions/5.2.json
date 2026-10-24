@@ -652,5 +652,180 @@
       "https://platform.claude.com/docs/en/api/overview",
       "https://platform.claude.com/docs/en/api/errors"
     ]
+  },
+  {
+    "id": "q-5.2-019",
+    "skillId": "5.2",
+    "difficulty": 1,
+    "stem": "A curl script calls the Messages API with the right auth, `anthropic-version` and content-type headers. The developer adds a request field for a feature that the docs describe as beta, and the request now fails with an error saying the field isn't recognized. What is missing?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A newer `anthropic-version` value, since every beta feature needs the latest API version",
+        "explanation": "Beta features are opted into by name, not by moving the API version."
+      },
+      {
+        "id": "B",
+        "text": "An `anthropic-beta` header naming the feature, which opts the request into it",
+        "explanation": "Correct. Beta features are enabled per request with the `anthropic-beta` header. Without it, the API treats the beta field as unknown."
+      },
+      {
+        "id": "C",
+        "text": "A different endpoint, because beta features live under `/v1/beta/messages`",
+        "explanation": "Beta features are used through the same endpoint with an opt-in header."
+      },
+      {
+        "id": "D",
+        "text": "Moving the field into the URL query string, where beta parameters are read",
+        "explanation": "Request parameters go in the JSON body. The opt-in is a header, not a query string."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/overview"
+    ]
+  },
+  {
+    "id": "q-5.2-020",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A usage dashboard for a streaming recap service adds up the `output_tokens` value from every `message_delta` event in each stream. Its totals come out well above what the billing console shows for the same requests. What is the most likely cause?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Streaming is billed at a premium, so the billing console under-reports streamed usage",
+        "explanation": "Streaming doesn't change the price, and the console reflects real billed usage."
+      },
+      {
+        "id": "B",
+        "text": "Each `message_delta` count is cumulative; use the final value instead of summing",
+        "explanation": "Correct. Each count already includes the earlier ones. Summing them counts the same tokens several times."
+      },
+      {
+        "id": "C",
+        "text": "`ping` events also carry token counts, and the code is missing them",
+        "explanation": "`ping` events are keep-alives with no usage. Missing them would make totals lower, not higher."
+      },
+      {
+        "id": "D",
+        "text": "The console only counts input tokens for streamed requests",
+        "explanation": "Billing covers both input and output. The difference comes from how the dashboard aggregates."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-5.2-021",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A club moves its Python stats assistant to Claude on Amazon Bedrock. A developer keeps the first-party `Anthropic()` client and only changes its `base_url` to the Bedrock endpoint. Requests fail with authentication errors. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Send the Anthropic API key in an AWS signature header alongside the new `base_url`",
+        "explanation": "Bedrock authenticates with AWS credentials, not an Anthropic API key. Patching headers by hand rebuilds what the SDK's platform client already does."
+      },
+      {
+        "id": "B",
+        "text": "Rewrite the integration as raw HTTP calls to Bedrock, since the SDK doesn't support cloud platforms",
+        "explanation": "The SDKs ship dedicated cloud clients, so dropping to raw HTTP gives up typed errors, retries and stream helpers."
+      },
+      {
+        "id": "C",
+        "text": "Use the SDK's Bedrock client, which handles AWS auth behind the same interface",
+        "explanation": "Correct. Each platform has its own client with the right auth and model-ID handling, while the calling code stays the same."
+      },
+      {
+        "id": "D",
+        "text": "Keep the first-party client and ask AWS to accept Anthropic API keys for the account",
+        "explanation": "Bedrock uses AWS IAM. The fix is on the client side, by using the platform's client."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/cli-sdks-libraries/overview"
+    ]
+  },
+  {
+    "id": "q-5.2-022",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A news site wants Claude's game summaries to appear word by word in the reader's browser. Readers never send anything while a summary is streaming; there is no stop button and no live input. An engineer plans a websocket service between browser and backend. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Relay the text deltas from the backend as its own server-sent event stream",
+        "explanation": "Correct. When the browser only receives, re-streaming SSE from the backend is simpler than a two-way websocket, and the API key stays on the server."
+      },
+      {
+        "id": "B",
+        "text": "Build the websocket service anyway, since streaming always requires websockets",
+        "explanation": "Websockets are for two-way channels. This flow is one-way, and the Messages API itself streams with SSE."
+      },
+      {
+        "id": "C",
+        "text": "Let the browser call the Messages API directly with a restricted key",
+        "explanation": "API keys must never be shipped to the browser, whatever their scope."
+      },
+      {
+        "id": "D",
+        "text": "Wait for the complete summary on the backend, then send it in one response",
+        "explanation": "This gives up the word-by-word display the site wants."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-5.2-023",
+    "skillId": "5.2",
+    "difficulty": 3,
+    "stem": "A high-volume highlights service wants to slow its own request rate before it starts receiving 429 errors, rather than only reacting after they arrive. Which signal best supports this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The `request-id` header, which increases as the organization nears its limit",
+        "explanation": "The request ID identifies a request for support. It carries no rate-limit information."
+      },
+      {
+        "id": "B",
+        "text": "The monthly invoice, checked each morning to estimate the day's headroom",
+        "explanation": "Rate limits are per minute. A billing view is far too coarse and too late."
+      },
+      {
+        "id": "C",
+        "text": "The `anthropic-ratelimit-*` response headers showing remaining capacity",
+        "explanation": "Correct. These headers show how much of each limit is left, so the client can throttle before hitting a 429."
+      },
+      {
+        "id": "D",
+        "text": "Average response latency, since latency always rises just before a 429",
+        "explanation": "Latency is an unreliable proxy. The API reports remaining capacity directly."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/rate-limits"
+    ]
   }
 ]

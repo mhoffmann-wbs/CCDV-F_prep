@@ -692,5 +692,145 @@
     "sourceLinks": [
       "https://www.anthropic.com/engineering/building-effective-agents"
     ]
+  },
+  {
+    "id": "q-1.3-020",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "A fan-account assistant uses the memory tool. A review finds that Claude saved a fan's ticketing-site password to `/memories/fan_1234/login.md` after the fan typed it in chat \"so you remember it\". Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Encrypt the memory files at rest so the password is protected on disk",
+        "explanation": "Encryption at rest doesn't stop the model reading the password back into context and possibly repeating it."
+      },
+      {
+        "id": "B",
+        "text": "Move the password into the system prompt so it is used only when needed",
+        "explanation": "This puts the secret into every request's context, which is worse."
+      },
+      {
+        "id": "C",
+        "text": "Keep secrets out of memory: reject them in the handler",
+        "explanation": "Correct. Secrets never belong in memory. The client-side handler can refuse to store credential patterns, and the fan should log in through the app's own sign-in flow."
+      },
+      {
+        "id": "D",
+        "text": "Shorten how long memory files are kept so the password expires sooner",
+        "explanation": "The password would still be stored and readable until it expired."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool"
+    ]
+  },
+  {
+    "id": "q-1.3-021",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "In a hand-written agent loop for injury research, a response sometimes arrives with `stop_reason: \"refusal\"` partway through a multi-step task. The loop currently feeds the response straight back to Claude with \"please continue\" and tries again, up to ten times. Which handling best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Stop the loop on a refusal, log `stop_details` and tell the user",
+        "explanation": "Correct. A refusal is a deliberate decline, not a transient failure. Ending the loop cleanly and recording why gives the team something to act on."
+      },
+      {
+        "id": "B",
+        "text": "Keep retrying with \"please continue\", but raise the limit to twenty attempts",
+        "explanation": "Blindly retrying a decline wastes calls and is unlikely to change the outcome."
+      },
+      {
+        "id": "C",
+        "text": "Treat a refusal like `tool_use` and run whatever tools were last requested",
+        "explanation": "A refusal carries no tool requests to run. This misreads the stop reason."
+      },
+      {
+        "id": "D",
+        "text": "Remove the refusal check so the loop treats every stop as a finished answer",
+        "explanation": "This would show users empty or partial output as if the task were complete."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons"
+    ]
+  },
+  {
+    "id": "q-1.3-022",
+    "skillId": "1.3",
+    "difficulty": 1,
+    "stem": "A team picks Strands Agents for its model-driven scouting agent. It has an Anthropic API key but no AWS account. The first run fails while trying to reach Amazon Bedrock. What is the most likely cause, and the fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Strands only works with Bedrock, so the team must open an AWS account",
+        "explanation": "Strands is provider-portable and supports Anthropic as a model provider."
+      },
+      {
+        "id": "B",
+        "text": "The API key is invalid; generate a new key in the Console",
+        "explanation": "The error comes from trying to reach Bedrock, which an Anthropic key wouldn't be used for anyway."
+      },
+      {
+        "id": "C",
+        "text": "Strands needs LangGraph installed to call any model provider",
+        "explanation": "These are separate frameworks. Strands doesn't depend on LangGraph."
+      },
+      {
+        "id": "D",
+        "text": "Bedrock is the default provider; select the Anthropic provider",
+        "explanation": "Correct. Strands defaults to Bedrock, so a team using the Anthropic API has to select that provider in the agent's configuration."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://strandsagents.com/"
+    ]
+  },
+  {
+    "id": "q-1.3-023",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "A game-planning agent must read 40 opponent game logs, each several thousand tokens, before writing a two-page plan. Reading them in the main loop fills its context and takes too long. Reading a log needs little judgment. Which design best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Read all 40 logs in the main loop with a larger context window",
+        "explanation": "The work still runs one log at a time and floods the main context, which is the problem."
+      },
+      {
+        "id": "B",
+        "text": "Parallel sub-agents on a cheaper model, each returning a short report",
+        "explanation": "Correct. Sub-agents keep noisy reading out of the parent's context, can run in parallel, and can use a cheaper model for low-judgment work."
+      },
+      {
+        "id": "C",
+        "text": "Concatenate all 40 logs into one tool result so the main loop reads them in one turn",
+        "explanation": "One huge tool result floods the context just the same."
+      },
+      {
+        "id": "D",
+        "text": "Skip the logs and have the agent plan from its general football knowledge",
+        "explanation": "The plan has to reflect this opponent's tendencies, which only the logs contain."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/engineering/building-effective-agents"
+    ]
   }
 ]

@@ -478,5 +478,75 @@
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
       "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks"
     ]
+  },
+  {
+    "id": "q-8.1-014",
+    "skillId": "8.1",
+    "difficulty": 2,
+    "stem": "A trade agent's harness shows each pending `submit_trade` call to the GM for approval. When the GM declines, the harness currently drops that `tool_use` and sends Claude only the GM's next chat message. The following request fails with a 400. Which handling best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Execute the trade anyway and tell the GM afterwards, so the conversation stays valid",
+        "explanation": "Running a declined side-effecting action defeats the approval gate entirely."
+      },
+      {
+        "id": "B",
+        "text": "Remove the assistant turn containing the `tool_use` from history before continuing",
+        "explanation": "Editing history to hide the call is fragile and loses the context of what Claude proposed."
+      },
+      {
+        "id": "C",
+        "text": "Restart the conversation from scratch whenever the GM declines a trade",
+        "explanation": "This throws away the whole session to handle a normal outcome."
+      },
+      {
+        "id": "D",
+        "text": "Return a `tool_result` for that call saying the GM declined, so Claude can adjust",
+        "explanation": "Correct. Every `tool_use` needs a matching result. Reporting the decline as the result keeps the request valid and lets Claude propose something else."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"
+    ]
+  },
+  {
+    "id": "q-8.1-015",
+    "skillId": "8.1",
+    "difficulty": 2,
+    "stem": "A `design_play` tool takes a nested input describing a formation, routes and motion. With `strict: true`, calls always match the schema, but Claude often fills fields in ways the play engine misreads, such as writing route depths as words instead of yards. The description is already detailed. Which addition best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Remove `strict: true` so Claude has more freedom to describe routes",
+        "explanation": "Loosening the schema makes calls less predictable without showing how fields should be filled."
+      },
+      {
+        "id": "B",
+        "text": "Split the tool into a dozen single-field tools so each value is set separately",
+        "explanation": "Many near-duplicate tools make tool choice harder and the play harder to assemble."
+      },
+      {
+        "id": "C",
+        "text": "Add `input_examples` with complete, schema-valid sample calls",
+        "explanation": "Correct. For complex inputs, worked examples show exactly how fields are filled, which the schema alone can't express. Each example must validate against the schema."
+      },
+      {
+        "id": "D",
+        "text": "Return \"failed\" with `is_error: true` whenever the play engine misreads a field",
+        "explanation": "A bare failure gives Claude nothing to correct. Error messages should be instructive, and the better fix is to prevent the misuse."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools"
+    ]
   }
 ]

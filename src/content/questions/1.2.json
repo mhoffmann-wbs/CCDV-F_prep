@@ -730,5 +730,110 @@
       "https://platform.claude.com/docs/en/managed-agents/overview",
       "https://code.claude.com/docs/en/agent-sdk/secure-deployment"
     ]
+  },
+  {
+    "id": "q-1.2-021",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "An Agent SDK support agent calls a `crm_lookup` tool whose responses include fans' phone numbers. Privacy rules say Claude must never see the numbers, but the CRM team can't change the API for months. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Tell Claude in the system prompt to ignore any phone numbers in tool results",
+        "explanation": "Claude would still receive the numbers. An instruction to ignore them doesn't keep them out of context."
+      },
+      {
+        "id": "B",
+        "text": "A `PostToolUse` hook on `crm_lookup` that swaps in a redacted copy",
+        "explanation": "Correct. `PostToolUse` runs after the tool returns and can replace its output, so the numbers are removed before Claude ever sees the result."
+      },
+      {
+        "id": "C",
+        "text": "A `PreToolUse` hook that denies every `crm_lookup` call",
+        "explanation": "This blocks the lookups the agent needs, instead of removing just the sensitive field."
+      },
+      {
+        "id": "D",
+        "text": "A `Stop` hook that deletes the transcript after each session",
+        "explanation": "By then Claude has already seen the numbers during the session."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/hooks"
+    ]
+  },
+  {
+    "id": "q-1.2-022",
+    "skillId": "1.2",
+    "difficulty": 1,
+    "stem": "A team runs an Agent SDK agent on a legacy stats codebase. For the first week, reviewers want it to explore the code and propose changes as a plan, without editing any files. Which setting best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "`permissionMode: \"acceptEdits\"`, with a prompt asking it to propose a plan",
+        "explanation": "This mode lets the agent edit files without asking, which is the opposite of the requirement."
+      },
+      {
+        "id": "B",
+        "text": "`permissionMode: \"bypassPermissions\"`, with every edit logged for review",
+        "explanation": "Bypass lets the agent do anything. Logging edits doesn't stop them."
+      },
+      {
+        "id": "C",
+        "text": "`permissionMode: \"plan\"`, so the agent reads and proposes a plan",
+        "explanation": "Correct. Plan mode lets the agent read and propose a plan before any edits, which matches the review phase."
+      },
+      {
+        "id": "D",
+        "text": "No `allowedTools` at all, so the agent has no tools during the week",
+        "explanation": "Without tools the agent can't read the code it is meant to explore."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/permission-modes"
+    ]
+  },
+  {
+    "id": "q-1.2-023",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "A club updates its Managed Agents scouting agent with a revised system prompt, creating version 4. New sessions behave as expected, but a session that started yesterday still follows the old prompt. A developer suspects the update failed. Which explanation best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Sessions are pinned to the version they started on; new ones get version 4",
+        "explanation": "Correct. Agent configs are versioned, and each session runs against a specific version, so a running session keeps its original configuration."
+      },
+      {
+        "id": "B",
+        "text": "The update only partly applied; delete and recreate the agent to apply it everywhere",
+        "explanation": "The update worked, as the new sessions show. Recreating the agent would lose its version history."
+      },
+      {
+        "id": "C",
+        "text": "System prompts are cached for 24 hours, so the old session will switch tomorrow",
+        "explanation": "There is no such delay. The old session stays on the version it was started with."
+      },
+      {
+        "id": "D",
+        "text": "Managed Agents ignore system-prompt changes after creation; only tools can be updated",
+        "explanation": "Any config change, including the prompt, can produce a new version."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/managed-agents/overview"
+    ]
   }
 ]

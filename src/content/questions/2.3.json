@@ -903,5 +903,182 @@
       "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
       "https://platform.claude.com/docs/en/build-with-claude/context-windows"
     ]
+  },
+  {
+    "id": "q-2.3-025",
+    "skillId": "2.3",
+    "difficulty": 1,
+    "stem": "A film-study request sends a long question about route concepts first, then six screenshots of the formation as image blocks at the end of the user message. Answers are good but often generic. Which change to the request most directly follows the recommended pattern?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Convert the screenshots into a text description and drop the images",
+        "explanation": "Describing the images loses detail Claude could have read from them directly."
+      },
+      {
+        "id": "B",
+        "text": "Send each screenshot in a separate request and combine the answers",
+        "explanation": "Splitting the images stops Claude comparing them, which the question needs."
+      },
+      {
+        "id": "C",
+        "text": "Place the image blocks before the question in the user message",
+        "explanation": "Correct. Putting images first and the question after them is the recommended order for image-based prompts."
+      },
+      {
+        "id": "D",
+        "text": "Raise `max_tokens` so Claude can describe every image in more detail",
+        "explanation": "A larger cap allows longer answers but doesn't change how the request is structured."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/vision"
+    ]
+  },
+  {
+    "id": "q-2.3-026",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A team's pipeline runs OCR on weekly injury-trend PDFs and sends Claude only the extracted text. Questions about the charts in those PDFs, such as \"Which position group's injuries rose fastest?\", get poor answers. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Improve the OCR settings so the chart labels are extracted more accurately",
+        "explanation": "Better labels still lose the chart itself, which is what the question is about."
+      },
+      {
+        "id": "B",
+        "text": "Ask Claude to infer the chart trends from the surrounding text",
+        "explanation": "If the trends aren't written out in the text, Claude can only guess."
+      },
+      {
+        "id": "C",
+        "text": "Switch to the Message Batches API so each PDF gets more processing time",
+        "explanation": "Batch processing changes cost and timing, not what content Claude receives."
+      },
+      {
+        "id": "D",
+        "text": "Send the PDFs as `document` blocks so Claude reads text and visuals",
+        "explanation": "Correct. With PDF support, Claude sees each page's text and its charts and images, so chart questions can be answered from the source."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/pdf-support"
+    ]
+  },
+  {
+    "id": "q-2.3-027",
+    "skillId": "2.3",
+    "difficulty": 1,
+    "stem": "A finance lead asks the team to turn on streaming for a nightly job that writes 3,000 player summaries nobody reads until morning, \"to make it cheaper\". Which response best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Streaming doesn't lower cost; move the job to the Message Batches API",
+        "explanation": "Correct. Streaming improves latency and avoids timeouts but is priced the same. For work nobody waits on, the Batch API cuts the price by half."
+      },
+      {
+        "id": "B",
+        "text": "Turn on streaming, since streamed tokens are billed at a lower rate",
+        "explanation": "Streamed and non-streamed tokens are priced the same."
+      },
+      {
+        "id": "C",
+        "text": "Turn on streaming and lower `max_tokens` to save on output",
+        "explanation": "A lower cap risks truncated summaries and retries, and streaming still saves nothing."
+      },
+      {
+        "id": "D",
+        "text": "Keep the job as is, because no API option reduces the cost of overnight work",
+        "explanation": "The Batch API exists precisely for asynchronous, non-urgent work at lower cost."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-2.3-028",
+    "skillId": "2.3",
+    "difficulty": 3,
+    "stem": "A medical-staff assistant on a current Claude model runs with thinking and tools. To meet a privacy rule, the harness rewrites earlier user and assistant turns on every request to mask player names. Requests start failing or losing reasoning partway through tool loops. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep rewriting history but strip all thinking blocks so nothing depends on them",
+        "explanation": "Stripping thinking blocks breaks tool loops on current models and discards the reasoning they carry."
+      },
+      {
+        "id": "B",
+        "text": "Mask names before content enters the conversation; keep history append-only",
+        "explanation": "Correct. On the newest models a thinking block stays valid only while everything before it is unchanged. Masking at the point of entry meets the privacy rule without editing history."
+      },
+      {
+        "id": "C",
+        "text": "Turn off thinking for the whole feature so history edits no longer matter",
+        "explanation": "Some current models can't disable thinking, and turning it off would lower quality on a feature that relies on it."
+      },
+      {
+        "id": "D",
+        "text": "Retry each failed request until the edited history is accepted",
+        "explanation": "The edit itself causes the failure. Retrying the same edited history fails the same way."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
+    ]
+  },
+  {
+    "id": "q-2.3-029",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A developer enables Anthropic's server-side web search tool for a trade-rumor assistant. They then write code that waits for `stop_reason: \"tool_use\"`, runs a web search through a third-party API, and sends back a `tool_result`, but the loop never sees a web search call. What is the misunderstanding?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Web search requires a forced `tool_choice` before Claude will call it",
+        "explanation": "Forced tool choice isn't required, and it is rejected on some current models anyway."
+      },
+      {
+        "id": "B",
+        "text": "Web search only works in the Message Batches API, not in real-time requests",
+        "explanation": "Server tools work in ordinary Messages requests."
+      },
+      {
+        "id": "C",
+        "text": "Server tools run on Anthropic's side and their results come back in the same response",
+        "explanation": "Correct. Your code doesn't execute server tools. The search happens on Anthropic's infrastructure and its results arrive as content blocks in the response."
+      },
+      {
+        "id": "D",
+        "text": "Web search needs a `tool_result` sent before the first request so Claude knows it works",
+        "explanation": "There is nothing to send in advance. A `tool_result` answers a client tool call, which this isn't."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool"
+    ]
   }
 ]

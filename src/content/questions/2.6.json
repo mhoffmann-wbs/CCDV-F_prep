@@ -433,5 +433,110 @@
     "sourceLinks": [
       "https://code.claude.com/docs/en/plugins/dependencies"
     ]
+  },
+  {
+    "id": "q-2.6-013",
+    "skillId": "2.6",
+    "difficulty": 2,
+    "stem": "A repository's committed `.claude/settings.json` sets `\"model\"` to a Sonnet model, and the team expects every session to use it. One developer's sessions keep running on Opus. `/status` shows the project settings file loaded correctly. What is the most likely explanation?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Project settings only apply after the repository is pushed to the remote",
+        "explanation": "Settings load from the local files at session start. Pushing changes nothing about precedence."
+      },
+      {
+        "id": "B",
+        "text": "An exported `ANTHROPIC_MODEL` in their shell beats the `model` key from any file",
+        "explanation": "Correct. Environment variables pair with specific keys, and an exported `ANTHROPIC_MODEL` overrides the `model` setting wherever it is set."
+      },
+      {
+        "id": "C",
+        "text": "User settings always override shared project settings for every key",
+        "explanation": "It's the reverse: shared project settings take precedence over user settings."
+      },
+      {
+        "id": "D",
+        "text": "The `model` key can only be set in managed settings, so the project value is ignored",
+        "explanation": "`model` can be set at any settings level. Nothing here suggests a managed setting."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/settings"
+    ]
+  },
+  {
+    "id": "q-2.6-014",
+    "skillId": "2.6",
+    "difficulty": 2,
+    "stem": "Two deployment scripts update the same Managed Agents agent configuration within seconds of each other: one changes the system prompt, the other adds a tool. Afterwards the prompt change is gone. The team wants such clashes detected rather than silently lost. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Create a new agent for every change so no two scripts ever touch the same configuration",
+        "explanation": "This scatters near-identical agents and loses the version history that makes configs traceable."
+      },
+      {
+        "id": "B",
+        "text": "Add a delay between the two scripts so their updates never overlap",
+        "explanation": "Timing hacks reduce the chance of a clash but don't detect or prevent one."
+      },
+      {
+        "id": "C",
+        "text": "Keep the configuration in a shared spreadsheet that both scripts read before updating",
+        "explanation": "A side channel doesn't stop the API accepting a stale update."
+      },
+      {
+        "id": "D",
+        "text": "Pass the expected `version` on each update so a stale write fails with a 409",
+        "explanation": "Correct. Agent configs are versioned, and supplying the expected version gives optimistic concurrency: the second writer learns the config changed and can merge and retry."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/managed-agents/overview"
+    ]
+  },
+  {
+    "id": "q-2.6-015",
+    "skillId": "2.6",
+    "difficulty": 1,
+    "stem": "A repository keeps its coding conventions in `AGENTS.md`, which other AI tools also read. The team has just added a short `CLAUDE.md` with build commands, and since then Claude Code no longer follows the conventions. The team wants one source of truth for them. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Import the conventions into CLAUDE.md with an `@AGENTS.md` line",
+        "explanation": "Correct. Claude Code reads AGENTS.md by default only when there's no CLAUDE.md. Importing it from CLAUDE.md keeps one shared file that every tool uses."
+      },
+      {
+        "id": "B",
+        "text": "Copy the conventions into CLAUDE.md and maintain both files by hand",
+        "explanation": "Two copies drift apart, which is exactly what one source of truth is meant to avoid."
+      },
+      {
+        "id": "C",
+        "text": "Delete CLAUDE.md so Claude Code falls back to reading AGENTS.md",
+        "explanation": "This drops the build commands the team just added, when an import keeps both."
+      },
+      {
+        "id": "D",
+        "text": "Rename AGENTS.md to CLAUDE.local.md so Claude Code always loads it",
+        "explanation": "`CLAUDE.local.md` is personal and kept out of git, and the other tools would lose the file."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/memory"
+    ]
   }
 ]

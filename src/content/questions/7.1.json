@@ -515,5 +515,41 @@
       "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
       "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
     ]
+  },
+  {
+    "id": "q-7.1-014",
+    "skillId": "7.1",
+    "difficulty": 2,
+    "stem": "A team is about to launch an agent that summarizes inbound partner emails and can create calendar invites. All pre-launch testing used ordinary, well-behaved emails, and everything passed. Which step best fits before launch?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Launch now, since all tests passed, and add injection defences if an incident occurs",
+        "explanation": "Passing tests on benign inputs says nothing about hostile ones. Waiting for an incident lets real users find the gap."
+      },
+      {
+        "id": "B",
+        "text": "Red-team it with emails containing injected instructions, then fix gaps",
+        "explanation": "Correct. Red-teaming with malicious documents before shipping shows whether isolation, screening and tool gating actually hold."
+      },
+      {
+        "id": "C",
+        "text": "Repeat the same benign test set several more times to confirm stability",
+        "explanation": "More runs of the same inputs don't test the threat that matters here."
+      },
+      {
+        "id": "D",
+        "text": "Switch to the most capable model, which resists injected instructions on its own",
+        "explanation": "No model choice replaces testing. A model that follows instructions well may follow injected ones too."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
+    ]
   }
 ]

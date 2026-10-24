@@ -1123,5 +1123,218 @@
       "https://code.claude.com/docs/en/plugins",
       "https://code.claude.com/docs/en/skills"
     ]
+  },
+  {
+    "id": "q-2.5-032",
+    "skillId": "2.5",
+    "difficulty": 1,
+    "stem": "A fantasy assistant has two tools: `get_player_stats` returns season totals, and `get_game_log` returns one row per game. Their descriptions are \"Gets player stats\" and \"Gets player game data\". Claude often calls the wrong one for questions like \"How did he do in week 5?\". Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Merge both into a single `lookup` tool that returns everything at once",
+        "explanation": "A vague catch-all tool returns far more data than most questions need and makes tool choice less clear, not more."
+      },
+      {
+        "id": "B",
+        "text": "Describe what each tool returns and when to use it instead of the other",
+        "explanation": "Correct. Descriptions that state what a tool returns and when (and when not) to use it are the main signal Claude uses to choose between similar tools."
+      },
+      {
+        "id": "C",
+        "text": "Force `tool_choice` to `get_game_log` whenever a question mentions a week number",
+        "explanation": "Forced tool choice is rejected on some current models, and keyword routing in code is brittle."
+      },
+      {
+        "id": "D",
+        "text": "Rename both tools to shorter names so Claude processes them faster",
+        "explanation": "Shorter names carry less meaning. Clear, specific names and descriptions are what help."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools"
+    ]
+  },
+  {
+    "id": "q-2.5-033",
+    "skillId": "2.5",
+    "difficulty": 2,
+    "stem": "A scouting tool's input schema nests fields five levels deep, such as `data.player.profile.physical.height`. Claude sometimes puts values at the wrong level, and the team's handler code is hard to read. The schema is used only by this tool. Which redesign best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Nest the fields even deeper so related values are grouped more precisely",
+        "explanation": "More nesting means more places to put a value, which makes the misplacement worse."
+      },
+      {
+        "id": "B",
+        "text": "Replace the schema with one free-text field and parse it in the handler",
+        "explanation": "This gives up validation and pushes all the structure into fragile parsing code."
+      },
+      {
+        "id": "C",
+        "text": "Keep the schema and add a long example of a correctly nested call to the description",
+        "explanation": "An example may help a little, but it works around a schema that makes the wrong thing easy."
+      },
+      {
+        "id": "D",
+        "text": "Flatten it into well-named top-level fields such as `height_in` and `weight_lbs`",
+        "explanation": "Correct. Flat, clearly named fields with units are easier for Claude to fill correctly and for code to read."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools"
+    ]
+  },
+  {
+    "id": "q-2.5-034",
+    "skillId": "2.5",
+    "difficulty": 2,
+    "stem": "A depth-chart tool takes a `position` field typed as a free string. Downstream code receives \"WR\", \"Wide Receiver\" and \"wideout\" for the same position and mis-files players. The league uses a fixed list of 20 position codes. Which schema change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Make `position` a required `enum` of the 20 codes on a `strict` tool",
+        "explanation": "Correct. An enum turns a closed set into the only allowed values, and strict tool use makes the input match the schema."
+      },
+      {
+        "id": "B",
+        "text": "Keep the free string and map synonyms to codes with a growing lookup table",
+        "explanation": "The table never ends, and new variants keep slipping through until someone adds them."
+      },
+      {
+        "id": "C",
+        "text": "Make `position` optional so Claude can leave it out when unsure",
+        "explanation": "Missing positions break the depth chart in a different way."
+      },
+      {
+        "id": "D",
+        "text": "Ask Claude in the system prompt to always use official position codes",
+        "explanation": "A prompt instruction helps, but the schema is where a closed set should be enforced."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use"
+    ]
+  },
+  {
+    "id": "q-2.5-035",
+    "skillId": "2.5",
+    "difficulty": 3,
+    "stem": "A developer logs the `systemPrompt` option passed to an Agent SDK agent and sees that the repository's CLAUDE.md text isn't in it. `settingSources` is left at its default. They conclude that CLAUDE.md isn't loaded and plan to paste it into the system prompt. Which assessment is accurate?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Correct: the Agent SDK never reads CLAUDE.md, so pasting it in is the only option",
+        "explanation": "By default the SDK does load CLAUDE.md. It just doesn't put it in the system prompt."
+      },
+      {
+        "id": "B",
+        "text": "Correct, but only because the `claude_code` preset wasn't chosen; the preset is what loads CLAUDE.md",
+        "explanation": "The preset sets the system prompt. Whether CLAUDE.md loads is controlled by `settingSources`."
+      },
+      {
+        "id": "C",
+        "text": "Mistaken: CLAUDE.md loads by default and is injected into the conversation, not the system prompt",
+        "explanation": "Correct. With default `settingSources`, the SDK loads CLAUDE.md as context in the conversation. Pasting it into the system prompt as well would duplicate it."
+      },
+      {
+        "id": "D",
+        "text": "Mistaken: CLAUDE.md is applied as enforced configuration, so it never appears in any prompt",
+        "explanation": "CLAUDE.md is context Claude reads, not enforced configuration."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts",
+      "https://code.claude.com/docs/en/memory"
+    ]
+  },
+  {
+    "id": "q-2.5-036",
+    "skillId": "2.5",
+    "difficulty": 2,
+    "stem": "A coaching assistant's prompt contains instructions followed directly by a 200-row stats table the club's own pipeline produced, with no separators. Claude sometimes treats a row's notes column, such as \"exclude from averages\", as an instruction about how to answer. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move the table into the system prompt so Claude treats it as authoritative",
+        "explanation": "This mixes data and instructions even more, and gives the data operator-level weight."
+      },
+      {
+        "id": "B",
+        "text": "Wrap the table in labelled tags such as `<team_stats>` and refer to it",
+        "explanation": "Correct. For the app's own trusted data, labelled XML tags separate data from instructions and let the prompt refer to it precisely."
+      },
+      {
+        "id": "C",
+        "text": "Delete the notes column so no row can look like an instruction",
+        "explanation": "This throws away information the coaches may need, instead of structuring the prompt."
+      },
+      {
+        "id": "D",
+        "text": "Send the table through a fake tool call so it arrives as a `tool_result`",
+        "explanation": "Tool results suit third-party content. For the app's own data, labelled tags are the simpler, intended structure."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview"
+    ]
+  },
+  {
+    "id": "q-2.5-037",
+    "skillId": "2.5",
+    "difficulty": 1,
+    "stem": "In a claude.ai project, a club's media team uploaded its house style guide as project knowledge, and a prompt that says \"follow our style guide\" works well there. The same prompt, sent through the Messages API from the club's CMS, ignores the style rules. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Pass the claude.ai project's ID in the API request so the knowledge is attached",
+        "explanation": "The API has no access to claude.ai projects. Requests contain only what you send."
+      },
+      {
+        "id": "B",
+        "text": "Repeat \"follow our style guide\" several times in the API prompt",
+        "explanation": "Claude can't follow a guide it never received, however often it is mentioned."
+      },
+      {
+        "id": "C",
+        "text": "Switch to a more capable model, which knows common newsroom style guides",
+        "explanation": "The club's house style is specific to the club. No model knows it unless it is provided."
+      },
+      {
+        "id": "D",
+        "text": "Include the style guide in each API request, e.g. a cached system prompt",
+        "explanation": "Correct. On the API, nothing is added for you. Sending the guide in the cached system prompt reproduces what claude.ai's project knowledge provided, at low cost."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
   }
 ]

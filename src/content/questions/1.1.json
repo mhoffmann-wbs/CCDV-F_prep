@@ -27,8 +27,12 @@
         "explanation": "An uncapped multi-agent debate is unpredictable and expensive. A deterministic length and style check is enough for clear, fixed criteria."
       }
     ],
-    "correct": ["A"],
-    "sourceLinks": ["https://www.anthropic.com/research/building-effective-agents"]
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/building-effective-agents"
+    ]
   },
   {
     "id": "q-1.1-002",
@@ -58,8 +62,12 @@
         "explanation": "Routing works when the categories are known and stable. Here the failure modes are open-ended, so new causes would fall outside the predefined branches."
       }
     ],
-    "correct": ["B"],
-    "sourceLinks": ["https://www.anthropic.com/research/building-effective-agents"]
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/building-effective-agents"
+    ]
   },
   {
     "id": "q-1.1-003",
@@ -89,7 +97,9 @@
         "explanation": "More self-review turns don't create an external check. The agent can still submit a wrong trade, and nothing stops it."
       }
     ],
-    "correct": ["C"],
+    "correct": [
+      "C"
+    ],
     "sourceLinks": [
       "https://www.anthropic.com/research/building-effective-agents",
       "https://code.claude.com/docs/en/agent-sdk/permissions"
@@ -123,8 +133,12 @@
         "explanation": "Correct. A non-fork subagent sees only its own prompt and the delegation message, so every name, path and constraint must be written into the task."
       }
     ],
-    "correct": ["D"],
-    "sourceLinks": ["https://code.claude.com/docs/en/agent-sdk/subagents"]
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/subagents"
+    ]
   },
   {
     "id": "q-1.1-005",
@@ -159,7 +173,10 @@
         "explanation": "Every layer multiplies cost. Spend, depth and concurrency still need caps across the whole tree."
       }
     ],
-    "correct": ["A", "B"],
+    "correct": [
+      "A",
+      "B"
+    ],
     "sourceLinks": [
       "https://code.claude.com/docs/en/agent-sdk/subagents",
       "https://www.anthropic.com/research/multi-agent-research-system"
@@ -193,8 +210,12 @@
         "explanation": "Voting raises confidence on a single judgment but triples cost and does nothing to separate the conflicting policies."
       }
     ],
-    "correct": ["A"],
-    "sourceLinks": ["https://www.anthropic.com/research/building-effective-agents"]
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/building-effective-agents"
+    ]
   },
   {
     "id": "q-1.1-007",
@@ -224,8 +245,12 @@
         "explanation": "Evaluator-optimizer refines an output against criteria. It doesn't solve the core problem of deciding which sections to examine."
       }
     ],
-    "correct": ["B"],
-    "sourceLinks": ["https://www.anthropic.com/research/building-effective-agents"]
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/building-effective-agents"
+    ]
   },
   {
     "id": "q-1.1-008",
@@ -255,8 +280,12 @@
         "explanation": "Research doesn't address rule compliance. The failure is breaking checkable rules, which calls for an evaluation step, not more autonomy."
       }
     ],
-    "correct": ["C"],
-    "sourceLinks": ["https://www.anthropic.com/research/building-effective-agents"]
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/building-effective-agents"
+    ]
   },
   {
     "id": "q-1.1-009",
@@ -286,7 +315,9 @@
         "explanation": "Correct. Start with the simplest tier that works. A single call with a schema handles fixed-field extraction, and code can validate the result."
       }
     ],
-    "correct": ["D"],
+    "correct": [
+      "D"
+    ],
     "sourceLinks": [
       "https://www.anthropic.com/research/building-effective-agents",
       "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
@@ -320,7 +351,9 @@
         "explanation": "Voting multiplies cost and can't reconcile choices that are inconsistent across files. It treats a coordination problem as a confidence problem."
       }
     ],
-    "correct": ["A"],
+    "correct": [
+      "A"
+    ],
     "sourceLinks": [
       "https://www.anthropic.com/research/multi-agent-research-system",
       "https://code.claude.com/docs/en/agent-sdk/subagents"
@@ -354,7 +387,9 @@
         "explanation": "Hosting changes who runs the loop, not who pays for tokens. Every agent's tokens are still billed."
       }
     ],
-    "correct": ["B"],
+    "correct": [
+      "B"
+    ],
     "sourceLinks": [
       "https://code.claude.com/docs/en/agent-sdk/subagents",
       "https://code.claude.com/docs/en/agent-sdk/agent-loop"
@@ -393,8 +428,13 @@
         "explanation": "Reading several inputs is compatible with any tier. On its own it doesn't argue against an agent."
       }
     ],
-    "correct": ["A", "B"],
-    "sourceLinks": ["https://www.anthropic.com/research/building-effective-agents"]
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/research/building-effective-agents"
+    ]
   },
   {
     "id": "q-1.1-013",
@@ -424,8 +464,12 @@
         "explanation": "That variable controls subagent depth in the Agent SDK and Claude Code, not Managed Agents. Managed Agents rejects the nested configuration itself."
       }
     ],
-    "correct": ["C"],
-    "sourceLinks": ["https://platform.claude.com/docs/en/managed-agents/multiagent-orchestration"]
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/managed-agents/multiagent-orchestration"
+    ]
   },
   {
     "id": "q-1.1-014",
@@ -460,10 +504,48 @@
         "explanation": "A bigger window raises the limit but doesn't stop recall degrading as irrelevant tokens pile up."
       }
     ],
-    "correct": ["A", "B"],
+    "correct": [
+      "A",
+      "B"
+    ],
     "sourceLinks": [
       "https://code.claude.com/docs/en/agent-sdk/subagents",
       "https://www.anthropic.com/research/effective-context-engineering-for-ai-agents"
+    ]
+  },
+  {
+    "id": "q-1.1-015",
+    "skillId": "1.1",
+    "difficulty": 2,
+    "stem": "A sportsbook must flag ads that could appeal to minors before they run. Missing a problem ad is very costly, and a single Claude check gives borderline ads inconsistent verdicts. The task is the same for every ad and needs no tools. Which pattern best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "An autonomous agent that researches each ad's audience on the web before deciding",
+        "explanation": "The task is a fixed check with no tools needed. An agent adds cost and unpredictability without addressing inconsistency."
+      },
+      {
+        "id": "B",
+        "text": "Routing, sending each ad to a different specialist prompt by product type",
+        "explanation": "Routing helps when inputs need different handling. Here every ad gets the same check."
+      },
+      {
+        "id": "C",
+        "text": "Voting: run several independent checks and flag on a set threshold",
+        "explanation": "Correct. Voting runs the same task several times and combines the results, which suits high-stakes checks where a single run is unreliable on borderline cases."
+      },
+      {
+        "id": "D",
+        "text": "A single check with a stronger instruction to be careful about minors",
+        "explanation": "One run stays one sample. Stronger wording doesn't remove the variance on borderline ads."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/engineering/building-effective-agents"
     ]
   }
 ]

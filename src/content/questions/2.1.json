@@ -437,5 +437,111 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model"
     ]
+  },
+  {
+    "id": "q-2.1-013",
+    "skillId": "2.1",
+    "difficulty": 1,
+    "stem": "Stakeholders for a club's new Claude-based scouting assistant hand the project lead 15 wishes, from \"summarize opponent tendencies\" to \"voice control in the film room\". The first release is due in six weeks. Which next step best fits sound requirements practice?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Build all 15 in parallel so no stakeholder feels left out of the first release",
+        "explanation": "Six weeks won't cover everything, and without priorities the team can't tell which items to cut when time runs short."
+      },
+      {
+        "id": "B",
+        "text": "Start with the most technically interesting wishes to keep the team motivated",
+        "explanation": "Interest isn't value. The order should follow what the business outcome needs."
+      },
+      {
+        "id": "C",
+        "text": "Prioritize them (must, should, could, won't) and surface conflicts early",
+        "explanation": "Correct. Prioritizing with the owners of the outcome sets the release scope, and finding conflicts early avoids late surprises."
+      },
+      {
+        "id": "D",
+        "text": "Ask Claude to pick the five features it can implement most reliably",
+        "explanation": "Feasibility matters, but priorities belong to the people who own the outcome, not to the model."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.1-014",
+    "skillId": "2.1",
+    "difficulty": 2,
+    "stem": "A sports-medicine company's contract requires zero data retention (ZDR) for all player health data sent to Claude. The architect's design uses Claude Fable 5.1 because it scored best in early tests. Which step best fits the requirements process?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Check which models and features the ZDR arrangement allows, then choose from those",
+        "explanation": "Correct. Retention requirements limit which features and models you can use. Claude Fable 5.1, for example, requires 30-day retention unless Anthropic has expressly authorized otherwise, so eligibility must be checked before committing."
+      },
+      {
+        "id": "B",
+        "text": "Build on Claude Fable 5.1 first and look at retention terms once the system is in production",
+        "explanation": "A compliance constraint discovered after launch forces a redesign or a breach. Stated constraints should shape the design from the start."
+      },
+      {
+        "id": "C",
+        "text": "Strip player names from the data, which removes the need for ZDR altogether",
+        "explanation": "The contract requires ZDR for health data. Removing names doesn't change a contractual requirement."
+      },
+      {
+        "id": "D",
+        "text": "Choose the model with the best test scores, because data retention is handled by the cloud provider",
+        "explanation": "Retention terms depend on the arrangement and the model, so the requirement can't be left to the provider by default."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention"
+    ]
+  },
+  {
+    "id": "q-2.1-015",
+    "skillId": "2.1",
+    "difficulty": 2,
+    "stem": "A league historian wants an assistant that answers questions about 60 years of game reports, around 40,000 pages in total. Each question touches only a few reports. Which requirement-driven design choice best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Send the full archive with every question, since current context windows are very large",
+        "explanation": "The archive far exceeds any context window, and even a large window would make every question slow and costly."
+      },
+      {
+        "id": "B",
+        "text": "Fine-tune a model on the archive so it memorizes all the reports",
+        "explanation": "This is heavy and slow to update, and memorized facts can't be cited or checked against the source."
+      },
+      {
+        "id": "C",
+        "text": "Use the Message Batches API so the full archive can be processed for each question",
+        "explanation": "Batching lowers cost for work nobody waits on. It doesn't make the archive fit in context, and the historian is waiting for answers."
+      },
+      {
+        "id": "D",
+        "text": "Retrieve the relevant reports for each question and pass only those to Claude",
+        "explanation": "Correct. The context-size requirement points to retrieval: find the few relevant documents first, then send them with the question."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model"
+    ]
   }
 ]

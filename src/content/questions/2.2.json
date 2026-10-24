@@ -440,5 +440,111 @@
       "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
       "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
     ]
+  },
+  {
+    "id": "q-2.2-013",
+    "skillId": "2.2",
+    "difficulty": 2,
+    "stem": "A club runs its recap service on Claude through Amazon Bedrock. Its maintenance calendar tracks model retirement dates taken only from Anthropic's model deprecations page. Which gap does this leave in the life-cycle plan?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "None, because model lifecycles are identical on every platform that offers Claude",
+        "explanation": "Partner platforms run their own lifecycle schedules, so one platform's dates don't cover another."
+      },
+      {
+        "id": "B",
+        "text": "Bedrock models never retire, so the calendar is tracking dates that don't apply",
+        "explanation": "Models retire on Bedrock too, on Bedrock's own schedule."
+      },
+      {
+        "id": "C",
+        "text": "Bedrock sets its own retirement schedule, which the plan must track too",
+        "explanation": "Correct. Partner platforms set their own lifecycle dates. The maintenance plan has to follow the dates of the platform the service actually runs on."
+      },
+      {
+        "id": "D",
+        "text": "Retirement only matters on the first-party API, so the calendar can be dropped",
+        "explanation": "A retired model fails on any platform. Dropping the calendar invites an unplanned outage."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+      "https://code.claude.com/docs/en/model-config"
+    ]
+  },
+  {
+    "id": "q-2.2-014",
+    "skillId": "2.2",
+    "difficulty": 2,
+    "stem": "A state gaming regulator requires a sportsbook to submit a documented, signed-off design before any build starts, and another sign-off before deployment. The requirements for the Claude-based compliance-letter drafter are fixed by regulation and won't change during the project. Which delivery approach best fits these constraints?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A waterfall-style sequence with formal sign-off gates",
+        "explanation": "Correct. Waterfall's sequential phases and sign-offs match a fixed scope and mandated approval gates. Its weakness, slowness to absorb change, matters little when requirements are frozen."
+      },
+      {
+        "id": "B",
+        "text": "Weekly sprints that ship to production without the regulator's sign-off",
+        "explanation": "Skipping mandated approvals isn't an option, however iterative the team would like to be."
+      },
+      {
+        "id": "C",
+        "text": "No formal process, since a drafting tool is too small to need one",
+        "explanation": "The regulator requires documented phases. Size doesn't remove a compliance obligation."
+      },
+      {
+        "id": "D",
+        "text": "Continuous deployment of every merged change straight to production",
+        "explanation": "Automatic releases would bypass the pre-deployment sign-off the regulator requires."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.2-015",
+    "skillId": "2.2",
+    "difficulty": 1,
+    "stem": "A team's test plan for a Claude-based play-description generator consists of unit tests for its API wrapper and an integration test that checks the endpoint returns HTTP 200. Which addition most improves the test phase for this kind of system?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "More unit tests for the wrapper, aiming for full code coverage",
+        "explanation": "Coverage of the wrapper says nothing about whether the generated descriptions are any good."
+      },
+      {
+        "id": "B",
+        "text": "A manual check of one generated description before each new release",
+        "explanation": "Outputs aren't deterministic, so one sample can't stand for the behaviour of the system."
+      },
+      {
+        "id": "C",
+        "text": "A load test that confirms the endpoint handles game-day traffic",
+        "explanation": "Load testing matters for operations, but it doesn't test output quality either."
+      },
+      {
+        "id": "D",
+        "text": "An eval set scored against success criteria, run on every change",
+        "explanation": "Correct. For LLM features, evals against success criteria test what the system produces, alongside conventional tests of the code around it."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
   }
 ]

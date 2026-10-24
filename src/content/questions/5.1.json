@@ -724,5 +724,112 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview"
     ]
+  },
+  {
+    "id": "q-5.1-021",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "A team sends a full decade of play-by-play data, about 1.2 million tokens, to a model with a 1-million-token context window. The request fails immediately with a 400 error, before any output is generated. Which explanation best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The output filled the window, so the response stopped with `model_context_window_exceeded`",
+        "explanation": "That stop reason applies when generation reaches the limit. Here the request was rejected before any output."
+      },
+      {
+        "id": "B",
+        "text": "The request hit a temporary overload and should be retried with backoff",
+        "explanation": "Overload is a 529 and is retryable. A 400 for oversized input fails the same way every time."
+      },
+      {
+        "id": "C",
+        "text": "`max_tokens` was set too low for an input of this size",
+        "explanation": "`max_tokens` caps output only. Raising it can't make an oversized input fit."
+      },
+      {
+        "id": "D",
+        "text": "The input alone exceeds the window, so the request is invalid",
+        "explanation": "Correct. If the input by itself is too long, the API rejects the request with a 400. The fix is to send less: filter, summarize or retrieve the relevant part."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-windows"
+    ]
+  },
+  {
+    "id": "q-5.1-022",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "To make a simple score-lookup endpoint on Claude Opus 5.5 faster, a developer adds `thinking: {\"type\": \"disabled\"}`. Every request now returns a 400. Which change best fits the goal?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Send `thinking` with a small `budget_tokens` value instead",
+        "explanation": "Fixed thinking budgets are rejected on current models too, so this is also a 400."
+      },
+      {
+        "id": "B",
+        "text": "Omit the `thinking` parameter and set a low effort level",
+        "explanation": "Correct. On Claude Opus 5.5 thinking can't be turned off, so effort is the lever. Low effort means less thinking, fewer tool calls and shorter answers."
+      },
+      {
+        "id": "C",
+        "text": "Raise `max_tokens` so the model finishes thinking sooner",
+        "explanation": "A higher cap allows more output. It doesn't reduce thinking or fix the 400."
+      },
+      {
+        "id": "D",
+        "text": "Retry each request until the API accepts the disabled setting",
+        "explanation": "The setting is rejected on this model every time, so retries can't succeed."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
+    ]
+  },
+  {
+    "id": "q-5.1-023",
+    "skillId": "5.1",
+    "difficulty": 1,
+    "stem": "A recap prompt includes five fixed few-shot examples, about 3,000 tokens, placed after each request's game data and question. The examples never change, and they are a large share of the input bill. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Drop the examples, since current models no longer benefit from few-shot prompting",
+        "explanation": "Examples remain one of the most reliable ways to pin down format and tone. Removing them risks quality."
+      },
+      {
+        "id": "B",
+        "text": "Rotate a different random example into each request to keep the prompt short",
+        "explanation": "A changing example breaks the prefix match, so nothing caches, and format consistency suffers."
+      },
+      {
+        "id": "C",
+        "text": "Move the examples into the stable, cached prefix before the per-request data",
+        "explanation": "Correct. Static examples belong in the cached part of the prompt. Placed before the volatile content, they are read from cache at a fraction of the price."
+      },
+      {
+        "id": "D",
+        "text": "Summarize the examples into one sentence describing the desired style",
+        "explanation": "A summary loses the concrete patterns that make examples effective."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview"
+    ]
   }
 ]
