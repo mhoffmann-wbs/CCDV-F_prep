@@ -1,6 +1,6 @@
-import type { ComponentProps } from 'react'
+import { useEffect, type ComponentProps } from 'react'
 import { Link, useParams } from 'react-router'
-import { COURSES, DOMAINS, LABS, domainOf, getSkill } from '../content/blueprint'
+import { COURSES, DOMAINS, LABS, SKILLS, domainOf, getSkill } from '../content/blueprint'
 import { LESSONS } from '../content/lessons'
 import { questionsForSkill } from '../content/questions'
 import { setLessonRead, useProgress } from '../progress/store'
@@ -56,6 +56,10 @@ function LessonView({ skillId }: { skillId: string }) {
   const { lessonsRead } = useProgress()
   const skill = getSkill(skillId)
   const lesson = LESSONS.get(skillId)
+  // The topic links sit at the bottom of the page, so start each lesson at the top.
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [skillId])
   if (!skill || !lesson) {
     return (
       <p>
@@ -148,6 +152,39 @@ function LessonView({ skillId }: { skillId: string }) {
           </Link>
         )}
       </footer>
+
+      <LessonNav skillId={skillId} />
     </article>
+  )
+}
+
+/** Previous and next lesson, in blueprint order, skipping skills that have no lesson yet. */
+function LessonNav({ skillId }: { skillId: string }) {
+  const order = SKILLS.filter((s) => LESSONS.has(s.id))
+  const index = order.findIndex((s) => s.id === skillId)
+  const prev = order[index - 1]
+  const next = order[index + 1]
+  return (
+    <nav aria-label="Lesson navigation" className="flex gap-3 border-t border-neutral-200 pt-6">
+      {prev && (
+        <Link to={`/learn/${prev.id}`} className="flex-1 rounded-lg border border-neutral-200 bg-white p-4 hover:border-field">
+          <span className="block text-xs text-neutral-500">← Previous topic</span>
+          <span className="font-medium text-field-dark">
+            {prev.id} {prev.title}
+          </span>
+        </Link>
+      )}
+      {next && (
+        <Link
+          to={`/learn/${next.id}`}
+          className="ml-auto flex-1 rounded-lg border border-neutral-200 bg-white p-4 text-right hover:border-field"
+        >
+          <span className="block text-xs text-neutral-500">Next topic →</span>
+          <span className="font-medium text-field-dark">
+            {next.id} {next.title}
+          </span>
+        </Link>
+      )}
+    </nav>
   )
 }

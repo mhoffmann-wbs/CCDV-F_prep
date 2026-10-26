@@ -1,4 +1,4 @@
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react'
+import { render, screen, waitForElementToBeRemoved, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -213,6 +213,22 @@ describe('learn', () => {
     expect(getProgress().lessonsRead).toEqual(['2.5'])
     await user.click(screen.getByRole('button', { name: /Marked as read/ }))
     expect(getProgress().lessonsRead).toEqual([])
+  })
+
+  it('links each lesson to the previous and next topic in blueprint order', async () => {
+    const user = userEvent.setup()
+    await renderAt('/learn/2.5')
+    const nav = screen.getByRole('navigation', { name: 'Lesson navigation' })
+    expect(within(nav).getByRole('link', { name: /Previous topic.*2\.4/ })).toHaveAttribute('href', '/learn/2.4')
+    await user.click(within(nav).getByRole('link', { name: /Next topic.*2\.6/ }))
+    expect(await screen.findByRole('heading', { level: 1, name: /2\.6 / })).toBeInTheDocument()
+  })
+
+  it('has no previous topic on the first lesson', async () => {
+    await renderAt(`/learn/${SKILLS[0].id}`)
+    const nav = screen.getByRole('navigation', { name: 'Lesson navigation' })
+    expect(within(nav).queryByText(/Previous topic/)).not.toBeInTheDocument()
+    expect(within(nav).getByText(/Next topic/)).toBeInTheDocument()
   })
 })
 
