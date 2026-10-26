@@ -118,6 +118,54 @@ describe('practice', () => {
     expect(screen.getByText(/: least mastered$/)).toBeInTheDocument()
     expect(unmastered).toContain(pool.find((q) => screen.queryByText(q.stem))!.id)
   })
+  it('ends with a review that lists the misses first', async () => {
+    const user = userEvent.setup()
+    await renderAt('/practice?skill=7.3')
+    const pool = QUESTIONS.filter((q) => q.skillId === '7.3')
+    let missed: string | undefined
+    for (let i = 0; i < pool.length; i++) {
+      const current = pool.find((q) => screen.queryByText(q.stem))!
+      // Miss the last question so the review has to reorder it to the top.
+      const last = i === pool.length - 1
+      const pick = current.options.filter((o) => current.correct.includes(o.id) !== last).slice(0, current.selectCount)
+      for (const option of pick) {
+        await user.click(screen.getByRole(current.selectCount > 1 ? 'checkbox' : 'radio', { name: new RegExp(escapeRegExp(option.text)) }))
+      }
+      await user.click(screen.getByRole('button', { name: 'Check answer' }))
+      await user.click(screen.getByRole('button', { name: /Next play|Finish/ }))
+      if (last) missed = current.stem
+    }
+    expect(screen.getByRole('heading', { name: 'Film review' })).toBeInTheDocument()
+    const marks = screen.getAllByLabelText(/^(correct|missed)$/)
+    expect(marks).toHaveLength(pool.length)
+    expect(marks[0]).toHaveAccessibleName('missed')
+    expect(marks.slice(1).every((m) => m.getAttribute('aria-label') === 'correct')).toBe(true)
+    expect(marks[0].nextElementSibling).toHaveTextContent(missed!)
+  })
+})
+
+describe('question bank', () => {
+  it('filters by topic and mastery and lets a question be answered on its own', async () => {
+    const user = userEvent.setup()
+    const [missed, ...rest] = QUESTIONS.filter((q) => q.skillId === '7.3')
+    recordAnswer(missed.id, false)
+    await renderAt('/questions?skill=7.3')
+    expect(screen.getAllByRole('link', { name: /Not tested/ })).toHaveLength(rest.length)
+
+    await user.click(screen.getByRole('button', { name: 'Recent error (1)' }))
+    const links = screen.getAllByRole('link', { name: /Recent error/ })
+    expect(links).toHaveLength(1)
+    await user.click(links[0])
+
+    expect(screen.getByText(missed.stem)).toBeInTheDocument()
+    const role = missed.selectCount > 1 ? 'checkbox' : 'radio'
+    for (const option of missed.options.filter((o) => missed.correct.includes(o.id))) {
+      await user.click(screen.getByRole(role, { name: new RegExp(escapeRegExp(option.text)) }))
+    }
+    await user.click(screen.getByRole('button', { name: 'Check answer' }))
+    expect(screen.getByText('Past error, since correct')).toBeInTheDocument()
+    expect(getProgress().questions[missed.id]).toMatchObject({ attempts: 2, correct: 1, lastCorrect: true })
+  })
 })
 
 describe('mock exam', () => {

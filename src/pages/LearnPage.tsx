@@ -142,6 +142,11 @@ function LessonView({ skillId }: { skillId: string }) {
             Practice this skill ({practiceCount})
           </Link>
         )}
+        {practiceCount > 0 && (
+          <Link to={`/questions?skill=${skillId}`} className="rounded border px-4 py-2">
+            Browse its questions
+          </Link>
+        )}
       </footer>
     </article>
   )

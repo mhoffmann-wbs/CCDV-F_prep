@@ -7,6 +7,7 @@ import { getProgress, recordAnswer } from '../progress/store'
 import QuestionView from '../quiz/QuestionView'
 import { isCorrect, scoreExam } from '../quiz/grading'
 import { DomainTable } from '../quiz/ScoreReportView'
+import SessionReview from '../quiz/SessionReview'
 import { buildFocusSet, buildMixedSet, orderLeastMastered, shuffle } from '../quiz/sampler'
 
 /** Sizes offered for a mixed scrimmage; the last one matches the real exam length. */
@@ -65,7 +66,12 @@ function PracticePicker() {
       <h1 className="text-3xl font-bold">Practice reps</h1>
       <p className="text-neutral-600">
         Pick a domain or a single skill, or run a mixed scrimmage across the whole blueprint. You get
-        immediate feedback, with an explanation for every option.
+        immediate feedback, with an explanation for every option. To pick single questions by topic and
+        mastery, open the{' '}
+        <Link to="/questions" className="text-field-dark underline">
+          question bank
+        </Link>
+        .
       </p>
       <div>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Question selection">
@@ -175,7 +181,8 @@ function PracticeSession({ questions: initial, label }: { questions: typeof QUES
         </p>
         {/* A single-skill or single-domain drill would just repeat the total. */}
         {score.byDomain.length > 1 && <DomainTable byDomain={score.byDomain} />}
-        <Link to="/practice" className="underline">
+        <SessionReview questions={questions} answers={answers} />
+        <Link to="/practice" className="inline-block underline">
           Back to practice
         </Link>
       </div>

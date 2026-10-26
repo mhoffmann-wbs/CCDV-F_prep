@@ -1,6 +1,6 @@
 import { DOMAINS, SKILLS } from '../content/blueprint'
 import type { Question } from '../content/schema'
-import type { Progress } from './store'
+import type { Progress, QuestionStat } from './store'
 
 export interface SkillReadiness {
   skillId: string
@@ -49,4 +49,21 @@ export function weakAreaQuestions(bank: readonly Question[], progress: Progress,
   return bank
     .filter((q) => weakest.includes(q.skillId) && !progress.questions[q.id]?.lastCorrect)
     .slice(0, size)
+}
+
+export type Mastery = 'untested' | 'recentError' | 'reviewed' | 'alwaysCorrect'
+
+/** Display order: the levels that need attention first. */
+export const MASTERY_LEVELS: { id: Mastery; label: string; tone: string }[] = [
+  { id: 'recentError', label: 'Recent error', tone: 'border-red-600 bg-red-50' },
+  { id: 'reviewed', label: 'Past error, since correct', tone: 'border-amber-300 bg-amber-50' },
+  { id: 'untested', label: 'Not tested', tone: 'border-neutral-300 bg-neutral-100' },
+  { id: 'alwaysCorrect', label: 'Always correct', tone: 'border-green-600 bg-green-50' },
+]
+
+/** One question's mastery, from its latest answer and whether it was ever missed. */
+export function masteryOf(stat: QuestionStat | undefined): Mastery {
+  if (!stat || stat.attempts === 0) return 'untested'
+  if (!stat.lastCorrect) return 'recentError'
+  return stat.correct < stat.attempts ? 'reviewed' : 'alwaysCorrect'
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { QUESTIONS } from '../content/questions'
-import { skillReadiness, weakAreaQuestions, weightedReadiness } from './readiness'
+import { masteryOf, skillReadiness, weakAreaQuestions, weightedReadiness } from './readiness'
 import type { Progress } from './store'
 
 const empty: Progress = { version: 2, questions: {}, mockResults: [], lessonsRead: [], labSteps: {} }
@@ -24,5 +24,16 @@ describe('readiness', () => {
     // With no progress, ties break toward the five heaviest skills.
     const heaviest = new Set(['2.5', '2.4', '2.3', '5.2', '1.2'])
     expect(drill.every((q) => heaviest.has(q.skillId))).toBe(true)
+  })
+})
+
+describe('mastery', () => {
+  const stat = (attempts: number, correct: number, lastCorrect: boolean) => ({ attempts, correct, lastCorrect, lastAt: 1, streak: 0 })
+
+  it('separates untested, recent errors, reviewed errors and clean records', () => {
+    expect(masteryOf(undefined)).toBe('untested')
+    expect(masteryOf(stat(2, 1, false))).toBe('recentError')
+    expect(masteryOf(stat(2, 1, true))).toBe('reviewed')
+    expect(masteryOf(stat(3, 3, true))).toBe('alwaysCorrect')
   })
 })
