@@ -1,5 +1,6 @@
 import type { Question } from '../content/schema'
 import { getSkill } from '../content/blueprint'
+import { useShortcuts, type ShortcutMap } from './shortcuts'
 
 const COUNT_WORDS = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE']
 
@@ -9,9 +10,11 @@ interface Props {
   onChange: (selected: string[]) => void
   /** When true, inputs lock and every option's explanation is shown. */
   revealed?: boolean
+  /** Select options with 1–6 or A–F. Only one QuestionView on screen should enable this. */
+  keyboard?: boolean
 }
 
-export default function QuestionView({ question, selected, onChange, revealed = false }: Props) {
+export default function QuestionView({ question, selected, onChange, revealed = false, keyboard = false }: Props) {
   const multi = question.selectCount > 1
   const skill = getSkill(question.skillId)!
 
@@ -22,6 +25,13 @@ export default function QuestionView({ question, selected, onChange, revealed = 
     // Like the real exam, don't allow more selections than the item asks for.
     if (selected.length < question.selectCount) onChange([...selected, id])
   }
+
+  const optionKeys: ShortcutMap = {}
+  question.options.forEach((option, i) => {
+    optionKeys[String(i + 1)] = () => toggle(option.id)
+    optionKeys[option.id.toLowerCase()] = () => toggle(option.id)
+  })
+  useShortcuts(optionKeys, keyboard && !revealed)
 
   return (
     <article className="space-y-4">

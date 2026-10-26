@@ -198,6 +198,34 @@ describe('mock exam', () => {
   })
 })
 
+describe('keyboard shortcuts', () => {
+  it('answers and advances a practice question with letter keys and Enter', async () => {
+    const user = userEvent.setup()
+    await renderAt('/practice?skill=7.3')
+    const total = QUESTIONS.filter((q) => q.skillId === '7.3').length
+    const current = QUESTIONS.find((q) => screen.queryByText(q.stem))!
+    for (const id of current.correct) await user.keyboard(id.toLowerCase())
+    await user.keyboard('{Enter}')
+    expect(screen.getByText(`Question 1 of ${total} · 1/1 correct`)).toBeInTheDocument()
+    await user.keyboard('{Enter}')
+    expect(screen.getByText(new RegExp(`Question 2 of ${total}`))).toBeInTheDocument()
+  })
+
+  it('selects by number, moves and flags in the mock exam', async () => {
+    const user = userEvent.setup()
+    await renderAt('/mock')
+    await user.click(screen.getByRole('button', { name: 'Kick off' }))
+    await user.keyboard('1')
+    expect(document.querySelectorAll('fieldset input:checked')).toHaveLength(1)
+    await user.keyboard('m')
+    expect(screen.getByRole('button', { name: 'Unflag' })).toBeInTheDocument()
+    await user.keyboard('{ArrowRight}')
+    expect(screen.getByText(/^Item 2 of/)).toBeInTheDocument()
+    await user.keyboard('{ArrowLeft}')
+    expect(screen.getByText(/^Item 1 of/)).toBeInTheDocument()
+  })
+})
+
 describe('learn', () => {
   it('renders a lesson with its sections and tracks read state', async () => {
     const user = userEvent.setup()

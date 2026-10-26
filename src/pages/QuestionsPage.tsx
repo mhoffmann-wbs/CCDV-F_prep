@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { DOMAINS, SKILLS, getSkill } from '../content/blueprint'
 import { QUESTIONS } from '../content/questions'
 import type { Question } from '../content/schema'
@@ -7,6 +7,8 @@ import { MASTERY_LEVELS, masteryOf, type Mastery } from '../progress/readiness'
 import { recordAnswer, useProgress, type Progress } from '../progress/store'
 import QuestionView from '../quiz/QuestionView'
 import { isCorrect } from '../quiz/grading'
+import ShortcutHint from '../quiz/ShortcutHint'
+import { useShortcuts } from '../quiz/shortcuts'
 
 export default function QuestionsPage() {
   const { questionId } = useParams()
@@ -145,8 +147,29 @@ function QuestionDetail({ questionId }: { questionId: string }) {
   const [params] = useSearchParams()
   const [selected, setSelected] = useState<string[]>([])
   const [revealed, setRevealed] = useState(false)
+  const navigate = useNavigate()
   const question = QUESTIONS.find((q) => q.id === questionId)
   const search = params.toString() ? `?${params}` : ''
+
+  // Prev/next walk the filtered list. Answering can move this question out of a mastery
+  // filter, so it stays in the list for navigation.
+  const list = filtered(params, progress)
+  const nav =
+    question && !list.some((q) => q.id === question.id)
+      ? QUESTIONS.filter((q) => q.id === question.id || list.includes(q))
+      : list
+  const index = question ? nav.findIndex((q) => q.id === question.id) : -1
+  const prev = index > 0 ? nav[index - 1] : undefined
+  const next = index >= 0 ? nav[index + 1] : undefined
+
+  // Declared before the early return below, so the handlers guard against a missing question.
+  useShortcuts({
+    Enter: () => {
+      if (question && !revealed && selected.length === question.selectCount) check()
+    },
+    ArrowLeft: () => prev && navigate(`/questions/${prev.id}${search}`),
+    ArrowRight: () => next && navigate(`/questions/${next.id}${search}`),
+  })
 
   if (!question) {
     return (
@@ -155,16 +178,6 @@ function QuestionDetail({ questionId }: { questionId: string }) {
       </p>
     )
   }
-
-  // Prev/next walk the filtered list. Answering can move this question out of a mastery
-  // filter, so it stays in the list for navigation.
-  const list = filtered(params, progress)
-  const nav = list.some((q) => q.id === question.id)
-    ? list
-    : QUESTIONS.filter((q) => q.id === question.id || list.includes(q))
-  const index = nav.findIndex((q) => q.id === question.id)
-  const prev = nav[index - 1]
-  const next = nav[index + 1]
 
   function check() {
     recordAnswer(question!.id, isCorrect(question!, selected))
@@ -181,7 +194,7 @@ function QuestionDetail({ questionId }: { questionId: string }) {
           {index + 1} of {nav.length} · <MasteryBadge mastery={masteryOf(progress.questions[question.id])} />
         </span>
       </div>
-      <QuestionView question={question} selected={selected} onChange={setSelected} revealed={revealed} />
+      <QuestionView question={question} selected={selected} onChange={setSelected} revealed={revealed} keyboard />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-3 text-sm">
           {prev && (
@@ -205,6 +218,7 @@ function QuestionDetail({ questionId }: { questionId: string }) {
           </button>
         )}
       </div>
+      <ShortcutHint items={[['1–6', 'or A–F select'], ['Enter', 'check'], ['← →', 'previous / next']]} />
       <p className="text-xs text-neutral-500">
         Lesson:{' '}
         <Link to={`/learn/${question.skillId}`} className="underline">

@@ -4,6 +4,8 @@ import { EXAM_FORMAT } from '../content/blueprint'
 import { QUESTIONS } from '../content/questions'
 import { recordAnswer, recordMockResult } from '../progress/store'
 import QuestionView from '../quiz/QuestionView'
+import ShortcutHint from '../quiz/ShortcutHint'
+import { useShortcuts } from '../quiz/shortcuts'
 import ScoreReportView from '../quiz/ScoreReportView'
 import { isCorrect, scoreExam, type ScoreReport } from '../quiz/grading'
 import { buildMockExam, type MockExam } from '../quiz/sampler'
@@ -113,6 +115,19 @@ function MockRunner({ exam, onSubmit }: { exam: MockExam; onSubmit: (answers: An
     })
   }
 
+  const isLast = index + 1 === exam.questions.length
+  const goNext = () => (isLast ? setReviewing(true) : setIndex((i) => i + 1))
+  // M for "mark": F is an answer letter on six-option items.
+  useShortcuts(
+    {
+      Enter: goNext,
+      ArrowRight: goNext,
+      ArrowLeft: () => setIndex((i) => Math.max(0, i - 1)),
+      m: () => toggleFlag(question.id),
+    },
+    !reviewing,
+  )
+
   return (
     <div className="space-y-6">
       <div className="sticky top-0 z-10 flex items-center justify-between rounded bg-header px-4 py-2 text-chalk">
@@ -163,6 +178,7 @@ function MockRunner({ exam, onSubmit }: { exam: MockExam; onSubmit: (answers: An
             question={question}
             selected={answers[question.id] ?? []}
             onChange={(sel) => setAnswers((a) => ({ ...a, [question.id]: sel }))}
+            keyboard
           />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <button
@@ -175,16 +191,18 @@ function MockRunner({ exam, onSubmit }: { exam: MockExam; onSubmit: (answers: An
             <button onClick={() => toggleFlag(question.id)} className="rounded border px-4 py-2">
               {flagged.has(question.id) ? 'Unflag' : 'Flag for review'}
             </button>
-            {index + 1 < exam.questions.length ? (
-              <button onClick={() => setIndex((i) => i + 1)} className="rounded bg-field px-4 py-2 text-chalk">
-                Next
-              </button>
-            ) : (
-              <button onClick={() => setReviewing(true)} className="rounded bg-field px-4 py-2 text-chalk">
-                Review
-              </button>
-            )}
+            <button onClick={goNext} className="rounded bg-field px-4 py-2 text-chalk">
+              {isLast ? 'Review' : 'Next'}
+            </button>
           </div>
+          <ShortcutHint
+            items={[
+              ['1–6', 'or A–F select'],
+              ['Enter', isLast ? 'review' : 'next'],
+              ['← →', 'move'],
+              ['M', 'flag'],
+            ]}
+          />
         </>
       )}
     </div>

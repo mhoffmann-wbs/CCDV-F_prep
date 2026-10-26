@@ -9,6 +9,8 @@ import { isCorrect, scoreExam } from '../quiz/grading'
 import { DomainTable } from '../quiz/ScoreReportView'
 import SessionReview from '../quiz/SessionReview'
 import { buildFocusSet, buildMixedSet, orderLeastMastered, shuffle } from '../quiz/sampler'
+import ShortcutHint from '../quiz/ShortcutHint'
+import { useShortcuts } from '../quiz/shortcuts'
 
 /** Sizes offered for a mixed scrimmage; the last one matches the real exam length. */
 const MIX_SIZES = [10, 25, EXAM_FORMAT.items]
@@ -191,6 +193,16 @@ function PracticeSession({
   const [revealed, setRevealed] = useState(false)
   const [answers, setAnswers] = useState<Record<string, string[]>>({})
 
+  // Enter checks the answer, then moves on. Declared before the early returns below.
+  useShortcuts({
+    Enter: () => {
+      const current = questions[index]
+      if (!current) return
+      if (revealed) next()
+      else if (selected.length === current.selectCount) check()
+    },
+  })
+
   if (questions.length === 0) {
     return <p>No questions for this selection yet.</p>
   }
@@ -224,9 +236,9 @@ function PracticeSession({
   const question = questions[index]
 
   function check() {
-    const correct = isCorrect(question, selected)
-    recordAnswer(question.id, correct)
-    setAnswers((a) => ({ ...a, [question.id]: selected }))
+    const current = questions[index]
+    recordAnswer(current.id, isCorrect(current, selected))
+    setAnswers((a) => ({ ...a, [current.id]: selected }))
     setRevealed(true)
   }
 
@@ -244,8 +256,9 @@ function PracticeSession({
           Question {index + 1} of {questions.length} · {score.correct}/{score.total} correct
         </span>
       </div>
-      <QuestionView question={question} selected={selected} onChange={setSelected} revealed={revealed} />
-      <div className="flex justify-end">
+      <QuestionView question={question} selected={selected} onChange={setSelected} revealed={revealed} keyboard />
+      <div className="flex items-center justify-between gap-3">
+        <ShortcutHint items={[['1–6', 'or A–F select'], ['Enter', revealed ? 'next' : 'check']]} />
         {revealed ? (
           <button onClick={next} className="rounded bg-field px-4 py-2 font-medium text-chalk">
             {index + 1 === questions.length ? 'Finish' : 'Next play'}
