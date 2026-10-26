@@ -20,6 +20,7 @@ const NAV = [
   { to: '/mock', label: 'Mock exam' },
   { to: '/labs', label: 'Labs' },
   { to: '/guides/cheat-sheet', label: 'Cheat sheet' },
+  { to: '/guides/exam-day', label: 'Exam day' },
   { to: '/progress', label: 'Scoreboard' },
 ]
 

@@ -240,6 +240,15 @@ describe('guides', () => {
       expect(screen.getByRole('heading', { level: 2, name: domain })).toBeInTheDocument()
     }
   })
+
+  it('shows the exam-day guide with the format from the blueprint and links to the cheat sheet', async () => {
+    const user = userEvent.setup()
+    await renderAt('/guides/exam-day')
+    expect(screen.getByRole('heading', { level: 1, name: 'Exam day' })).toBeInTheDocument()
+    expect(screen.getByText(`${EXAM_FORMAT.items} items in ${EXAM_FORMAT.minutes} minutes.`)).toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name: 'cheat sheet' }))
+    expect(await screen.findByRole('heading', { level: 1, name: 'Cheat sheet' })).toBeInTheDocument()
+  })
 })
 
 describe('labs', () => {

@@ -2,9 +2,10 @@ import type { ComponentProps } from 'react'
 import { Link, useParams } from 'react-router'
 import { GUIDES } from '../content/guides'
 
-function ExternalLink(props: ComponentProps<'a'>) {
-  const external = props.href?.startsWith('http')
-  return <a {...props} {...(external ? { target: '_blank', rel: 'noreferrer' } : {})} />
+// External links open in a new tab; links between guides go through the router.
+function GuideLink({ href = '', ...props }: ComponentProps<'a'>) {
+  if (href.startsWith('/')) return <Link to={href} {...props} />
+  return <a href={href} {...props} target="_blank" rel="noreferrer" />
 }
 
 export default function GuidePage() {
@@ -31,7 +32,7 @@ export default function GuidePage() {
         </p>
       </header>
       <div className="prose prose-neutral dark:prose-invert max-w-none prose-a:text-field-dark prose-code:before:content-none prose-code:after:content-none">
-        <Content components={{ a: ExternalLink }} />
+        <Content components={{ a: GuideLink }} />
       </div>
     </article>
   )

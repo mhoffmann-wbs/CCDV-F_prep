@@ -1,0 +1,82 @@
+import { EXAM_FORMAT, EXAM_GUIDE, SKILLJAR_PATH_URL } from '../blueprint'
+
+export const meta = {
+  slug: 'exam-day',
+  title: 'Exam day',
+  updated: '2026-10-26',
+  summary:
+    'How to pace the 120 minutes, read scenario items, handle "select TWO" questions, and what to sort out before the day. The format comes from the official exam guide.',
+}
+
+## The format
+
+- **{EXAM_FORMAT.items} items in {EXAM_FORMAT.minutes} minutes.** Each item is multiple-choice or multiple-response, and **every item states how many answers to select**.
+- **Pass mark: {EXAM_FORMAT.passingScaled}** on a scaled {EXAM_FORMAT.scaledMin}–{EXAM_FORMAT.scaledMax} scale. The score report shows pass or fail, the scaled score, and percent correct per domain.
+- Items are **scenarios**: a team, a constraint, and "which approach best fits". There is one defensible answer; the others are plausible but miss the constraint.
+- The [exam guide]({EXAM_GUIDE.url}) is the source for all of this. If anything here disagrees with it, the guide wins.
+
+## Pacing
+
+{EXAM_FORMAT.minutes} minutes for {EXAM_FORMAT.items} items is about **2 minutes 15 seconds per item**. Aim for 2 minutes, which leaves about a quarter of an hour at the end for flagged items.
+
+| By minute | You should be past item |
+|---|---|
+| 30 | 15 |
+| 60 | 30 |
+| 90 | 45 |
+| 105 | 53, then review your flags |
+
+- **If an item takes more than 3 minutes, pick your best answer, flag it and move on.** A hard item is worth the same as an easy one.
+- Answer every item before time runs out. A blank can't be right; your best guess might be.
+- Change a flagged answer only when you find a concrete reason in the scenario, not on a hunch.
+
+## Reading a scenario item
+
+1. **Read the question sentence first**, then the scenario. You'll know what you're looking for.
+2. **Find the deciding constraint.** It is usually one phrase: "must guarantee", "lowest cost", "nobody reads it until morning", "without changing the prompt", "users see nothing for 20 seconds", "several apps must share it".
+3. **Test each option against that constraint**, not against "is this statement true?". Most distractors are true statements that solve a different problem.
+4. **Eliminate in this order:**
+   - options that don't address the constraint at all;
+   - options that rely on the model obeying an instruction when the scenario says **guarantee** or **never**;
+   - options that over-engineer (an agent or a multi-agent system for a fixed sequence of steps);
+   - options with absolutes such as "always" or "regardless of", unless the scenario really is absolute.
+
+## Constraints that point to an answer
+
+| The scenario says | Usually points to |
+|---|---|
+| "guarantee", "must never", "enforce" | A hook, a permission rule or code, not a prompt or CLAUDE.md |
+| "nobody is waiting", "overnight", "cost is the concern" | Message Batches API |
+| "the same large prefix on every request" | Prompt caching |
+| "nothing appears for 20 seconds" | Streaming (not fast mode, not a smaller model) |
+| "must always parse", "exact schema" | Structured outputs or `strict: true`, plus checking `stop_reason` |
+| "fixed, known steps" | A workflow (chaining, routing), not an agent |
+| "content from outside senders or web pages" | Treat it as data, least privilege, human approval for risky actions |
+| "several apps or clients need the same integration" | An MCP server |
+| "a procedure Claude should load only when relevant" | A Skill |
+| "cheaper without losing quality" | Caching and batch first; model tier and effort only with evals |
+| "after a model upgrade, requests fail with 400" | A breaking change: sampling parameters, prefill, `budget_tokens`, forced `tool_choice` |
+
+## Multiple-response items
+
+- The stem says how many to select, for example **(Select TWO.)**. Select exactly that many.
+- **Judge each option on its own:** is it right for this scenario, yes or no? Don't pick a pair because the two options sound good together.
+- Usually the correct options address **different parts** of the scenario (one per requirement), and the distractors are the classic traps from the lessons.
+- Plan as if they're all-or-nothing, as this app scores them: one wrong pick costs the whole item.
+
+## Are you ready?
+
+- **Several mock exams comfortably above {EXAM_FORMAT.passingScaled}**, not one lucky run. This app's scaled score is a linear estimate, so leave yourself a margin.
+- **No domain far behind.** Check the Scoreboard. A weak domain with a heavy weight (Applications and Integration is about a third of the exam) can sink an otherwise good score.
+- **Misses reviewed, not just counted.** After each mock or practice set, read the explanation for every option you got wrong.
+
+**Week before:** take a timed mock, then drill the weak-area set and the least-mastered questions in your two weakest domains.<br />
+**Day before:** read the [cheat sheet](/guides/cheat-sheet) once, then stop. No new topics.<br />
+**On the day:** leave time for check-in, and pace with the table above.
+
+## Registration and policies
+
+- Register through the Anthropic Partner Academy ([official prep path]({SKILLJAR_PATH_URL})), then book the exam with Pearson VUE.
+- The fee is ${EXAM_FORMAT.feeUsd}. A credential is valid for {EXAM_FORMAT.validityMonths} months.
+- After a failed attempt, the wait before the next one grows: {EXAM_FORMAT.retakeWaitDays.join(', then ')} days. At most {EXAM_FORMAT.maxAttemptsPer12Months} attempts in 12 months.
+- **You sign a non-disclosure agreement.** Don't share or look for real exam items. Every question in this app is original.
