@@ -1,0 +1,22 @@
+{
+  "title": "Weekly team recaps",
+  "goal": "The league office wants one recap per team every Monday for the newsletter and the website, produced in the league's AWS account, with fan-facing data processed in the US only, for under $5 a week.",
+  "functional": [
+    "One 90-130 word recap per team per week, from that team's box score",
+    "Headline plus one paragraph, in the newsletter's style",
+    "Only facts from the box score: no scores, opponents, injuries or quotes"
+  ],
+  "success_criteria": [
+    "At least 90% of the 20 hand-checked recaps from last season pass the recap eval",
+    "No recap that passes today fails after a change (no regressions)",
+    "All recaps ready by Monday 08:00"
+  ],
+  "billing": "aws",
+  "us_only": true,
+  "interactive": false,
+  "weekly_budget_usd": 5.0,
+  "features": [
+    "message_batches",
+    "prompt_caching"
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "model": "claude-sonnet-4-5-20250929",
+  "prompt": "recap@v1",
+  "run_at": "2026-09-14",
+  "cases": [
+    {
+      "id": "2025-w01-por",
+      "passed": true
+    },
+    {
+      "id": "2025-w01-nsh",
+      "passed": true
+    },
+    {
+      "id": "2025-w01-sac",
+      "passed": true
+    },
+    {
+      "id": "2025-w01-bal",
+      "passed": true
+    },
+    {
+      "id": "2025-w02-por",
+      "passed": true
+    },
+    {
+      "id": "2025-w02-nsh",
+      "passed": true
+    },
+    {
+      "id": "2025-w02-sac",
+      "passed": false,
+      "note": "headline is 13 words"
+    },
+    {
+      "id": "2025-w02-bal",
+      "passed": true
+    },
+    {
+      "id": "2025-w03-por",
+      "passed": true
+    },
+    {
+      "id": "2025-w03-nsh",
+      "passed": true
+    },
+    {
+      "id": "2025-w03-sac",
+      "passed": true
+    },
+    {
+      "id": "2025-w03-bal",
+      "passed": true
+    },
+    {
+      "id": "2025-w04-por",
+      "passed": true
+    },
+    {
+      "id": "2025-w04-nsh",
+      "passed": true
+    },
+    {
+      "id": "2025-w04-sac",
+      "passed": true
+    },
+    {
+      "id": "2025-w04-bal",
+      "passed": false,
+      "note": "top scorer named but points missing"
+    },
+    {
+      "id": "2025-w05-por",
+      "passed": true
+    },
+    {
+      "id": "2025-w05-nsh",
+      "passed": true
+    },
+    {
+      "id": "2025-w05-sac",
+      "passed": true
+    },
+    {
+      "id": "2025-w05-bal",
+      "passed": true
+    }
+  ]
+}

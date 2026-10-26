@@ -1,0 +1,159 @@
+export const meta = {
+  labId: 'L10',
+  updated: '2026-10-26',
+  minutes: 75,
+  goal: 'Take the weekly recap job from a deprecated, alias-pinned setup to a release that passes a CI gate: requirements turned into a platform decision record, a pinned model, a versioned prompt, an eval with no regressions, a budget check and no secrets in the repo.',
+  folder: 'L10-ship-it',
+  steps: [
+    { id: 'setup', title: 'Install, run the offline tests and run the gate' },
+    { id: 'adr', title: 'Turn the requirements into a platform decision record' },
+    { id: 'pin', title: 'Pin the model and check its lifecycle' },
+    { id: 'prompt-version', title: 'Version the prompt instead of editing it' },
+    { id: 'eval-gate', title: 'Gate the release on the eval' },
+    { id: 'ship', title: 'Fix the release, pass the gate and smoke-test it' },
+  ],
+}
+
+## Why this lab
+
+It's late October. The weekly recap job from Lab L2 runs in production on `claude-sonnet-4-5`. On September 30 Anthropic deprecated Claude Sonnet 4.5, and it **retires on November 30, 2026**. After that date, requests to it fail. The league office has also sent new requirements: the job must bill through their AWS account, process fan data in the US only, and stay under $5 a week.
+
+Changing the model name won't be enough. You'll ship the change the way production systems should be shipped:
+
+- requirements become a decision record
+- the model is a pinned snapshot with a known lifecycle
+- the prompt is a versioned artifact
+- an eval proves the change didn't break anything
+- a **release gate** in CI checks all of it before anything reaches production
+
+This lab covers the "around the code" skills that the exam weighs heavily: understanding requirements (2.1), the system life cycle (2.2), configuration management (2.6), and keys and secrets (7.4).
+
+## Setup
+
+The code is in `labs/L10-ship-it/`:
+
+| File | What it holds |
+|---|---|
+| `requirements.json` | The league office's request: goal, functional requirements, success criteria and constraints |
+| `release.json` | Today's production config. You'll fix it |
+| `release-solution.json` | The reference release |
+| `prompts/` | `recap@v1.md` (in production), `recap@v2.md` (the candidate) and `prompts.lock.json` (hashes of released versions) |
+| `evals/` | Recorded runs of the 20-case recap eval: the production baseline, the new model with v1, and the new model with v2 |
+| `l10_release.py` | The lifecycle table, the config schema, prompt locking, eval loading and the secret scan |
+| `l10_platforms.py` | The four platforms, their features, and the decision record template |
+| `starter.py` | The release gate you complete, plus `adr`, `lock` and `smoke` |
+| `solution.py` | The reference solution |
+
+```bash
+cd labs
+uv sync
+uv run pytest                                          # offline tests, no key needed
+uv run python L10-ship-it/starter.py gate              # gate today's release.json
+uv run python L10-ship-it/solution.py gate --config L10-ship-it/release.json   # what it should say
+```
+
+Only the last step (`smoke`) calls the API. The budget check reuses Lab L2's price table and cost projection, so there's one price table, owned by one module.
+
+## Steps
+
+### 1. Install, run the offline tests and run the gate
+
+Run `uv run pytest`, then `starter.py gate`. Five checks say `todo`, and `Budget` already fails: the config names a model that has no price, because it's an alias. Run `solution.py gate --config L10-ship-it/release.json` to see the target: five failures, each with the reason. Then open `release.json` and find the cause of each failure before you write any code.
+
+### 2. Turn the requirements into a platform decision record
+
+Read `requirements.json`. Sort what it says into the two kinds of requirements:
+
+- **Functional:** what the feature does, plus success criteria you can measure. "At least 90% of the 20 hand-checked recaps pass, with no regressions" is a requirement. "High-quality recaps" isn't.
+- **Infrastructure:** billing through AWS, US-only processing, not interactive (a Monday 08:00 deadline that nobody watches live), and a weekly budget.
+
+TODO 5: `check_platform`. Use `gaps(platform, req)` to compare the release's platform with the hard requirements. Also fail when the work isn't interactive but `batch` is off: that pays double for latency nobody needs.
+
+TODO 6: `adr`. Run `gaps()` for all four platforms and write the decision record (`out/ADR-001-platform.md`). The table in `l10_platforms.py` comes from the platform docs:
+
+- The **Claude API** bills through Anthropic, not AWS.
+- **Amazon Bedrock** bills through AWS but has no Message Batches API. Bedrock's own batch inference jobs are a different interface.
+- **Vertex AI** bills through Google Cloud.
+- **Claude Platform on AWS** is operated by Anthropic, has the same API surface as the Claude API, bills through AWS Marketplace and supports `inference_geo`.
+
+A good ADR names the constraint that rules out each option you didn't pick, and lists the consequences: authentication moves to AWS IAM, the client class changes, every request pays 1.1× for US-only inference, and you say when you'd revisit the decision. Exam scenarios work the same way: **the stated constraint picks the answer**.
+
+### 3. Pin the model and check its lifecycle
+
+TODO 1: `check_model_pinned`. `claude-sonnet-4-5` is an **alias**: today it points at the snapshot `claude-sonnet-4-5-20250929`, but an alias can move. Current models use dateless IDs such as `claude-sonnet-5-5`, which are **fixed snapshots**, not "latest" pointers. Claude Code's `opus`, `sonnet` and `haiku` aliases move too. Production config names a snapshot.
+
+TODO 2: `check_lifecycle`, using `LIFECYCLE` (taken from the deprecations page):
+
+- **Retired**: requests fail, so block the release.
+- **Deprecated**: it still works for organizations that already use it (new adopters are closed out), and it has a retirement date and a recommended replacement. Block the release and say how many days are left.
+- **Active, but near its earliest retirement date**: warn. For example, `claude-haiku-4-5-20251001` may be retired from October 15, 2026 onward.
+
+Anthropic gives at least 60 days' notice before it retires a publicly released model. That notice period is time to evaluate and migrate, not time to wait. The dates apply to Anthropic-operated platforms; Bedrock and Google-managed Vertex set their own.
+
+### 4. Version the prompt instead of editing it
+
+Compare `prompts/recap@v1.md` and `recap@v2.md`. On the new model, v1 sometimes named the opponent's players and once invented a final score, because nothing in v1 said that the box score is the only source. v2 says so, and says why.
+
+TODO 3: `check_prompt_locked`. `prompts.lock.json` holds the SHA-256 of every **released** prompt version. Fail when:
+
+- a released prompt's file no longer matches its hash: someone edited it in place, so production behavior changed with nothing to review or roll back to
+- the release names a prompt version that isn't locked yet: it hasn't been released
+
+Try it: add a line to `recap@v1.md` and run the gate. Then undo the edit. A prompt change is a new version (`recap@v3`), reviewed like code. Once you've reviewed v2, release it with `uv run python L10-ship-it/starter.py lock recap@v2`.
+
+### 5. Gate the release on the eval
+
+TODO 4: `check_eval`. The release names an eval run (`eval_run`) and the current production baseline (`baseline_run`). Fail when:
+
+1. the eval tested a different model or prompt than the release ships. An eval of `claude-sonnet-4-5-20250929` says nothing about the alias `claude-sonnet-4-5`, or about `claude-sonnet-5-5`.
+2. any case that passed in the baseline now fails. That's a **regression**, even if the overall pass rate went up.
+3. the pass rate is below the 90% success criterion.
+
+Point a copy of the release at `evals/sonnet-5-5_recap-v1.json` with `recap@v1` and run the gate. The new model fixed one old failure but caused three regressions, which is exactly why a model migration needs the eval and not just a quick look at one output. The v2 run has no regressions and passes 95%.
+
+### 6. Fix the release, pass the gate and smoke-test it
+
+Edit `release.json` until `starter.py gate` says **READY TO SHIP**: a new release name, the platform from your ADR, the pinned replacement model, `recap@v2` (locked), the matching eval run, and `batch: true`. Compare your file with `release-solution.json`.
+
+Then run the one live step, in your **dev** environment: `uv run python L10-ship-it/starter.py smoke`. It:
+
+- asks the **Models API** whether the pinned ID exists, what its limits are, and what its `lifecycle`, `deprecated_at` and `retires_at` are right now. It warns if the gate's offline `LIFECYCLE` table has drifted from the API
+- runs one recap with the release's exact model and prompt
+- prints a structured log line: release, model, prompt version, prompt hash, `request_id` and token counts
+
+With that line you can trace any output in production back to the exact release that produced it.
+
+What the gate can't check, you write down: the rollout plan. Ship to one team's recaps first, compare against the eval for a week, then roll out to all of them, well before November 30. Keys follow the same discipline:
+
+- Dev uses your own key or `ant auth login`. Production runs in a separate workspace with its own spend limit and a non-personal credential. On Claude Platform on AWS that's IAM; on the Claude API it's a service-account key or Workload Identity Federation.
+- No key ever appears in `release.json`, a prompt, or the repo. The `Secrets` check scans for key-shaped strings, and `.env` stays in `.gitignore`. If a key leaks, revoke it and create a new one. You can't edit a key's secret in place.
+
+## Done when
+
+- `uv run pytest` passes, and `starter.py gate` reports READY TO SHIP for your `release.json`.
+- `out/ADR-001-platform.md` names the platform you chose and the constraint that rules out each of the others.
+- Editing a released prompt in place turns the gate red, and so does pointing the release at the v1 eval.
+- `smoke` prints the Models API line and a log line with a `request_id`.
+
+## Exam angle
+
+- **Constraints pick the answer** (2.1). Billing account, data residency, interactivity and budget eliminate options before quality does. Check that each required feature exists on the platform: Message Batches, the Files API, the Models API and `inference_geo` are on the Claude API and Claude Platform on AWS, not on Bedrock or Vertex.
+- **Requirements need numbers** (2.1). Success criteria are measurable (a pass rate on a named eval set, no regressions, a deadline, a budget). Nobody waiting on the output means batch.
+- **Deprecation is a scheduled job** (2.2). Deprecated models still work until their retirement date; after it, requests fail. Use the notice period to run the eval on the replacement and roll out gradually. Never swap the model in production first and test afterwards.
+- **Pin snapshots, not aliases** (2.6). Dateless current IDs are fixed snapshots. Older-generation aliases and Claude Code's `opus`/`sonnet`/`haiku` move. An eval only covers the exact model it ran on.
+- **Version prompts like code** (2.6). Each change is a new, immutable version, logged with every request, so outputs can be traced and rolled back.
+- **The platform changes the client and the IDs** (2.6). Bedrock model IDs take an `anthropic.` prefix, each platform has its own client class and authentication, and Bedrock and Google-managed Vertex set their own retirement dates.
+- **Keys stay outside the model and the repo** (7.4). Load them from the environment, a profile, IAM or WIF. Use separate dev and prod workspaces and non-personal credentials in production. Rotate by creating a new key and deleting the old one.
+
+Official docs:
+
+- [Model deprecations](https://platform.claude.com/docs/en/about-claude/model-deprecations)
+- [Model IDs and versioning](https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions)
+- [Migration guide](https://platform.claude.com/docs/en/about-claude/models/migration-guide)
+- [Define success criteria and build evaluations](https://platform.claude.com/docs/en/test-and-evaluate/develop-tests)
+- [Claude Platform on AWS](https://platform.claude.com/docs/en/build-with-claude/claude-platform-on-aws)
+- [Claude in Amazon Bedrock](https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock)
+- [Claude Models on Google Cloud (Google managed)](https://platform.claude.com/docs/en/build-with-claude/claude-models-on-google-cloud/google-managed)
+- [Data residency](https://platform.claude.com/docs/en/manage-claude/data-residency)
+- [Workload Identity Federation](https://platform.claude.com/docs/en/manage-claude/workload-identity-federation)
+- [Models API: get a model](https://platform.claude.com/docs/en/api/models/retrieve)

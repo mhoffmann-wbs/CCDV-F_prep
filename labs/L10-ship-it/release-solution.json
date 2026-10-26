@@ -1,0 +1,20 @@
+{
+  "release": "2026.10-r1",
+  "environment": "prod",
+  "platform": "claude-platform-aws",
+  "model": "claude-sonnet-5-5",
+  "prompt": "recap@v2",
+  "effort": "low",
+  "max_tokens": 4000,
+  "batch": true,
+  "eval_run": "evals/sonnet-5-5_recap-v2.json",
+  "baseline_run": "evals/baseline.json",
+  "weekly_budget_usd": 5.0,
+  "volume": {
+    "requests_per_week": 4,
+    "shared_tokens": 1200,
+    "unique_tokens": 300,
+    "output_tokens": 900,
+    "batch_hit_rate": 0.5
+  }
+}
