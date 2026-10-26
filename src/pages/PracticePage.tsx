@@ -33,13 +33,30 @@ export default function PracticePage() {
   const { questions: stats } = getProgress()
   const streakOf = (id: string) => stats[id]?.streak ?? 0
   const suffix = focus ? ': least mastered' : ''
+  // Bumping the round re-samples the same kind of set and remounts the session.
+  const [round, setRound] = useState(0)
+  const again = () => setRound((r) => r + 1)
 
   if (params.get('weak')) {
-    return <PracticeSession key="weak" questions={shuffle(weakAreaQuestions(QUESTIONS, getProgress()))} label="Weak-area drill" />
+    return (
+      <PracticeSession
+        key={`weak|${round}`}
+        questions={shuffle(weakAreaQuestions(QUESTIONS, getProgress()))}
+        label="Weak-area drill"
+        onAgain={again}
+      />
+    )
   }
   if (mix > 0) {
     const questions = focus ? buildFocusSet(QUESTIONS, mix, streakOf) : buildMixedSet(QUESTIONS, mix)
-    return <PracticeSession key={`mix|${mix}|${focus}`} questions={questions} label={`Mixed scrimmage${suffix}`} />
+    return (
+      <PracticeSession
+        key={`mix|${mix}|${focus}|${round}`}
+        questions={questions}
+        label={`Mixed scrimmage${suffix}`}
+        onAgain={again}
+      />
+    )
   }
   if (!skillId && !domainId) return <PracticePicker />
 
@@ -52,9 +69,10 @@ export default function PracticePage() {
   // Keying on the selection resets the session when the user picks something else.
   return (
     <PracticeSession
-      key={`${skillId}|${domainId}|${focus}`}
+      key={`${skillId}|${domainId}|${focus}|${round}`}
       questions={focus ? orderLeastMastered(pool, streakOf) : shuffle(pool)}
       label={`${label ?? ''}${suffix}`}
+      onAgain={again}
     />
   )
 }
@@ -157,7 +175,16 @@ function PracticeLink({ to, count, children }: { to: string; count: number; chil
 }
 
 /** Runs `questions` in the order given; callers decide how they are sampled and ordered. */
-function PracticeSession({ questions: initial, label }: { questions: typeof QUESTIONS; label: string }) {
+function PracticeSession({
+  questions: initial,
+  label,
+  onAgain,
+}: {
+  questions: typeof QUESTIONS
+  label: string
+  /** Starts a fresh session of the same kind (new sample or order, current progress). */
+  onAgain: () => void
+}) {
   const [questions] = useState(initial)
   const [index, setIndex] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
@@ -181,10 +208,15 @@ function PracticeSession({ questions: initial, label }: { questions: typeof QUES
         </p>
         {/* A single-skill or single-domain drill would just repeat the total. */}
         {score.byDomain.length > 1 && <DomainTable byDomain={score.byDomain} />}
+        <div className="flex flex-wrap items-center gap-4">
+          <button onClick={onAgain} className="rounded bg-field px-4 py-2 font-medium text-chalk">
+            Run it again
+          </button>
+          <Link to="/practice" className="underline">
+            Back to practice
+          </Link>
+        </div>
         <SessionReview questions={questions} answers={answers} />
-        <Link to="/practice" className="inline-block underline">
-          Back to practice
-        </Link>
       </div>
     )
   }

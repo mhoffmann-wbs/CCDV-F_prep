@@ -91,6 +91,11 @@ describe('practice', () => {
     expect(screen.getByText(/\/ 10 correct/)).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'Domain' })).toBeInTheDocument()
     expect(getProgress().mockResults).toHaveLength(0)
+
+    // Running it again starts a fresh set of the same kind straight away.
+    await user.click(screen.getByRole('button', { name: 'Run it again' }))
+    expect(screen.getByText('Question 1 of 10 · 0/0 correct')).toBeInTheDocument()
+    expect(screen.getByText('Mixed scrimmage')).toBeInTheDocument()
   })
 
   it('runs a least-mastered scrimmage that picks unmastered questions within each topic', async () => {
@@ -184,6 +189,12 @@ describe('mock exam', () => {
     expect(screen.getByText(/Estimated scaled score/)).toBeInTheDocument()
     expect(screen.getByText('2. Applications and Integration')).toBeInTheDocument()
     expect(getProgress().mockResults).toHaveLength(1)
+
+    // A new exam starts at once, skipping the intro, with nothing carried over.
+    await user.click(screen.getByRole('button', { name: 'Start a new mock exam' }))
+    expect(screen.getByText(`Item 1 of ${examLength}`)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Flag for review' }))
+    expect(screen.getByRole('button', { name: 'Unflag' })).toBeInTheDocument()
   })
 })
 
@@ -215,6 +226,13 @@ describe('labs', () => {
     await user.click(screen.getByRole('checkbox', { name: /Count input tokens/ }))
     expect(getProgress().labSteps.L1).toEqual(['tokens'])
     expect(screen.getByText('Checklist (1/6)')).toBeInTheDocument()
+  })
+
+  it('links the playbook lab tags to their lab pages', async () => {
+    const user = userEvent.setup()
+    await renderAt('/')
+    await user.click(screen.getAllByRole('link', { name: /^L1: / })[0])
+    expect(await screen.findByRole('heading', { level: 1, name: /L1: Play-by-play summarizer/ })).toBeInTheDocument()
   })
 })
 

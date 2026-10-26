@@ -13,6 +13,14 @@ type Answers = Record<string, string[]>
 export default function MockExamPage() {
   const [exam, setExam] = useState<MockExam | null>(null)
   const [result, setResult] = useState<{ report: ScoreReport; answers: Answers } | null>(null)
+  // Keys the runner so a new exam starts with a fresh clock, answers and flags.
+  const [attempt, setAttempt] = useState(0)
+
+  function start() {
+    setExam(buildMockExam(QUESTIONS))
+    setResult(null)
+    setAttempt((a) => a + 1)
+  }
 
   if (result && exam) {
     return (
@@ -20,16 +28,14 @@ export default function MockExamPage() {
         exam={exam}
         report={result.report}
         answers={result.answers}
-        onRestart={() => {
-          setExam(null)
-          setResult(null)
-        }}
+        onRestart={start}
       />
     )
   }
   if (exam) {
     return (
       <MockRunner
+        key={attempt}
         exam={exam}
         onSubmit={(answers) => {
           const report = scoreExam(exam.questions, answers)
@@ -41,7 +47,7 @@ export default function MockExamPage() {
       />
     )
   }
-  return <MockIntro onStart={() => setExam(buildMockExam(QUESTIONS))} />
+  return <MockIntro onStart={start} />
 }
 
 function MockIntro({ onStart }: { onStart: () => void }) {
@@ -205,7 +211,7 @@ function MockResults({
           {showReview ? 'Hide answers' : 'Review answers'}
         </button>
         <button onClick={onRestart} className="rounded bg-field px-4 py-2 text-chalk">
-          New mock exam
+          Start a new mock exam
         </button>
       </div>
       {showReview &&
