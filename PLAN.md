@@ -107,7 +107,7 @@ The learner runs everything locally with their own `ANTHROPIC_API_KEY`. Data com
 - Phase 2 is done: the progress store, practice mode, the mock exam (weighted sampler, timer, flag/review, results report) and 12 original 2.3 items.
 - Phase 3 is done: all 25 lessons (`src/content/lessons/*.mdx`), checked against the docs on 2026-10-20.
 - Phase 4 is done: 303 items (60 multi-response; difficulty about 29/51/20%; keys balanced A–D; all 135 links verified with `content:links`).
-- Phase 5 (partial): labs are in **Python** (uv). L1, L2, L4, L5, L6, L7, L8 and L10 are done (2026-10-26), built in order of the exam weight they cover. L3 and L9 are still to do.
+- Phase 5 (partial): labs are in **Python** (uv). L1–L8 and L10 are done (2026-10-26), built in order of the exam weight they cover. L9 is still to do.
 - Phase 6 is done: Scoreboard dashboard, weak-area drill, dark mode and phone layout.
 
 ### Phase 0: Scaffold

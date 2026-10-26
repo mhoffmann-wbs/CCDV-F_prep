@@ -1,0 +1,117 @@
+export const meta = {
+  labId: 'L3',
+  updated: '2026-10-26',
+  minutes: 60,
+  goal: "Read the league's week 4 injury report three ways (as a base64 PDF, through the Files API, and from a phone photo) and turn it into checked data and cited answers.",
+  folder: 'L3-injury-report',
+  steps: [
+    { id: 'setup', title: 'Install, run the offline tests and open the PDF' },
+    { id: 'count', title: 'Count what a PDF page costs' },
+    { id: 'extract', title: 'Extract the report into a schema and score it' },
+    { id: 'files', title: 'Upload once, ask with citations and caching' },
+    { id: 'photo', title: 'Read a photo of the printout' },
+    { id: 'cleanup', title: 'Clean up and break it on purpose' },
+  ],
+}
+
+## Why this lab
+
+Every Friday the league publishes its official injury report as a PDF. Your fantasy assistant (Lab L4) needs the data in a structured form, the fan chat (Lab L8) needs to answer questions about it with a source, and sometimes all you have is a photo of the printout pinned to the locker room wall.
+
+This lab covers the input side of the API mechanics (skill 2.3): **documents and images as content blocks**, the **three ways to send a document** (base64, a URL, or a Files API `file_id`), **citations**, and how documents combine with structured outputs and prompt caching. These are the details that exam scenarios turn on: which source type fits a repeated question, why a request fails at 32 MB, which features don't combine.
+
+## Setup
+
+The code is in `labs/L3-injury-report/`:
+
+| File | What it holds |
+|---|---|
+| `injury-report-week4.pdf` | The report: two pages, one game per page, eight player rows |
+| `l3_report.py` | The `InjuryReport` schema, `TRUTH` (what the PDF says), a dependency-free PDF writer, content-block helpers for each source type, and `score()` |
+| `test_l3_report.py` | Offline tests: the PDF is valid and regenerates byte for byte, the truth matches the league fixtures, scoring catches each kind of mistake |
+| `starter.py` | The script you complete: one subcommand per step, with numbered TODOs |
+| `solution.py` | The reference solution |
+
+```bash
+cd labs
+uv sync
+uv run pytest                                          # offline tests, no key needed
+open L3-injury-report/injury-report-week4.pdf          # macOS; any PDF viewer works
+uv run python L3-injury-report/starter.py count
+```
+
+Authenticate as in Lab L1. The whole lab costs a few cents.
+
+## Steps
+
+### 1. Install, run the offline tests and open the PDF
+
+Run `uv run pytest`, then open the PDF. Each page has a header, a legend, and a table per team: player, position, injury, practice participation on Wednesday, Thursday and Friday, and a game status. A blank status means the player is expected to play. That blank is the detail most likely to trip up an extraction.
+
+### 2. Count what a PDF page costs
+
+TODO 1: `count`. `count_tokens` is free, so measure before you send a document a hundred times. Divide by the two pages. Claude reads each PDF page twice: as an **image** of the page and as its **extracted text**, which is why it understands tables and layout, and why a page costs more than its words suggest. The docs give a typical range of 1,500–3,000 text tokens per page, plus the image tokens.
+
+The limits apply to the whole request: 32 MB, and 600 pages (100 when the request's context window is under 1M tokens).
+
+### 3. Extract the report into a schema and score it
+
+Read `InjuryReport` in `l3_report.py`. `game_status` is a `Literal` that includes `"No status"`, so a blank column has a value the model can choose instead of inventing one. The list of three practice days has no length limit in the schema, because structured outputs don't support `minItems`/`maxItems`. `score()` checks that in code.
+
+TODO 2: `extract`. Send the PDF as a base64 `document` block **before** the request text, and call `client.messages.parse(..., output_format=InjuryReport)`. Then `score()` the result against `TRUTH`: rows found, field accuracy, and every mismatch.
+
+Look at the problems list, if any. The schema guaranteed the **shape**: every row has three practice values from the allowed set. Only the comparison with the truth shows whether the **facts** are right. In production you won't have `TRUTH` for every report, which is why you build one like it for an eval set (Lab L9).
+
+### 4. Upload once, ask with citations and caching
+
+With base64, the whole PDF travels with every request. For repeated work, upload it once:
+
+TODO 3: `upload`. Call `client.files.upload(file=(name, bytes, "application/pdf"), expires_in_seconds=EXPIRES_IN)`. Uploaded files stay until you delete them unless you set an expiry. This report contains health information, so it gets 24 hours. Save the returned `id`.
+
+TODO 4: `ask`. Build one document block that references the `file_id`, with `citations: {"enabled": true}` and `cache_control`, and ask the three `QUESTIONS`. Watch the usage lines. The request is now a few hundred bytes instead of the whole file, but the document's tokens are still billed as input on every call. That's why the cache matters: the first question writes the document to the cache, and the next two read it at a fraction of the price.
+
+`cited_answer()` marks each cited span with its pages, for example "Kincaid is out [p. 2]". Citations point at real passages in the document, and the `cited_text` they carry doesn't count toward output tokens. Page numbers are 1-indexed with an exclusive end.
+
+Then run `extract --via file`: the same extraction, using the `file_id` instead of base64.
+
+### 5. Read a photo of the printout
+
+Print page 2, or show it on a second screen, and take a photo with your phone, a bit skewed, the way real photos are. TODO 5: `photo`. Send it as an `image` block (JPEG, PNG, GIF or WebP) with the same request and schema, and score it. Compare the field accuracy with the PDF run. A photo has no text layer, so every character comes from the image alone.
+
+The photo shows only page 2, so the rows from page 1 are reported as missing. That's correct: the score tells you what the input actually contained.
+
+### 6. Clean up and break it on purpose
+
+TODO 6: `cleanup` deletes the upload and lists what's left. Then change one thing at a time:
+
+1. **Citations plus structured outputs.** Add `citations={"enabled": True}` to the document in `extract`. The request fails with a 400: citations and structured outputs can't be combined. When you need both, make two calls, or ask for quotes in the schema and check them in code.
+2. **Question first.** Put the text block before the document. On a two-page report you may see no difference. The guidance (documents first, question last) matters more as documents get longer.
+3. **A blank becomes a guess.** Remove `"No status"` from `GameStatus` and run `extract` again. What does the model put in the blank column now? The scorer tells you.
+4. **A different platform.** Your ADR from Lab L10 picked Claude Platform on AWS, which supports the Files API. On Amazon Bedrock or Google-managed Vertex, documents must be sent as base64. Which steps of this lab would change?
+
+## Done when
+
+- `uv run pytest` passes.
+- `count` prints the tokens per page, and you can explain why a page costs more than its words.
+- `extract` scores the PDF (base64 and by `file_id`), and you've explained every problem it reported.
+- `ask` prints three cited answers, and its usage lines show a cache write followed by cache reads.
+- The upload is deleted, and you've seen the 400 from citations plus structured outputs.
+
+## Exam angle
+
+- **Three ways to send a document** (2.3). A URL for a public file, base64 for a one-off (the bytes go with every request), or a Files API `file_id` for a file you'll use repeatedly. On Bedrock and Google-managed Vertex, only base64 is available.
+- **A PDF page is an image plus text** (2.3). That's why charts and tables work, and why pages cost tokens accordingly. Count them with `count_tokens`.
+- **Limits are per request** (2.3): 32 MB and up to 600 pages (100 below a 1M context window). Split large documents, or use the Files API to keep payloads small.
+- **Files API** (2.3). Upload once and reference the `file_id`. Files persist until deleted unless you set an expiry, the content still bills as input tokens on every use, and file operations themselves are free.
+- **Citations ground answers** (2.3). They come back as `page_location` for PDFs, `cited_text` is free of output tokens, and citations can't be combined with structured outputs (a 400).
+- **Documents first, and cache repeated documents** (2.3). Put a `cache_control` breakpoint on the document block when you'll ask several questions about it.
+- **Shape is not truth** (2.3). Structured outputs guarantee the schema; scoring against known data finds the wrong facts.
+
+Official docs:
+
+- [PDF support](https://platform.claude.com/docs/en/build-with-claude/pdf-support)
+- [Files API](https://platform.claude.com/docs/en/build-with-claude/files)
+- [Citations](https://platform.claude.com/docs/en/build-with-claude/citations)
+- [Vision](https://platform.claude.com/docs/en/build-with-claude/vision)
+- [Structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+- [Prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)
