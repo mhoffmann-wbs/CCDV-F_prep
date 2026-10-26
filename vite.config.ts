@@ -5,6 +5,8 @@ import remarkGfm from 'remark-gfm'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  // GitHub Pages serves the app under /<repo>/; the deploy workflow sets BASE_PATH. Everything else uses /.
+  base: process.env.BASE_PATH ?? '/',
   plugins: [{ enforce: 'pre', ...mdx({ remarkPlugins: [remarkGfm] }) }, react({ include: /\.(mdx|tsx?)$/ }), tailwindcss()],
   build: {
     // The question bank is one ~550 kB data chunk (~160 kB gzipped) that practice and the mock

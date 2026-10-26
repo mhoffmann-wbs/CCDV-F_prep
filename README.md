@@ -10,6 +10,8 @@ It has three parts:
 | **Check** | 485 practice questions in the style of the real exam, plus a timed 53-item mock exam with a score report |
 | **Build** | Ten hands-on Python labs, themed around a fictional NFL-style league, that together make one app ("Gridiron Assistant") |
 
+**Use it online:** https://mhoffmann-wbs.github.io/CCDV-F_prep/ (nothing to install).
+
 The web app runs entirely in your browser. It has no backend, never calls the Claude API and never asks for an API key. Your progress (answers, mastery and lab checklists) is stored in your browser's `localStorage`.
 
 > The content is based on the official [Exam Guide v1.0](https://everpath-course-content.s3-accelerate.amazonaws.com/instructor%2F6nizmqk8tpzpfjvt6qmmav7rh%2Fpublic%2F1783542875%2FClaude+Certified+Developer+%E2%80%93+Foundations+Exam+Guide.pdf) and the [official prep path](https://anthropic-partners.skilljar.com/path/claude-certified-developer-foundations). All questions are original; none come from the live exam.
@@ -114,7 +116,11 @@ npm run lint            # lint with oxlint
 npm run content:status  # question count per skill vs. target
 ```
 
-Because the app is a static site, you can also host the `dist/` folder on a static host such as Netlify or an internal web server. It uses client-side routing and expects to be served from the root of a domain, so configure the host to serve `index.html` for unknown paths. (A sub-path like `user.github.io/repo/` would also need Vite's `base` and the router's `basename` set.)
+### Deployment
+
+Every push to `main` runs `.github/workflows/deploy.yml`: it runs the tests, builds with `BASE_PATH=/<repo>/` (the site lives under a sub-path on GitHub Pages), copies `index.html` to `404.html` so deep links like `/learn/2.5` work, and publishes to GitHub Pages. In a fork, enable it once under **Settings → Pages → Source: GitHub Actions**.
+
+Any other static host works too: run `npm run build` and serve `dist/` from the root of a domain, with unknown paths falling back to `index.html`. Set `BASE_PATH` only when serving from a sub-path.
 
 ## Troubleshooting
 
