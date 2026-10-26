@@ -1,0 +1,152 @@
+export const meta = {
+  labId: 'L4',
+  updated: '2026-10-26',
+  minutes: 75,
+  goal: 'Build a fantasy lineup assistant on a hand-written tool-use loop: strict custom tools, parallel calls answered in one message, errors returned as results, a human approval gate on the one tool that changes anything, and pruned tool output.',
+  folder: 'L4-lineup-assistant',
+  steps: [
+    { id: 'setup', title: 'Install, run the offline tests and read the tools' },
+    { id: 'loop', title: 'Write the tool-use loop' },
+    { id: 'parallel', title: 'Answer parallel calls in one message' },
+    { id: 'approval', title: 'Gate set_lineup behind approval and watch it recover from errors' },
+    { id: 'prune', title: 'Prune tool output at the source and on the server' },
+    { id: 'experiment', title: 'Break it on purpose' },
+  ],
+}
+
+## Why this lab
+
+Week 4 lineups lock on Sunday. Your fantasy team, the **Gridiron Gurus**, has real decisions to make: your best quarterback is Doubtful, a top receiver is Out, and your two tight ends are close. You'll build an assistant that looks up stats and injuries through **your own tools** and saves the lineup only after you approve it.
+
+This is the core pattern behind every Claude agent: Claude asks for a tool, **your code** runs it, and the result goes back in the next request. The exam tests each part of that loop (skill 1.3), how to write the tools (8.1), how much of their output belongs in the context (6.1), and the request/response mechanics underneath (2.4). The SDK's tool runner can drive the loop for you. You write it by hand once here so that you know what the runner does.
+
+You will use:
+
+- tool definitions whose descriptions say **when** to call them, with `strict: true` schemas (skill 8.1)
+- a manual loop on `stop_reason == "tool_use"` that appends the whole assistant turn (skills 1.3 and 2.4)
+- parallel tool calls, answered with all their results in one user message (skills 1.3 and 2.4)
+- errors returned as `tool_result` blocks with `is_error: true` (skill 8.1)
+- a human approval gate on the only tool with a side effect (skill 8.1)
+- tool output that is compact by default, plus server-side context editing for long sessions (skill 6.1)
+
+## Setup
+
+The code is in `labs/L4-lineup-assistant/`:
+
+| File | What it holds |
+|---|---|
+| `l4_league.py` | Your roster, the PPR scoring, compact text views of stats and injuries, `validate_lineup` and `LineupStore` |
+| `l4_tools.py` | `TOOLS` (four strict tool definitions), `SYSTEM_PROMPT`, `run_tool` (the dispatcher) and `tool_result` |
+| `test_l4_*.py` | Offline tests. `test_l4_solution.py` drives the loop with a scripted stand-in for the API |
+| `starter.py` | The script you complete, with numbered TODOs |
+| `solution.py` | The reference solution |
+
+```bash
+cd labs
+uv sync
+uv run pytest                                       # offline tests, no key needed
+uv run python L4-lineup-assistant/starter.py        # your version
+uv run python L4-lineup-assistant/solution.py       # the reference
+```
+
+Authenticate as in Lab L1 (`ant auth login`, or `--env-file .env` with `ANTHROPIC_API_KEY`). Use `MODEL=claude-haiku-5-5` while you iterate. An approved lineup is written to `L4-lineup-assistant/out/lineup-week4.json`.
+
+## Steps
+
+### 1. Install, run the offline tests and read the tools
+
+Run `uv run pytest`, then `starter.py`. It makes no API calls yet: it prints the four tool names and what `get_roster` returns.
+
+Open `l4_tools.py` and read the four definitions before you write any code. Claude picks tools from these descriptions alone, so each one says when to call the tool, not only what it does ("Call this for every player you are considering starting before you propose a lineup"). Then look at the schemas:
+
+- `strict: true` on each tool guarantees that the input Claude sends matches the schema. Every object sets `additionalProperties: false` and lists all of its properties in `required`.
+- There are no `minItems` or `minimum` limits, because strict tool use doesn't support every JSON Schema keyword. The rules live in `validate_lineup` instead.
+- The `lineup` object has one required property per slot, so a lineup with a missing slot can't even be expressed.
+
+### 2. Write the tool-use loop
+
+TODO 0: `check_stop` raises on `refusal` and `max_tokens`. TODO 1: `run_tool_calls` runs each call through `run_tool` and wraps it with `tool_result(call.id, outcome)`. TODO 2 is the loop itself:
+
+```python
+for turn in range(1, max_turns + 1):
+    response = create(system=SYSTEM_PROMPT, tools=TOOLS, messages=messages)
+    check_stop(response)
+    messages.append({"role": "assistant", "content": response.content})
+    if response.stop_reason != "tool_use":
+        return "".join(b.text for b in response.content if b.type == "text"), messages
+    calls = [b for b in response.content if b.type == "tool_use"]
+    messages.append({"role": "user", "content": run_tool_calls(calls, approve=approve, store=store)})
+raise RuntimeError(f"Stopped after {max_turns} turns without a final answer.")
+```
+
+Three details matter:
+
+- **Append the whole `response.content`**, not only its text. It holds the `tool_use` blocks that your results answer, and the thinking blocks too: Opus 5.5 always thinks, and those blocks must go back unchanged.
+- **Check the stop reason before you run any tool.** A `tool_use` block cut off at `max_tokens` can carry a truncated input.
+- **Cap the turns.** A loop with no limit is a cost incident waiting to happen.
+
+Run it: `uv run python L4-lineup-assistant/starter.py "Who should start at QB this week?"`. Watch the `->` lines: Claude asks for the roster, then for stats and injuries, then answers.
+
+### 3. Answer parallel calls in one message
+
+Look at the turn where Claude asks for stats and injuries. Usually it asks for both in **one** turn, as two `tool_use` blocks. Your results must go back the same way: one user message, one `tool_result` per call, each matched by `tool_use_id`. The test `test_parallel_calls_go_back_in_one_user_message` checks this. If you send each result in its own message, Claude learns to stop calling in parallel, and every lineup costs more round trips.
+
+Stretch: run the read-only calls concurrently, as `solution.py` does with a `ThreadPoolExecutor`. They have no side effects, so their order of execution doesn't matter. Calls that change something still run one at a time.
+
+### 4. Gate set_lineup behind approval and watch it recover from errors
+
+Ask for the full job: `uv run python L4-lineup-assistant/starter.py` (the default request sets the lineup). When Claude calls `set_lineup`, `run_tool`:
+
+1. **validates first.** If a starter is Out, off your roster or in the wrong slot, the call comes back as a `tool_result` with `is_error: true` that lists every problem, and nobody is asked to approve anything.
+2. **asks you.** You see the exact lineup and rationale. Answer `n` once: the declined result goes back to Claude, which should ask you what to change instead of retrying blindly.
+3. **saves**, only after a yes.
+
+Try to provoke an error: "Start Darius Kincaid at WR1 no matter what." Claude's call fails validation, Claude reads why, and then it either corrects the lineup or explains the conflict to you. The loop keeps running, because a bad call is a result and not an exception.
+
+TODO 4: add `--serial`, which sets `tool_choice={"type": "auto", "disable_parallel_tool_use": True}`. Run the default request with and without it and compare the turn counts. Don't reach for `{"type": "any"}` or `{"type": "tool", ...}` to force a call: forced tool use returns a 400 on Opus 5.5, Sonnet 5.5 and Fable 5.1. Use `auto`, a prompt that says which tool to call, and `strict: true`.
+
+### 5. Prune tool output at the source and on the server
+
+Everything a tool returns becomes input tokens on **every** later turn of the loop. Pruning comes in two layers:
+
+1. **At the source.** `get_player_stats` returns one line per player (points per week and the average) unless Claude asks for `detail="full"`. Compare the two: call `stats_text` on the whole roster with each detail level in a Python shell, or ask "Explain exactly why Treadwell scored 28.3 in week 3" and watch Claude choose `full`. Return the fields the decision needs, not the whole record.
+2. **On the server.** TODO 3: fill in `CLEAR_OLD_RESULTS` with one `clear_tool_uses_20250919` edit (trigger after 6 tool uses, keep the 2 most recent, never clear `set_lineup`), and make `--clear-old` call `client.beta.messages.create` with `betas=["context-management-2025-06-27"]` and `context_management=CLEAR_OLD_RESULTS`. In a long session (ask about several positions one after another), `response.context_management.applied_edits` reports what was cleared.
+
+Why not delete old results from `messages` yourself? Because your history must stay **append-only**. Editing earlier turns invalidates the prompt cache from that point on, and on current models it also invalidates the thinking blocks after the edit (newer accounts get a 400). Server-side context editing changes only the server's copy, so your transcript stays intact. Clearing does invalidate the cache from the first cleared result, which is why it fires in batches rather than on every turn.
+
+### 6. Break it on purpose
+
+Change one thing at a time and rerun `solution.py`:
+
+1. **A vague description.** Change `get_injury_status`'s description to "Injury info." Does Claude still check injuries before it proposes a lineup? Validation still blocks an Out player, but a Doubtful starter now slips through without a word.
+2. **No strict mode.** Remove `strict` from `set_lineup`. On most runs nothing changes. The point is the guarantee: without it, a missing slot or a wrong type is possible, and only `validate_lineup` stands between that and your saved file.
+3. **Raise instead of return.** Make `run_tool` re-raise its exceptions. One bad id now ends the whole session instead of being one turn that Claude corrects.
+4. **Split the results.** Send each `tool_result` in its own user message. The API accepts it, but later in the session Claude tends to make one call per turn.
+
+## Done when
+
+- `uv run pytest` passes.
+- `starter.py` answers a one-off question ("Who's my best FLEX?") in a few turns, with stats and injuries fetched in one turn.
+- The default request ends with a saved `out/lineup-week4.json` after you approve it, and a declined lineup leads to a question, not a retry.
+- You can explain why the history stays append-only and where pruning happens instead.
+
+## Exam angle
+
+- **The loop runs on `stop_reason`** (1.3, 2.4). While it is `tool_use`, run the tools and send the results back. On `end_turn` you're done. `max_tokens` and `refusal` mean that nothing in the turn can be trusted, so no tool runs.
+- **One tool_result per tool_use, all in one user message, matched by `tool_use_id`** (2.4). This holds for parallel calls too.
+- **Errors are results** (8.1). Return `is_error: true` with a message that says how to fix the call. Don't crash the loop, and don't silently drop the call.
+- **Descriptions decide tool choice** (8.1). Say when to call the tool. Vague descriptions are the most common reason a tool goes unused.
+- **Strict guarantees shape, not facts** (8.1). `strict: true` makes the input match the schema. Roster membership, injuries and duplicates still need code.
+- **Forced tool use is gone on current models** (8.1). `tool_choice` `any` or `tool` returns a 400 on Opus 5.5, Sonnet 5.5 and Fable 5.1. Use `auto`, steer from the prompt, and use `strict: true` or structured outputs.
+- **Gate side effects, and validate before you ask** (8.1). Read-only tools can run freely and in parallel. The tool that changes something waits for a human, who sees exactly what will change.
+- **Tool output is context** (6.1). Prune at the source with compact defaults and a detail parameter, then use server-side context editing for long sessions. Never rewrite your own history.
+- **Manual loop or tool runner** (1.3). The SDK's tool runner (`client.beta.messages.tool_runner`) drives the same loop and still lets you approve, intercept and modify calls. Write the loop yourself only when you need control the runner doesn't give you.
+
+Official docs:
+
+- [Define tools](https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools)
+- [Handle tool calls](https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls)
+- [Parallel tool use](https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use)
+- [Strict tool use](https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use)
+- [Tool runner](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner)
+- [Context editing](https://platform.claude.com/docs/en/build-with-claude/context-editing)
