@@ -70,3 +70,14 @@ export const LabMetaSchema = z.object({
 })
 
 export type LabMeta = z.infer<typeof LabMetaSchema>
+
+/** `export const meta` of each guides/<slug>.mdx file (cheat sheet, exam-day strategy, ...). */
+export const GuideMetaSchema = z.object({
+  slug: z.string().regex(/^[a-z0-9-]+$/),
+  /** Short label for the nav bar. */
+  title: z.string().min(1),
+  updated: z.iso.date(),
+  summary: z.string().min(1),
+})
+
+export type GuideMeta = z.infer<typeof GuideMetaSchema>

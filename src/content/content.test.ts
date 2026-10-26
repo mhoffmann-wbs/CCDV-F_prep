@@ -10,6 +10,7 @@ import {
   domainWeight,
   questionTarget,
 } from './blueprint'
+import { GUIDES } from './guides'
 import { LAB_CONTENT, REQUIRED_LAB_SECTIONS } from './labs'
 import { LESSONS, REQUIRED_SECTIONS } from './lessons'
 import { analyzeQuestions } from './questionQuality'
@@ -129,6 +130,14 @@ describe('lessons', () => {
     for (const { meta } of LESSONS.values()) {
       for (const link of meta.links) expect(link.url.startsWith('https://'), link.url).toBe(true)
     }
+  })
+})
+
+describe('guides', () => {
+  it('each guide file is named after the slug its meta declares', () => {
+    const files = readdirSync(join(import.meta.dirname, 'guides')).filter((f) => f.endsWith('.mdx'))
+    expect(files.length).toBeGreaterThan(0)
+    for (const f of files) expect(GUIDES.get(f.replace('.mdx', '')), f).toBeDefined()
   })
 })
 

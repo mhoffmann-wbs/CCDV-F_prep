@@ -232,6 +232,16 @@ describe('learn', () => {
   })
 })
 
+describe('guides', () => {
+  it('renders the cheat sheet with a section per domain', async () => {
+    await renderAt('/guides/cheat-sheet')
+    expect(screen.getByRole('heading', { level: 1, name: 'Cheat sheet' })).toBeInTheDocument()
+    for (const domain of ['1. Agents and workflows', '5. Model selection and optimization', '8. Tools and MCP']) {
+      expect(screen.getByRole('heading', { level: 2, name: domain })).toBeInTheDocument()
+    }
+  })
+})
+
 describe('labs', () => {
   it('shows a lab with its checklist and saves ticked steps', async () => {
     const user = userEvent.setup()

@@ -1,0 +1,189 @@
+export const meta = {
+  slug: 'cheat-sheet',
+  title: 'Cheat sheet',
+  updated: '2026-10-26',
+  summary:
+    'The facts the exam expects you to know cold, one section per domain. Read it the night before; every line is explained in the matching lesson.',
+}
+
+Model behavior changes between releases. Where a line says "current models", it means the Claude 5.x generation as of the date above. The [migration guide](https://platform.claude.com/docs/en/about-claude/models/migration-guide) has the per-model details.
+
+## 1. Agents and workflows
+
+**Start with the simplest thing that works.** Use one call, then a workflow, and an agent only when the steps can't be predicted, the outcome is worth the cost, and mistakes can be caught and recovered.
+
+| Pattern | Use when |
+|---|---|
+| Prompt chaining (with gates) | Fixed steps; check each output in code before the next step |
+| Routing | Inputs fall into distinct categories that need different prompts or models |
+| Parallelization: sectioning | Independent subtasks run at the same time |
+| Parallelization: voting | Several attempts at the same task, for confidence or recall |
+| Orchestrator-workers | Subtasks can't be known in advance |
+| Evaluator-optimizer | Clear criteria and iterative refinement measurably helps |
+
+| Way to build | You write | Who hosts |
+|---|---|---|
+| Manual loop | The `while stop_reason == "tool_use"` loop | You |
+| Tool Runner (client SDK) | Only the tool functions | You |
+| Claude Agent SDK | A prompt and options; built-in file, shell and web tools | You |
+| Managed Agents | Agent config and your tool results | Anthropic (loop and sandbox) |
+
+- **Tool loop:** run every `tool_use`, return **all** `tool_result` blocks in **one** user message, matched by `tool_use_id`. A failed tool still gets a result, with `is_error: true`.
+- **Subagents** have their own context window and return only a summary. Use them for context isolation; give them everything they need in the delegation.
+- **Hooks** are for rules that must hold every time. Prompts and CLAUDE.md are requests.
+- **Context features:** context editing **clears** stale tool results, compaction **summarizes** a conversation nearing the limit, and the memory tool **persists** across sessions with a storage backend you implement.
+
+## 2. Applications and integration
+
+**The Messages API is stateless.** Resend the history every time; there is no session ID that recalls earlier turns.
+
+| `stop_reason` | What your code does |
+|---|---|
+| `end_turn` | Use the answer |
+| `max_tokens` | Output is truncated. Don't parse it as complete |
+| `tool_use` | Run the tools, send the results back |
+| `pause_turn` | A server-tool turn paused. Send the response back as-is; don't add "Continue" |
+| `refusal` | Safety classifiers declined. Handle it explicitly |
+| `stop_sequence` | A stop sequence matched. The sequence itself is not in the text |
+| `model_context_window_exceeded` | Trim or compact context |
+
+| Status | Type | Retry? |
+|---|---|---|
+| 400 | `invalid_request_error` | No, fix the request |
+| 401 / 403 | `authentication_error` / `permission_error` | No, fix the key or access |
+| 413 | `request_too_large` | No, shrink it (Files API, smaller images, split) |
+| 429 | `rate_limit_error` | Yes, honor `retry-after`, back off with jitter |
+| 500 | `api_error` | Yes, with backoff |
+| 529 | `overloaded_error` | Yes, with backoff |
+
+- The SDKs retry 429 and 5xx automatically (2 retries by default). Catch typed errors, never match on message text. Log the `request-id` header for support.
+- **Errors can arrive after a 200**, as an `error` event inside a stream, and server tools such as web search report errors inside a successful response.
+- **Streaming** fixes time to first token and HTTP timeouts. **Batch** fixes cost: 50% off every token, results within 24 hours, **in any order**, so join on `custom_id`.
+- **Structured outputs:** `output_config.format` for the response, `strict: true` on a tool for its input. They guarantee the **shape**, not the truth or cross-field rules.
+- **Citations:** enable them on all documents or none. PDFs cite with `page_location`, plain text with `char_location`. Use `search_result` blocks to cite your own retrieved content. Citations can't be combined with `output_config.format`.
+- **Files API:** upload once, reference the `file_id` across requests. **Web fetch** only fetches URLs already in the conversation.
+- **Cloud platforms:** use the provider's own client (Bedrock, Vertex, Foundry), not the first-party client with a new base URL. Features don't arrive on every platform on the same day.
+- **Side-effect tools** (payments, emails) need idempotency keys, because retries happen.
+
+**Configuration**
+
+| Settings level (highest first) | File |
+|---|---|
+| Managed | Deployed by the organization; nothing overrides it |
+| Command line | `--settings` for one session |
+| Project local | `.claude/settings.local.json` (personal, not committed) |
+| Shared project | `.claude/settings.json` (committed) |
+| User | `~/.claude/settings.json` |
+
+- List keys such as `permissions.allow` **merge** across levels. Permission rules are checked **deny, then ask, then allow**, so a local allow never beats a project ask.
+- Settings files are strict JSON: a comment is a Settings Error.
+- **CLAUDE.md files are concatenated, not overridden:** managed, user (`~/.claude/CLAUDE.md`), project (`./CLAUDE.md`), local (`CLAUDE.local.md`).
+- **Model IDs** like `claude-sonnet-5-5` are fixed snapshots. Claude Code's `opus`, `sonnet` and `haiku` aliases move. Version prompts in git and gate changes with evals.
+
+## 3. Claude Code
+
+| Component | Lives in | In context |
+|---|---|---|
+| CLAUDE.md | `./CLAUDE.md`, `~/.claude/CLAUDE.md` | Every session |
+| Rules | `.claude/rules/*.md` | At launch, or for matching paths |
+| Skills | `.claude/skills/<name>/SKILL.md` | Description always, body when invoked |
+| Commands | `.claude/commands/<name>.md` | Merged into skills; a skill wins a name clash |
+| Subagents | `.claude/agents/` | Own context window |
+
+| Permission mode | Runs without asking |
+|---|---|
+| `default` | Reads only |
+| `acceptEdits` | Reads, file edits, common filesystem commands |
+| `plan` | Reads; Claude plans before editing |
+| `auto` | Everything, with a classifier reviewing risky actions |
+| `dontAsk` | Pre-approved tools only; everything else is denied |
+| `bypassPermissions` | Everything; isolated sandboxes only |
+
+- **Headless:** `claude -p`. `--output-format text|json|stream-json`; `--json-schema` puts the result in `structured_output`; resume a specific run with `--resume <session_id>` (`--continue` takes the most recent).
+- **CI:** `--bare` skips hooks, skills, plugins, MCP servers and CLAUDE.md, so every machine behaves the same. `claude -p` starts in `default` mode.
+- **Skill arguments:** `$ARGUMENTS` for the whole string, `$0`, `$1` for positions (0-indexed). `disable-model-invocation: true` means only you can run it.
+- `/clear` starts fresh, `/compact` keeps a summary, `/rewind` restores a checkpoint. The Explore subagent is read-only.
+
+## 4. Eval, testing and debugging
+
+- **Isolate the layer first:** replay the exact request the app sent and diff it with a working one. Many "model bugs" are missing data, truncated tool results or a different system prompt.
+- **Read the trace:** `stop_reason`, token usage, tool calls and their results, in order.
+- **Evals:** run several trials per configuration before believing a small difference, and check an LLM judge against human labels.
+- **Turn every incident into a regression test case.**
+
+## 5. Model selection and optimization
+
+| Tier | Pick it for |
+|---|---|
+| Haiku | Classification, extraction, routing, high volume, sub-agents |
+| Sonnet | Everyday coding, analysis and agentic tool use |
+| Opus | Long-running agentic coding and complex knowledge work |
+| Fable | The hardest, longest tasks, when Opus at high effort falls short |
+
+**Breaking changes on current models (each returns a 400):**
+- Non-default `temperature`, `top_p` or `top_k` (on API version 2026-10-21, any value).
+- An assistant prefill as the last turn. Use structured outputs or instructions.
+- `budget_tokens` thinking. Use adaptive thinking and `output_config.effort`.
+- Forced `tool_choice` (`any` or a named tool) on some models. Use `auto` with a clear instruction, plus `strict: true`.
+
+- **Effort** (`low` to `max`) is the soft lever for thinking, tool calls and length; defaults differ by model, so set it explicitly. **`max_tokens`** is the only hard cap, and thinking counts against it.
+- **Tune effort before switching tiers.** Judge cost per **completed task**, not per request.
+- **Fast mode:** faster output on supported Opus models at premium price; Claude API only, not with Batch. It doesn't fix time to first token; streaming does.
+- **Tokens:** count with `count_tokens` on the same model, never another vendor's tokenizer. Newer tokenizers produce more tokens for the same text.
+
+**Prompt caching**
+
+| | Cost vs. base input |
+|---|---|
+| Cache write, 5-minute TTL (default) | 1.25× |
+| Cache write, 1-hour TTL | 2× |
+| Cache read | 0.1× (lower on some newer models) |
+
+- Caching is an **exact prefix match** in the order tools, system, messages. A timestamp or reordered tool list before the breakpoint means zero cache reads.
+- Up to 4 breakpoints. Below the model's minimum prefix length, nothing is cached and no error is raised.
+- A read refreshes the timer. Requests less than 5 minutes apart: 5-minute TTL. Gaps of 5–60 minutes: 1-hour TTL.
+- Verify with `usage.cache_read_input_tokens`. Batch and caching discounts stack.
+- **Free wins before tradeoffs:** caching and batch don't change quality; a smaller model, lower effort or a lower `max_tokens` can.
+
+## 6. Prompt and context engineering
+
+- **Long documents at the top, the question at the end**, each document in tags with its source. Ask for relevant quotes first.
+- **Be explicit and give the reason** behind a constraint. Say what to do, not what not to do. Skip shouting: current models over-apply CAPS rules.
+- **Few-shot:** 3–5 varied examples in `<example>` tags; similar examples get copied too literally.
+- **System prompt:** role, standing rules, format. **User turn:** the task and the data. **Tool results:** tool output. Untrusted text never goes in the system prompt.
+- **Context bloat:** prune or summarize tool output, clear stale results, isolate side tasks in subagents, load data just in time.
+- **Output handling:** check `stop_reason`, select blocks by `type` (a response can start with a thinking block), validate with a schema, then check business rules in code. Confident text is not evidence: compute numbers deterministically.
+
+## 7. Security and safety
+
+- **Prompt injection is defended in layers:** least-privilege tools, human confirmation for irreversible actions, untrusted content clearly delimited, input screening, output handling and monitoring. A system-prompt sentence alone is never enough.
+- **Output is untrusted too:** don't render arbitrary links or images from model output. A Markdown image URL can carry data out.
+- **PII:** redact or tokenize before the call if it must not leave your systems. Zero data retention doesn't stop data being sent.
+- **Hooks:** `PreToolUse` blocks with exit code 2 (reason on stderr) or `permissionDecision: "deny"`. Exit code 1 doesn't block. `PostToolUse` runs after the tool and can't undo it. A hook deny holds in every permission mode.
+- **Secrets:** never in front-end code or the repo. Separate keys per environment (workspaces), short-lived credentials where possible (Workload Identity Federation, `apiKeyHelper` in Claude Code). A leaked key: revoke it first, then investigate.
+- **Authorization lives in your code**, checked on every tool call against the signed-in user, never in the prompt.
+
+## 8. Tools and MCP
+
+- **The tool description is the biggest lever:** what it does, when to use it, what each parameter means (with units and formats). Merge near-duplicate tools.
+- `tool_choice`: `auto` (default), `none` (keep tools defined but don't call), `any` and named tools (rejected on some current models).
+- **Many tools:** tool search with `defer_loading`. **Many sequential calls with big intermediate results:** programmatic tool calling, so only the final output enters context.
+
+| MCP primitive | Controlled by | Use for |
+|---|---|---|
+| Tools | The model | Actions and queries |
+| Resources | The application | Read-only context the host attaches |
+| Prompts | The user | Reusable templates, often slash commands |
+
+- **stdio** for local servers (log to stderr, never stdout; credentials from the environment). **Streamable HTTP** for remote, shared servers (OAuth; never pass the user's token through).
+- **Errors:** input or business failures go in the tool result with `isError: true` so the model can recover. JSON-RPC errors are for unknown tools and malformed requests.
+- **Tool annotations are untrusted hints** unless the server is trusted. Namespace tool names when combining servers.
+- In Claude Code: `.mcp.json` shares a server with the team, with `${VAR}` expansion for secrets.
+
+| Need | Choose |
+|---|---|
+| A procedure or reference material Claude loads when relevant | Skill |
+| An integration several apps or clients share | MCP server |
+| A function that lives in one application | Custom tool |
+| Search, fetch, code execution | Built-in server tools |
+| A GUI with no API | Computer use, sandboxed |
