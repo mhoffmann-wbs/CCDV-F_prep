@@ -61,6 +61,8 @@ Use these, not third-party prep sites. If the guide gets a new version, update `
   - `labs/gridiron/`: the shared package (Pydantic fixture loaders in `data.py`; `client`, `MODEL`, `TIERS` and `log_usage` in `client.py`).
   - `labs/fixtures/`: a fictional league (4 teams, 32 players, injuries, one full play-by-play game). All names are invented.
   - Each lab lives in `labs/L<n>-<slug>/` with `starter.py` and `solution.py`, or `starter/` and `solution/` folders for config-style labs such as L7. Offline tests are named `test_l<n>_*.py`, and helper modules carry an `l<n>_` prefix, because all labs share one pytest run.
+  - Labs reuse each other's code rather than copying it: L5's MCP server wraps L4's `l4_league` views, and `l5_data.py` puts `L4-lineup-assistant/` on `sys.path` so the server also runs outside pytest. Tests load a lab's `solution.py` with `importlib` under a unique name (`l4_solution`, ...). Modules that pydantic introspects (the MCP servers) must not use `from __future__ import annotations`, because a module loaded that way isn't in `sys.modules`.
+  - The MCP SDK is 2.x (`mcp.server.mcpserver.MCPServer`, formerly `FastMCP`; `mcp.Client` connects in-process in tests).
   - Lab tests must never call the API. Commands: `cd labs && uv sync && uv run pytest`.
 
 ## Content rules
