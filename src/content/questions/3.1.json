@@ -545,5 +545,186 @@
     "sourceLinks": [
       "https://code.claude.com/docs/en/commands"
     ]
+  },
+  {
+    "id": "q-3.1-016",
+    "skillId": "3.1",
+    "difficulty": 2,
+    "stem": "A CI job runs claude -p on different runners. On one runner, a hook from an engineer's ~/.claude fires during the run. On another, a project MCP server connects and adds tools. The team wants identical behavior on every machine, with only the configuration the job passes explicitly. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run with --permission-mode dontAsk so that hooks and MCP servers can't run.",
+        "explanation": "dontAsk denies calls that would otherwise prompt. It doesn't stop hooks, skills or MCP servers from being discovered and loaded."
+      },
+      {
+        "id": "B",
+        "text": "Run with --bare, which skips auto-discovery of hooks, skills, plugins, MCP servers, auto memory and CLAUDE.md, and pass what the job needs with flags such as --settings, --mcp-config and --append-system-prompt.",
+        "explanation": "Correct. Bare mode makes scripted runs reproducible by loading nothing implicitly. It authenticates with an API key from the environment rather than a subscription login."
+      },
+      {
+        "id": "C",
+        "text": "Pass --continue so every run resumes the same known-good session.",
+        "explanation": "Continuing a session doesn't change which configuration is loaded, and CI runs should start clean."
+      },
+      {
+        "id": "D",
+        "text": "Delete ~/.claude on each runner before the job starts.",
+        "explanation": "This removes user-level configuration but not the project's .mcp.json or settings, and it is fragile on shared runners."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/headless"
+    ]
+  },
+  {
+    "id": "q-3.1-017",
+    "skillId": "3.1",
+    "difficulty": 1,
+    "stem": "A team writes an /opponent-prep skill that is invoked as /opponent-prep Bears 7. The SKILL.md must put the opponent's name in one sentence and the week number in another. Which placeholders do this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A UserPromptSubmit hook that parses the arguments and rewrites the prompt, because skills can't take arguments.",
+        "explanation": "Skills accept arguments natively, so a hook is unnecessary."
+      },
+      {
+        "id": "B",
+        "text": "$0 for the opponent and $1 for the week (equivalently $ARGUMENTS[0] and $ARGUMENTS[1]).",
+        "explanation": "Correct. Positional arguments are 0-indexed, so the first argument is $0 and the second is $1."
+      },
+      {
+        "id": "C",
+        "text": "$1 for the opponent and $2 for the week.",
+        "explanation": "Skill arguments are 0-indexed. $1 would receive the week and $2 would be empty."
+      },
+      {
+        "id": "D",
+        "text": "$ARGUMENTS in both sentences, since a skill can only receive its arguments as a single string.",
+        "explanation": "$ARGUMENTS holds the full string, but positional placeholders are also supported for splitting arguments."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/skills"
+    ]
+  },
+  {
+    "id": "q-3.1-018",
+    "skillId": "3.1",
+    "difficulty": 2,
+    "stem": "A developer is writing team guidance on Claude Code subagents. Which TWO statements are accurate? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Each subagent runs in its own context window, and only its final result returns to the main conversation, which keeps verbose output out of the main context.",
+        "explanation": "Correct. Context isolation is the main reason to delegate. The parent receives the summary, not the subagent's full transcript."
+      },
+      {
+        "id": "B",
+        "text": "Subagents can never start their own subagents.",
+        "explanation": "By default, nesting is allowed up to a depth limit, which an environment variable can change."
+      },
+      {
+        "id": "C",
+        "text": "Project subagents are defined as Markdown files in .claude/commands/.",
+        "explanation": "Project subagents live in .claude/agents/. The .claude/commands/ folder holds custom commands."
+      },
+      {
+        "id": "D",
+        "text": "A subagent sees the full parent conversation by default, so there's no need to restate context in the delegation.",
+        "explanation": "Subagents start fresh, without the parent's history (forks are the exception). The task description must include the context they need."
+      },
+      {
+        "id": "E",
+        "text": "The built-in Explore subagent is read-only. It can search and read the codebase but is denied write and edit tools.",
+        "explanation": "Correct. Explore is designed for fast, read-only investigation."
+      }
+    ],
+    "correct": [
+      "A",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/sub-agents"
+    ]
+  },
+  {
+    "id": "q-3.1-019",
+    "skillId": "3.1",
+    "difficulty": 2,
+    "stem": "A repository contains both .claude/commands/deploy.md, written last year, and .claude/skills/deploy/SKILL.md, added recently with updated steps. A developer types /deploy. What happens?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Claude Code reports a conflict and refuses to run either until one is removed.",
+        "explanation": "There is no error. The precedence rule decides which one runs."
+      },
+      {
+        "id": "B",
+        "text": "The command file runs, because commands are loaded before skills.",
+        "explanation": "When names collide, the skill takes precedence over the command file."
+      },
+      {
+        "id": "C",
+        "text": "Both run, first the command file and then the skill.",
+        "explanation": "Only one definition handles /deploy."
+      },
+      {
+        "id": "D",
+        "text": "The skill runs. Custom commands and skills share the same namespace, and when both define the same name, the skill takes precedence.",
+        "explanation": "Correct. Custom commands have been merged into skills, and a skill wins over a command file of the same name."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/skills"
+    ]
+  },
+  {
+    "id": "q-3.1-020",
+    "skillId": "3.1",
+    "difficulty": 2,
+    "stem": "A nightly script starts a codebase review with claude -p and then needs to send two follow-up prompts to that same review later in the script. Other claude -p jobs run on the same machine at the same time. Which approach reliably continues the right conversation?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run the first call with --output-format json, capture its session_id field, and pass --resume <session_id> on each follow-up.",
+        "explanation": "Correct. Resuming by session ID targets exactly that conversation, however many other runs happen in between."
+      },
+      {
+        "id": "B",
+        "text": "Pass --continue on each follow-up, which resumes the most recent conversation.",
+        "explanation": "With other jobs running in parallel, \"most recent\" may be someone else's session."
+      },
+      {
+        "id": "C",
+        "text": "Write the first run's output to a file and pass it to the follow-ups with --append-system-prompt.",
+        "explanation": "This passes text along, but the follow-ups lose the session's tool history and pay to rebuild context, whereas resuming keeps everything."
+      },
+      {
+        "id": "D",
+        "text": "Repeat the full text of the first prompt in each follow-up instead of resuming.",
+        "explanation": "This starts new sessions without the review's earlier findings and pays to rebuild the context."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/headless"
+    ]
   }
 ]

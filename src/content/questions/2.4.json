@@ -1085,5 +1085,82 @@
     "sourceLinks": [
       "https://code.claude.com/docs/en/github-actions"
     ]
+  },
+  {
+    "id": "q-2.4-031",
+    "skillId": "2.4",
+    "difficulty": 1,
+    "stem": "A highlights uploader sends several large base64-encoded images in one Messages API request and receives HTTP 413 request_too_large. The SDK's automatic retries don't help. Which response best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Treat it as non-retryable and make the request smaller: downscale the images, reference uploaded files by file_id, or split the work across several requests.",
+        "explanation": "Correct. A 413 means the request exceeds size limits. Sending it again unchanged can't succeed, so the payload itself has to shrink."
+      },
+      {
+        "id": "B",
+        "text": "Request a higher rate-limit tier, which raises the maximum request size.",
+        "explanation": "Rate-limit tiers govern throughput. They don't change the request size limit."
+      },
+      {
+        "id": "C",
+        "text": "Increase the client timeout so the upload has more time to finish.",
+        "explanation": "The request is rejected for its size, not because it timed out."
+      },
+      {
+        "id": "D",
+        "text": "Retry with exponential backoff, because the API is temporarily rejecting large requests.",
+        "explanation": "Backoff helps with transient errors such as 429 and 529. A 413 is caused by the request itself."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  },
+  {
+    "id": "q-2.4-032",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "After a teammate ran npm install on a fresh checkout, a service started failing because the Anthropic SDK had jumped to a new major version with breaking changes. Which TWO practices best prevent this? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Always install the latest SDK version so the service gets bug fixes as soon as they ship.",
+        "explanation": "Floating to the latest version is exactly how the breaking major version arrived."
+      },
+      {
+        "id": "B",
+        "text": "Declare a version range that stays within the current major version, and make major upgrades deliberately in a dedicated PR that runs the tests.",
+        "explanation": "Correct. Semantic versioning signals breaking changes through the major version. Upgrading on purpose, with tests, turns a surprise into a reviewed change."
+      },
+      {
+        "id": "C",
+        "text": "Commit the lockfile and install with npm ci in CI and deployments, so every environment gets the exact same dependency versions.",
+        "explanation": "Correct. A committed lockfile with npm ci makes installs reproducible, so no environment picks up a new major version by surprise."
+      },
+      {
+        "id": "D",
+        "text": "Drop the SDK and call the HTTP API directly, so that no dependency can change.",
+        "explanation": "This gives up typed errors, retries and streaming helpers. Version pinning solves the problem without that cost."
+      },
+      {
+        "id": "E",
+        "text": "Copy the SDK source into the repository and edit it locally whenever the API changes.",
+        "explanation": "Vendoring and patching the SDK creates a long-term maintenance burden and cuts the service off from upstream fixes."
+      }
+    ],
+    "correct": [
+      "B",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://docs.npmjs.com/cli/commands/npm-ci",
+      "https://semver.org/"
+    ]
   }
 ]

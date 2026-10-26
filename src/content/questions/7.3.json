@@ -357,5 +357,40 @@
       "https://code.claude.com/docs/en/hooks",
       "https://code.claude.com/docs/en/settings"
     ]
+  },
+  {
+    "id": "q-7.3-011",
+    "skillId": "7.3",
+    "difficulty": 2,
+    "stem": "A PostToolUse hook detects that a Bash command just deleted a file under fixtures/, and exits with code 2 to block the deletion. The file is still gone. Which change makes the protection work?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move the check to a PreToolUse hook. PostToolUse runs after the tool has already executed, so exit code 2 only passes the stderr message to Claude.",
+        "explanation": "Correct. Blocking has to happen before execution. After the tool runs, the hook can only report to Claude."
+      },
+      {
+        "id": "B",
+        "text": "Return {\"continue\": false} from the PostToolUse hook to undo the command.",
+        "explanation": "Stopping the session doesn't restore the deleted file."
+      },
+      {
+        "id": "C",
+        "text": "Exit with code 1 instead of 2.",
+        "explanation": "Code 1 is a non-blocking error, and the command has already run anyway."
+      },
+      {
+        "id": "D",
+        "text": "Add the hook to a Stop hook instead.",
+        "explanation": "Stop fires when Claude finishes its turn, which is even later than PostToolUse."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/hooks"
+    ]
   }
 ]

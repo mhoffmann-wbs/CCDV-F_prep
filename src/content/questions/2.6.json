@@ -538,5 +538,41 @@
     "sourceLinks": [
       "https://code.claude.com/docs/en/memory"
     ]
+  },
+  {
+    "id": "q-2.6-016",
+    "skillId": "2.6",
+    "difficulty": 2,
+    "stem": "A repository's committed .claude/settings.json contains an ask rule for Bash(git push *). A developer chose \"Yes, and don't ask again\" on the push prompt, which saved an allow rule to .claude/settings.local.json, but Claude Code still asks before every push. Why?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Allow rules only work when the local file is committed to git.",
+        "explanation": "The local file is meant to stay uncommitted, and its allow rules apply without being committed."
+      },
+      {
+        "id": "B",
+        "text": "Allow rules for Bash are only honored from ~/.claude/settings.json.",
+        "explanation": "Allow rules for Bash work from any settings scope. The issue is how ask and allow rules combine."
+      },
+      {
+        "id": "C",
+        "text": "The local settings file is read only at startup, so the rule takes effect after a restart.",
+        "explanation": "Claude Code watches settings files and reloads permission changes in the running session."
+      },
+      {
+        "id": "D",
+        "text": "Across scopes, an ask rule takes precedence over an allow rule. The local allow doesn't outrank the project's ask, so the prompt remains until the shared rule changes.",
+        "explanation": "Correct. Permission rules from all files are combined, with deny taking precedence over ask and ask over allow. Neither file's scope overrides that order."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/permissions",
+      "https://code.claude.com/docs/en/settings"
+    ]
   }
 ]

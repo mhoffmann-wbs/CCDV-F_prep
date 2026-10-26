@@ -119,7 +119,7 @@ describe('practice', () => {
     await renderAt('/practice')
     await user.click(screen.getByRole('button', { name: 'Least mastered' }))
     await user.click(screen.getByRole('link', { name: /7\.3 Claude Hooks/ }))
-    expect(screen.getByText(/Question 1 of 10/)).toBeInTheDocument()
+    expect(screen.getByText(new RegExp(`Question 1 of ${pool.length}`))).toBeInTheDocument()
     expect(screen.getByText(/: least mastered$/)).toBeInTheDocument()
     expect(unmastered).toContain(pool.find((q) => screen.queryByText(q.stem))!.id)
   })

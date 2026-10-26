@@ -363,5 +363,77 @@
       "https://platform.claude.com/docs/en/manage-claude/workspaces",
       "https://platform.claude.com/docs/en/manage-claude/authentication"
     ]
+  },
+  {
+    "id": "q-7.4-011",
+    "skillId": "7.4",
+    "difficulty": 2,
+    "stem": "A SaaS company wants each new customer to get its own Claude workspace and API key automatically. A developer proposes putting the organization's Admin API key into the production inference service, so that the service can create them on signup. Which design best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Give each customer a copy of the Admin API key so they can manage their own workspace.",
+        "explanation": "This hands control of the whole organization to every customer."
+      },
+      {
+        "id": "B",
+        "text": "Use the Admin API key for both administration and inference, so there's only one secret to manage.",
+        "explanation": "This puts the most powerful credential on every request path and removes the boundary between administration and inference."
+      },
+      {
+        "id": "C",
+        "text": "Put the Admin API key in the inference service's environment variables, which are not committed to git.",
+        "explanation": "Keeping the key out of git is good, but the organization-wide credential still sits in the most exposed component."
+      },
+      {
+        "id": "D",
+        "text": "Keep the Admin API key out of the inference path. A separate provisioning service with tightly restricted access and audit logging creates the workspaces and keys, and the inference service uses ordinary keys scoped to a workspace.",
+        "explanation": "Correct. The admin credential can manage the whole organization, so isolating it limits the damage if the busy, exposed inference service is compromised."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/manage-claude/workspaces",
+      "https://platform.claude.com/docs/en/manage-claude/authentication"
+    ]
+  },
+  {
+    "id": "q-7.4-012",
+    "skillId": "7.4",
+    "difficulty": 2,
+    "stem": "A company issues short-lived Claude API keys from its secrets vault that rotate every hour. Developers' Claude Code sessions start failing with authentication errors partway through the day. Which configuration best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Ask developers to export the key in their shell profile each morning.",
+        "explanation": "A key exported once expires an hour later, which is exactly the failure developers are seeing."
+      },
+      {
+        "id": "B",
+        "text": "Request a long-lived key exception for every developer.",
+        "explanation": "This undoes the security benefit of short-lived credentials."
+      },
+      {
+        "id": "C",
+        "text": "Configure apiKeyHelper in Claude Code settings with a script that fetches the current key from the vault, so Claude Code requests a fresh key when it needs one.",
+        "explanation": "Correct. apiKeyHelper lets Claude Code get credentials dynamically, which fits keys that rotate."
+      },
+      {
+        "id": "D",
+        "text": "Put the current key in the repository's committed .claude/settings.json env block.",
+        "explanation": "This commits a secret to the repository, and it will be stale within the hour anyway."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/settings",
+      "https://code.claude.com/docs/en/authentication"
+    ]
   }
 ]

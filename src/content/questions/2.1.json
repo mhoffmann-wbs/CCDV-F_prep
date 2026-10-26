@@ -543,5 +543,82 @@
       "https://platform.claude.com/docs/en/build-with-claude/context-windows",
       "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model"
     ]
+  },
+  {
+    "id": "q-2.1-016",
+    "skillId": "2.1",
+    "difficulty": 2,
+    "stem": "A players' union legal team wants an assistant that answers questions about the 300-page collective bargaining agreement. Their key requirement: every answer must point to the exact passage it relies on, so a lawyer can check it in seconds. Which design best meets this requirement?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Send the agreement as a document block with citations enabled, and show each cited_text excerpt and page location next to the answer.",
+        "explanation": "Correct. With citations enabled, the API links each claim to the exact source text and its page location, so it can be checked. Claude doesn't have to report its own sources."
+      },
+      {
+        "id": "B",
+        "text": "Fine-tune a model on the agreement so that it memorizes the passages.",
+        "explanation": "Memorizing the text doesn't produce verifiable references, and fine-tuning isn't needed for document Q&A."
+      },
+      {
+        "id": "C",
+        "text": "Instruct Claude in the system prompt to add page numbers in brackets after every claim.",
+        "explanation": "Page numbers written as prose are self-reported and can be wrong or made up. Nothing ties them to the source."
+      },
+      {
+        "id": "D",
+        "text": "Use structured outputs with a schema field where Claude writes the page and paragraph it used.",
+        "explanation": "This is also self-reported. Citations also can't be combined with output_config.format in the same request."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/citations"
+    ]
+  },
+  {
+    "id": "q-2.1-017",
+    "skillId": "2.1",
+    "difficulty": 2,
+    "stem": "A game-day assistant's business requirements state: \"Available during every game; fans should not see errors when the AI service is briefly overloaded.\" The architect is turning this into infrastructure requirements. Which TWO requirements follow? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Disable streaming, since streamed responses are more likely to fail under load.",
+        "explanation": "Streaming improves time-to-first-token. Turning it off doesn't make the service more available."
+      },
+      {
+        "id": "B",
+        "text": "Retry 429, 5xx and 529 responses with exponential backoff and jitter, honor the retry-after header, and cap the total wait with a deadline.",
+        "explanation": "Correct. These are the transient, retryable errors. Backoff with a deadline rides out short overloads without hanging requests."
+      },
+      {
+        "id": "C",
+        "text": "Provide a degraded fallback when retries are exhausted, such as a cached or simpler answer or a secondary model, instead of an error page.",
+        "explanation": "Correct. The requirement is that fans see no errors, so the design needs a defined path for when retries don't succeed."
+      },
+      {
+        "id": "D",
+        "text": "Raise max_tokens so that responses complete before the service gets overloaded.",
+        "explanation": "max_tokens limits output length and has nothing to do with overload errors."
+      },
+      {
+        "id": "E",
+        "text": "Retry every failed request, including 400 invalid_request_error, so that no request is ever lost.",
+        "explanation": "A 400 means the request itself is wrong. Retrying it unchanged fails again and wastes capacity during an overload."
+      }
+    ],
+    "correct": [
+      "B",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors",
+      "https://platform.claude.com/docs/en/api/rate-limits"
+    ]
   }
 ]

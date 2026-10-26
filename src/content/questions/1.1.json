@@ -547,5 +547,116 @@
     "sourceLinks": [
       "https://www.anthropic.com/engineering/building-effective-agents"
     ]
+  },
+  {
+    "id": "q-1.1-016",
+    "skillId": "1.1",
+    "difficulty": 2,
+    "stem": "A league's content team turns each game's play-by-play into an English recap, then translates the recap into Spanish. The two steps never change. Now and then the recap step leaves out the final score, and the Spanish version ships with the same gap. Which design best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep the two-step chain and add a programmatic check between the steps that confirms the recap contains the final score and other required fields, retrying or stopping before translation if it doesn't.",
+        "explanation": "Correct. This is prompt chaining with a gate. The steps are fixed, so a workflow fits, and a check between steps catches the defect before it propagates into the translation."
+      },
+      {
+        "id": "B",
+        "text": "Replace the pipeline with an autonomous agent that decides on its own when the recap is good enough to translate.",
+        "explanation": "The steps are fixed and known, so an agent adds cost and unpredictability without need. Deterministic checking belongs in code, not in the model's judgment."
+      },
+      {
+        "id": "C",
+        "text": "Translate the play-by-play into Spanish first, then write the Spanish recap from the translated play-by-play.",
+        "explanation": "Reordering the steps doesn't add any check, so a recap without the final score can still ship."
+      },
+      {
+        "id": "D",
+        "text": "Merge both steps into one prompt that writes the recap and the translation together, so the model sees all the requirements at once.",
+        "explanation": "Merging the steps makes each call harder and removes the point where the output could be checked. The missing score would still slip through."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/engineering/building-effective-agents"
+    ]
+  },
+  {
+    "id": "q-1.1-017",
+    "skillId": "1.1",
+    "difficulty": 2,
+    "stem": "A platform team's pull-request review pipeline has two needs. First, every PR must be checked against four independent concerns (security, performance, licensing and style), and the review must finish within a minute. Second, for changes that touch authentication, a single vulnerability check sometimes misses real issues, and a missed issue is very costly. Which TWO design choices fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run the vulnerability check once and tell Claude in the prompt that it must be completely certain before passing a change.",
+        "explanation": "Asking for certainty doesn't give independent views of the change. A single run can still miss an issue, which is exactly the failure to address."
+      },
+      {
+        "id": "B",
+        "text": "For authentication changes, run the vulnerability check several times in parallel, possibly with different prompts, and flag the PR when the votes cross a threshold set for high recall.",
+        "explanation": "Correct. This is parallelization by voting. Several independent attempts make a miss less likely, which fits a check where false negatives are costly."
+      },
+      {
+        "id": "C",
+        "text": "Run four parallel calls, one focused prompt per concern, and aggregate their findings into one review.",
+        "explanation": "Correct. This is parallelization by sectioning: the concerns are independent, focused prompts perform better than one prompt juggling all four, and running them in parallel meets the time limit."
+      },
+      {
+        "id": "D",
+        "text": "Use an orchestrator agent that decides at run time which concerns each PR needs, then spawns workers for them.",
+        "explanation": "The four concerns are fixed in advance. Orchestrator-workers fits subtasks that can't be predicted, so here it adds latency and variance for nothing."
+      },
+      {
+        "id": "E",
+        "text": "Use one call that reviews all four concerns in sequence within a single prompt, to save tokens.",
+        "explanation": "One prompt covering four concerns divides attention and runs serially, which works against both quality and the one-minute limit."
+      }
+    ],
+    "correct": [
+      "B",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/engineering/building-effective-agents"
+    ]
+  },
+  {
+    "id": "q-1.1-018",
+    "skillId": "1.1",
+    "difficulty": 1,
+    "stem": "A stadium's fan-support service gets two kinds of questions: about 90% are simple FAQs (parking, gate times, bag policy) and about 10% are account disputes that need multi-step reasoning over order history. Today one long prompt on an Opus-tier model handles everything, and the FAQ answers come out slow, long and expensive. Which workflow pattern best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Routing: a classification step sends FAQs to a smaller model with a short FAQ prompt and sends disputes to the more capable model with a dispute-specific prompt.",
+        "explanation": "Correct. The inputs fall into distinct categories that are best handled separately, which is what routing is for. Each path gets its own prompt and a model sized to the task."
+      },
+      {
+        "id": "B",
+        "text": "Evaluator-optimizer: have a second call critique and refine every answer before it is sent.",
+        "explanation": "Adding a critique loop to every answer increases cost and latency, which are already the problem for the simple FAQs."
+      },
+      {
+        "id": "C",
+        "text": "Prompt chaining: run every question through the FAQ prompt first and then through the dispute prompt.",
+        "explanation": "Running every question through both prompts doubles the work. Nothing separates the two kinds of input."
+      },
+      {
+        "id": "D",
+        "text": "Orchestrator-workers: split each question into subtasks and delegate them to worker calls.",
+        "explanation": "Most questions are single-step FAQs, so decomposing them adds overhead without benefit."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/engineering/building-effective-agents"
+    ]
   }
 ]

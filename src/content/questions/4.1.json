@@ -440,5 +440,151 @@
       "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
       "https://platform.claude.com/docs/en/api/errors"
     ]
+  },
+  {
+    "id": "q-4.1-013",
+    "skillId": "4.1",
+    "difficulty": 2,
+    "stem": "A research bot uses Anthropic's server-side web search tool. Every few hundred requests, the code crashes with \"content is not iterable\" while looping over the search results. The HTTP status is 200, and no exception is raised by the SDK. What is the most likely cause?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The SDK silently swallowed a 500 error and returned an empty response.",
+        "explanation": "The SDK raises on 5xx errors once retries are exhausted. A 200 with an error object is the documented shape for server-tool failures."
+      },
+      {
+        "id": "B",
+        "text": "Server-tool errors come back inside a successful response: the web_search_tool_result's content is an error object, such as max_uses_exceeded, instead of a list of results. The code must check which shape it got.",
+        "explanation": "Correct. Web search errors don't raise. The result block's content is a list on success and an error object on failure, so the code has to branch on that."
+      },
+      {
+        "id": "C",
+        "text": "A network interruption delivered a partial JSON body.",
+        "explanation": "A partial body would fail JSON parsing, not produce a well-formed response with an unexpected content shape."
+      },
+      {
+        "id": "D",
+        "text": "The model hit max_tokens before writing the search results.",
+        "explanation": "Truncation shows up as stop_reason max_tokens. It doesn't turn the search result content into a non-list."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool"
+    ]
+  },
+  {
+    "id": "q-4.1-014",
+    "skillId": "4.1",
+    "difficulty": 2,
+    "stem": "A Pick'em bot gives a wrong point spread in production. A developer pastes the same question into the Console and gets the right answer every time. Which next step best isolates whether the problem is in the integration layer or in the model's output?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Capture the exact request body the app sent from its logs, replay it, and diff it against the Console request to look for differences such as a missing data section, a truncated tool result or a different system prompt.",
+        "explanation": "Correct. Replaying the real payload separates what the app sends from how the model responds. A diff often shows the integration bug directly."
+      },
+      {
+        "id": "B",
+        "text": "Switch production to a more capable model, since the Console may be using a different one.",
+        "explanation": "Changing models without knowing the cause may hide the defect or just move it somewhere else."
+      },
+      {
+        "id": "C",
+        "text": "Add few-shot examples of correct spreads to the system prompt.",
+        "explanation": "If the app is sending incomplete data, examples won't fix it. The cause has to be found first."
+      },
+      {
+        "id": "D",
+        "text": "Raise effort to max in production to match the Console's reasoning.",
+        "explanation": "This assumes the model is at fault before the integration has been ruled out."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-4.1-015",
+    "skillId": "4.1",
+    "difficulty": 3,
+    "stem": "A prompt change raised a classifier's pass rate from 82% to 85% on a 40-case eval set that was run once, and the grading is done by an LLM judge. Before concluding that the change helped, which TWO steps are most important? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run several trials of each configuration and compare the difference with the normal run-to-run variation.",
+        "explanation": "Correct. Model output varies between runs. A one-time three-point swing on 40 cases may just be noise."
+      },
+      {
+        "id": "B",
+        "text": "Remove the cases that failed in both versions so the comparison focuses on what changed.",
+        "explanation": "Dropping hard cases inflates scores and hides regressions."
+      },
+      {
+        "id": "C",
+        "text": "Ship the change, because any increase in pass rate is an improvement.",
+        "explanation": "Without repeated trials, a small increase can't be told apart from noise."
+      },
+      {
+        "id": "D",
+        "text": "Set temperature to 0 so that each configuration gives the same answer every run.",
+        "explanation": "Current models reject non-default sampling parameters, and a deterministic setting doesn't represent production behavior anyway."
+      },
+      {
+        "id": "E",
+        "text": "Check how well the LLM judge agrees with human labels on a sample of the cases.",
+        "explanation": "Correct. A miscalibrated judge can produce gains or losses that aren't real. Its agreement with humans has to be checked."
+      }
+    ],
+    "correct": [
+      "A",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-4.1-016",
+    "skillId": "4.1",
+    "difficulty": 2,
+    "stem": "A support bot marks its static 20,000-token system prompt for caching, but cache_read_input_tokens is zero on every request. The team has already checked that the system prompt contains no timestamps, and nobody can spot the cause by reading the code. Which debugging step best finds it?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Switch the cache TTL to one hour so that entries live longer.",
+        "explanation": "The prefix never matches in the first place, so a longer lifetime doesn't help."
+      },
+      {
+        "id": "B",
+        "text": "Move to a model with a larger context window.",
+        "explanation": "Context size has nothing to do with cache matching."
+      },
+      {
+        "id": "C",
+        "text": "Add three more cache breakpoints later in the messages.",
+        "explanation": "More breakpoints don't help if the bytes before the first one change on every request."
+      },
+      {
+        "id": "D",
+        "text": "Capture two consecutive request bodies and diff them byte for byte, looking for anything before the breakpoint that changes, such as tool order, JSON key order or a varying tool set.",
+        "explanation": "Correct. Caching is an exact prefix match, and tools render before the system prompt. A payload diff shows which earlier bytes change."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
   }
 ]

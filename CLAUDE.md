@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-**`PLAN.md` is the build plan and sets the order of work.** It covers the skill-by-skill content map, the question-bank targets, the lab specs and the phases (§5 records what is done). Phases 0–6 are complete: the scaffold, the blueprint, the question schema, the content tests, the quiz engine (practice and mock exam), the progress store, all 25 lessons, the full question bank (428 items, which meets every per-skill target and includes the 3 official samples), all ten labs, and the polish phase. Everything marked *planned* below doesn't exist yet. As parts get built, update this file so it describes what actually exists.
+**`PLAN.md` is the build plan and sets the order of work.** It covers the skill-by-skill content map, the question-bank targets, the lab specs and the phases (§5 records what is done). Phases 0–6 are complete: the scaffold, the blueprint, the question schema, the content tests, the quiz engine (practice and mock exam), the progress store, all 25 lessons, the full question bank (485 items, which meets every per-skill target, includes the 3 official samples, and mixes single-select with "select 2 of 5" and "select 3 of 6" items), all ten labs, and the polish phase. Everything marked *planned* below doesn't exist yet. As parts get built, update this file so it describes what actually exists.
 
 ## Purpose
 
@@ -56,7 +56,7 @@ Use these, not third-party prep sites. If the guide gets a new version, update `
   - no duplicate stems
 
   These checks skip the official samples, which keep their published order. Explanations must never mention option letters, so options can be reordered to rebalance the keys. The question *targets* are not enforced by tests. Track them with `npm run content:status`.
-- **UI tests** (`src/pages/pages.test.tsx`) render `<App>` inside a `MemoryRouter` and run against the real question bank. Adding questions can change which item appears first, so write these tests to be independent of order.
+- **UI tests** (`src/pages/pages.test.tsx`) render `<App>` inside a `MemoryRouter` and run against the real question bank. Adding questions can change which item appears first and how big a pool is, so write these tests to be independent of order and pool size.
 - **`labs/`** is a separate **Python** workspace managed by uv (`labs/pyproject.toml`). Learners run it themselves with their own `ANTHROPIC_API_KEY` or `ant auth login`; the web app never calls the Claude API and never stores keys.
   - `labs/gridiron/`: the shared package (Pydantic fixture loaders in `data.py`; `client`, `MODEL`, `TIERS` and `log_usage` in `client.py`).
   - `labs/fixtures/`: a fictional league (4 teams, 32 players, injuries, one full play-by-play game). All names are invented.

@@ -546,5 +546,76 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
     ]
+  },
+  {
+    "id": "q-2.2-016",
+    "skillId": "2.2",
+    "difficulty": 2,
+    "stem": "Before switching a live injury-summary service to a new model, the team wants evidence of how the new model behaves on real production traffic, without any user ever seeing its outputs. Which rollout approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Switch all traffic to the new model during the quietest hour and roll back if complaints arrive.",
+        "explanation": "This exposes every user and relies on complaints as the signal."
+      },
+      {
+        "id": "B",
+        "text": "Run the new model only on the existing offline eval set and skip production traffic entirely.",
+        "explanation": "Offline evals are necessary, but they don't provide the evidence from real production traffic that the team asked for."
+      },
+      {
+        "id": "C",
+        "text": "Canary release: route 5% of users to the new model and watch the thumbs-down rate.",
+        "explanation": "A canary exposes real users to the new model, which the requirement rules out."
+      },
+      {
+        "id": "D",
+        "text": "Shadow deployment: send a copy of production requests to the new model, log its outputs and grade them against the current model offline, while users keep receiving the current model's answers.",
+        "explanation": "Correct. Shadow testing exercises real traffic with no user exposure, which is exactly the stated constraint."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
+    ]
+  },
+  {
+    "id": "q-2.2-017",
+    "skillId": "2.2",
+    "difficulty": 1,
+    "stem": "After an incident in which a fantasy bot recommended starting a suspended player, the team fixes the system prompt and the bot now handles that case correctly. Which next step best prevents the problem from coming back with future prompt or model changes?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Ask a team member to spot-check ten answers by hand every week.",
+        "explanation": "Manual spot checks are sparse and may never hit this case again. An automated regression test is reliable."
+      },
+      {
+        "id": "B",
+        "text": "Add the failing case and a few variants to the regression eval set, so every future prompt or model change is tested against them.",
+        "explanation": "Correct. Turning incidents into eval cases closes the loop of the operate and maintain phases, so a later change can't quietly reintroduce the bug."
+      },
+      {
+        "id": "C",
+        "text": "Pin the current model version permanently so that nothing can change.",
+        "explanation": "Pinning stops model drift but not prompt edits, and models are eventually retired anyway."
+      },
+      {
+        "id": "D",
+        "text": "Add \"NEVER RECOMMEND SUSPENDED PLAYERS\" in capital letters to the system prompt.",
+        "explanation": "The prompt fix is already in place. More emphasis doesn't protect against future changes, and only tests do."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
   }
 ]

@@ -543,5 +543,88 @@
     "sourceLinks": [
       "https://code.claude.com/docs/en/skills"
     ]
+  },
+  {
+    "id": "q-8.3-015",
+    "skillId": "8.3",
+    "difficulty": 2,
+    "stem": "A club's ticket-allocation system is a 20-year-old Windows desktop application with no API. Staff re-key allocation requests from emails into its forms. The team wants Claude to automate the data entry. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Build an MCP server that calls the application's REST API.",
+        "explanation": "The application has no API for an MCP server to wrap."
+      },
+      {
+        "id": "B",
+        "text": "Use the computer use tool against the application in a sandboxed VM with minimal privileges, and have a human confirm each submission before it is committed.",
+        "explanation": "Correct. Computer use lets Claude operate graphical applications through screenshots and mouse and keyboard actions, which suits a system with no API. Sandboxing and a confirmation step limit the risk."
+      },
+      {
+        "id": "C",
+        "text": "Use the web fetch tool to submit the forms.",
+        "explanation": "Web fetch retrieves web content. It can't operate a desktop application."
+      },
+      {
+        "id": "D",
+        "text": "Write a Skill describing the data-entry steps.",
+        "explanation": "A Skill provides instructions, but on its own it gives Claude no way to act on the desktop app."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/computer-use-tool"
+    ]
+  },
+  {
+    "id": "q-8.3-016",
+    "skillId": "8.3",
+    "difficulty": 2,
+    "stem": "A platform team is deciding how to extend Claude for three needs: (1) a fixed weekly reporting procedure the team follows, with its templates; (2) live access to a vendor's ticketing system that several Claude apps must share; (3) a small pricing function that exists only inside one backend service. Which THREE mappings fit best? (Select THREE.)",
+    "selectCount": 3,
+    "options": [
+      {
+        "id": "A",
+        "text": "The ticketing integration written separately as a custom tool inside each app.",
+        "explanation": "Duplicating the integration in every app is what MCP is meant to avoid."
+      },
+      {
+        "id": "B",
+        "text": "The reporting procedure pasted into every app's system prompt.",
+        "explanation": "This costs context on every request and must be maintained in several places. A Skill loads on demand."
+      },
+      {
+        "id": "C",
+        "text": "Access to the vendor's ticketing system as an MCP server.",
+        "explanation": "Correct. MCP gives a reusable integration that several clients and apps can connect to."
+      },
+      {
+        "id": "D",
+        "text": "The pricing function as a custom tool defined in that one service's API requests.",
+        "explanation": "Correct. A function used by a single application fits a client tool defined right where it lives."
+      },
+      {
+        "id": "E",
+        "text": "The weekly reporting procedure and templates as a Skill.",
+        "explanation": "Correct. Skills package procedures and reference files and load them only when relevant."
+      },
+      {
+        "id": "F",
+        "text": "The pricing function exposed as a public MCP server.",
+        "explanation": "A function that only one service uses doesn't need its own server and transport."
+      }
+    ],
+    "correct": [
+      "C",
+      "D",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "https://code.claude.com/docs/en/features-overview"
+    ]
   }
 ]

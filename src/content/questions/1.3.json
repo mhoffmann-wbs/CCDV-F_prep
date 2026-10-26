@@ -832,5 +832,89 @@
     "sourceLinks": [
       "https://www.anthropic.com/engineering/building-effective-agents"
     ]
+  },
+  {
+    "id": "q-1.3-024",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "An agent must check the status of all 53 players on a roster by calling get_player_status once per player, then report only the players who are not \"Active\". Each call returns about 400 tokens. Today this takes 53 model round trips, and the context fills with status records that are never needed again. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The tool search tool, so that Claude loads the get_player_status definition only when it needs it.",
+        "explanation": "Tool search reduces the cost of many tool definitions. It does nothing about 53 calls and their results."
+      },
+      {
+        "id": "B",
+        "text": "Programmatic tool calling: let Claude write code in the code execution tool that calls get_player_status for every player, filters the results and returns only the final list to context.",
+        "explanation": "Correct. With programmatic tool calling, tool results go back to the running script instead of Claude's context. Only the filtered output enters context, which removes both the round trips and the bloat."
+      },
+      {
+        "id": "C",
+        "text": "Context editing that clears each tool result once the agent has read it.",
+        "explanation": "Clearing old results limits context growth, but the agent still makes 53 sequential round trips. Programmatic calling removes both problems."
+      },
+      {
+        "id": "D",
+        "text": "Raise max_tokens so the agent has room for all 53 results in a single response.",
+        "explanation": "max_tokens limits output length. The results are still inputs that accumulate across 53 round trips."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/programmatic-tool-calling"
+    ]
+  },
+  {
+    "id": "q-1.3-025",
+    "skillId": "1.3",
+    "difficulty": 2,
+    "stem": "A scouting agent runs in long sessions that continue for weeks. A platform engineer is matching its context problems to the features that address them. Which THREE pairings are correct? (Select THREE.)",
+    "selectCount": 3,
+    "options": [
+      {
+        "id": "A",
+        "text": "Old tool results the agent has already used are crowding the context within a session: use context editing to clear them.",
+        "explanation": "Correct. Context editing removes stale tool results or thinking blocks without summarizing anything."
+      },
+      {
+        "id": "B",
+        "text": "A coach's preferences must survive process restarts and brand-new sessions: use the memory tool with a storage backend the app implements.",
+        "explanation": "Correct. Memory is for persistence across sessions. The app implements where the memory files are actually stored."
+      },
+      {
+        "id": "C",
+        "text": "Context editing summarizes stale tool results into a short compaction block.",
+        "explanation": "Context editing clears content. Summarizing is what compaction does."
+      },
+      {
+        "id": "D",
+        "text": "Facts must carry over into next week's new session: rely on compaction, which stores summaries between sessions.",
+        "explanation": "Compaction works within one conversation. It doesn't persist anything into a new session."
+      },
+      {
+        "id": "E",
+        "text": "The memory tool stores data on Anthropic's servers automatically, so no backend code is needed.",
+        "explanation": "The memory tool is client-side. Claude issues memory commands and the application executes them against its own storage."
+      },
+      {
+        "id": "F",
+        "text": "A single conversation is approaching the context window limit: use compaction to summarize earlier turns server-side.",
+        "explanation": "Correct. Compaction summarizes earlier context into a compaction block when the conversation nears its trigger threshold."
+      }
+    ],
+    "correct": [
+      "A",
+      "B",
+      "F"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "https://platform.claude.com/docs/en/build-with-claude/compaction",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool"
+    ]
   }
 ]

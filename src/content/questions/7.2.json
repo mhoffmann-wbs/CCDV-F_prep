@@ -364,5 +364,82 @@
     "sourceLinks": [
       "https://code.claude.com/docs/en/agent-sdk/secure-deployment"
     ]
+  },
+  {
+    "id": "q-7.2-011",
+    "skillId": "7.2",
+    "difficulty": 2,
+    "stem": "A new agent feature that can change fans' account settings is launching. Operations wants to be able to stop it within minutes if it starts misbehaving, without affecting the rest of the app. Which control best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Revoke the API key if something goes wrong.",
+        "explanation": "Revoking the key stops every Claude feature in the app, not just this one, and someone then has to rotate it."
+      },
+      {
+        "id": "B",
+        "text": "Add \"Stop if you are misbehaving\" to the system prompt.",
+        "explanation": "A misbehaving agent can't be relied on to stop itself."
+      },
+      {
+        "id": "C",
+        "text": "Roll back with a normal code deploy.",
+        "explanation": "A deploy is usually slower than minutes and risks taking unrelated changes back with it."
+      },
+      {
+        "id": "D",
+        "text": "A feature flag (kill switch) that disables the agent's write tools, or the whole feature, at runtime without a deploy, combined with a staged rollout and alerting.",
+        "explanation": "Correct. A runtime switch gives fast, targeted containment. Staged rollout and alerting limit how many users are affected and how long it takes to notice."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/"
+    ]
+  },
+  {
+    "id": "q-7.2-012",
+    "skillId": "7.2",
+    "difficulty": 2,
+    "stem": "A free public trivia bot calls Claude from the company's backend. Last weekend a handful of scripted accounts generated most of the month's token spend. Which TWO guardrails best address this? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Monitor usage per user and alert on anomalies, such as sudden spikes or request patterns that look automated.",
+        "explanation": "Correct. Monitoring catches abuse that gets past static limits, and catches it quickly."
+      },
+      {
+        "id": "B",
+        "text": "Rely on the organization's API rate limits to share capacity fairly between users.",
+        "explanation": "Organization-level limits apply to the app as a whole and know nothing about individual end users."
+      },
+      {
+        "id": "C",
+        "text": "Enforce per-user and per-session rate limits and token quotas in the application.",
+        "explanation": "Correct. Limits per user in the app stop a few accounts from consuming shared capacity and budget."
+      },
+      {
+        "id": "D",
+        "text": "Raise max_tokens so that each answer is complete and users send fewer follow-ups.",
+        "explanation": "This doesn't limit abusive request volume and makes each request more expensive."
+      },
+      {
+        "id": "E",
+        "text": "Move the API key into the front end in obfuscated form so that the backend isn't involved.",
+        "explanation": "Shipping the key to clients exposes it to everyone and removes the server-side point of control."
+      }
+    ],
+    "correct": [
+      "A",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/rate-limits",
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks"
+    ]
   }
 ]

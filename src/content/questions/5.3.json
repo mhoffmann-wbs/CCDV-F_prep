@@ -443,5 +443,41 @@
       "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
       "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
     ]
+  },
+  {
+    "id": "q-5.3-013",
+    "skillId": "5.3",
+    "difficulty": 2,
+    "stem": "To cut costs, a team proposes a cascade: every request goes to Haiku first, and anything Haiku seems unsure about is retried on Opus. What should they measure before building it?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Nothing, because cascades always cost less than a single model.",
+        "explanation": "Cascades can cost more once escalations and lost cache reuse are counted, so it has to be measured."
+      },
+      {
+        "id": "B",
+        "text": "Only whether Haiku's answers sound confident, since that decides escalation.",
+        "explanation": "How confident an answer sounds is a poor signal of whether it is correct. The decision needs task-level evaluation."
+      },
+      {
+        "id": "C",
+        "text": "Haiku's cost per request alone, since that's where most traffic will go.",
+        "explanation": "Cost per request ignores escalations, retries and lower-quality answers that need extra turns. Cost per completed task is the right measure."
+      },
+      {
+        "id": "D",
+        "text": "The most capable model at a lower effort setting on the same tasks, compared by cost per completed task. It often matches the cascade, keeps one model's prompt cache and avoids the escalation logic.",
+        "explanation": "Correct. Lower effort on a strong model is often cheaper overall than a cascade. A cascade also loses cache reuse across models and pays twice for the requests it escalates."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "https://platform.claude.com/docs/en/build-with-claude/effort"
+    ]
   }
 ]

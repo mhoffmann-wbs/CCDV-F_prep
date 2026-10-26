@@ -1080,5 +1080,222 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool"
     ]
+  },
+  {
+    "id": "q-2.3-030",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A trade-rumor assistant enables the server-side web fetch tool. A user asks it to \"fetch the latest article on the team's website about the trade\" without giving a URL, and Claude says it can't fetch the page. What explains this, and what is the fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Web fetch can't access news sites, so the article has to be scraped by the application instead.",
+        "explanation": "There is no blanket ban on news sites. Domain restrictions are something the developer configures."
+      },
+      {
+        "id": "B",
+        "text": "The code execution tool must also be declared, because web fetch runs inside it.",
+        "explanation": "On current models, dynamic filtering runs code execution internally. Declaring a separate code execution tool is unnecessary and can confuse the model."
+      },
+      {
+        "id": "C",
+        "text": "Web fetch requires a beta header, and without it the tool is silently ignored.",
+        "explanation": "Web fetch is a server tool declared in tools. The failure comes from the missing URL, not from a header."
+      },
+      {
+        "id": "D",
+        "text": "Web fetch only retrieves URLs that already appear in the conversation. The user should supply the URL, or the app should also enable web search so that results provide URLs to fetch.",
+        "explanation": "Correct. Web fetch is limited to URLs already present in the conversation, for example from the user or from earlier search results. Adding web search provides those URLs."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-fetch-tool"
+    ]
+  },
+  {
+    "id": "q-2.3-031",
+    "skillId": "2.3",
+    "difficulty": 1,
+    "stem": "A document Q&A endpoint sometimes receives uploads so large that requests fail after a long wait. The team wants to detect oversized requests before sending them and route those to a chunking path, using the same token counts the model will actually see. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Call the token counting endpoint with the same model, system prompt, messages and tools, and compare the result with the model's context limit.",
+        "explanation": "Correct. count_tokens uses the model's own tokenizer and accounts for the system prompt, tools and attachments, so its result matches what the request will consume."
+      },
+      {
+        "id": "B",
+        "text": "Count tokens locally with an open-source tokenizer from another model provider, which is faster than an API call.",
+        "explanation": "Other providers' tokenizers count differently and tend to undercount Claude tokens, so oversized requests would slip through."
+      },
+      {
+        "id": "C",
+        "text": "Estimate tokens as characters divided by four, and leave a 20% safety margin.",
+        "explanation": "The ratio varies widely with language, code and formatting, and newer tokenizers produce more tokens for the same text. A heuristic can't match the real count."
+      },
+      {
+        "id": "D",
+        "text": "Send every request and switch to chunking only when the API returns an error.",
+        "explanation": "This spends the upload and wait time the team wants to avoid, and doesn't detect the problem in advance."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/token-counting"
+    ]
+  },
+  {
+    "id": "q-2.3-032",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A RAG assistant retrieves passages from the league's internal operations wiki through a custom search tool. Compliance wants each answer to carry citations that name the wiki page title and URL, the same way web search results are cited. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Put all retrieved passages in the system prompt and instruct Claude to name its sources in brackets.",
+        "explanation": "Bracketed sources written as prose are self-reported and unverifiable, and the system prompt is the wrong place for retrieved data."
+      },
+      {
+        "id": "B",
+        "text": "Enable the web search tool with allowed_domains set to the wiki's domain.",
+        "explanation": "The wiki is internal, so the public web search tool can't reach it. The passages are already retrieved by the custom tool."
+      },
+      {
+        "id": "C",
+        "text": "Use structured outputs with a sources array that Claude fills in with the page titles it used.",
+        "explanation": "A schema field is still self-reported attribution. It isn't tied to the retrieved text."
+      },
+      {
+        "id": "D",
+        "text": "Return the retrieved passages from the tool as search_result content blocks, each with source, title and content, with citations enabled.",
+        "explanation": "Correct. Search result blocks let Claude cite your own content with source and title attribution, and each citation points back to the passage."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/search-results"
+    ]
+  },
+  {
+    "id": "q-2.3-033",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A rules-desk tool sends three PDF rulebooks as document blocks and wants answers with citations. A developer is reviewing how citations work. Which TWO statements are accurate? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Citations can be combined with output_config.format to get JSON answers that include citation objects.",
+        "explanation": "Citations are incompatible with structured outputs, and the combination returns a 400 error."
+      },
+      {
+        "id": "B",
+        "text": "Citations must be enabled on all of the documents in a request or on none of them.",
+        "explanation": "Correct. Enabling citations on only some of the documents isn't supported."
+      },
+      {
+        "id": "C",
+        "text": "Citations require a beta header on the Messages API.",
+        "explanation": "Citations are generally available and need no beta header."
+      },
+      {
+        "id": "D",
+        "text": "The answer arrives as a single text block with a list of citations appended at the end.",
+        "explanation": "The response is split into several text blocks, and the blocks that make claims carry their own citations arrays."
+      },
+      {
+        "id": "E",
+        "text": "For PDF documents, each citation reports the cited text with a page_location giving start and end page numbers.",
+        "explanation": "Correct. Citations from PDFs use page locations. Plain-text documents use character locations instead."
+      }
+    ],
+    "correct": [
+      "B",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/citations"
+    ]
+  },
+  {
+    "id": "q-2.3-034",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A play-suggestion feature asks Claude to list candidate plays inside <plays>...</plays> tags. To save output tokens, the developer adds stop_sequences: [\"</plays>\"]. Generation now stops at the right place, but the downstream parser fails because the closing tag is missing. What is happening, and what is the fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The matched stop sequence isn't included in the returned text. When stop_reason is \"stop_sequence\", the code should append the tag (the stop_sequence field says which sequence matched) or parse without requiring it.",
+        "explanation": "Correct. The API stops before emitting the stop sequence and reports which one matched. Parsing has to account for that."
+      },
+      {
+        "id": "B",
+        "text": "Stop sequences are only supported with streaming, so non-streaming responses drop the final characters.",
+        "explanation": "Stop sequences work with both streaming and non-streaming requests."
+      },
+      {
+        "id": "C",
+        "text": "The model ignores stop sequences when the text contains XML, so the response ended for another reason.",
+        "explanation": "Stop sequences match on generated text regardless of its format. Generation stopped because the sequence matched."
+      },
+      {
+        "id": "D",
+        "text": "Stop sequences are applied only after max_tokens is reached, so the tag is cut off by truncation.",
+        "explanation": "Stop sequences end generation as soon as they match, independently of max_tokens."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons"
+    ]
+  },
+  {
+    "id": "q-2.3-035",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "An analytics team wants Claude to compute season aggregates, such as yards per play by down and distance, from a 40 MB play-by-play CSV. Pasting the CSV into the prompt exceeds the context window, and asking Claude to do arithmetic over thousands of rows in its head is unreliable. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Convert the CSV to JSON so that it uses fewer tokens and fits in one request.",
+        "explanation": "JSON is usually more verbose than CSV, and the arithmetic problem would remain."
+      },
+      {
+        "id": "B",
+        "text": "Upload the CSV with the Files API and make it available to the code execution tool, so Claude writes and runs analysis code in the sandbox and only the results enter context.",
+        "explanation": "Correct. The file never has to fit in context. Code computes the aggregates exactly, and only the final numbers come back to Claude."
+      },
+      {
+        "id": "C",
+        "text": "Send the CSV as an image of a spreadsheet so that the vision model can read it.",
+        "explanation": "Images of tables lose precision and don't scale to a file of this size."
+      },
+      {
+        "id": "D",
+        "text": "Split the CSV into chunks that fit the context window and ask Claude to sum each chunk, then add the partial sums by hand.",
+        "explanation": "This still relies on the model's arithmetic over raw rows and adds a fragile manual merge step."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/code-execution-tool",
+      "https://platform.claude.com/docs/en/build-with-claude/files"
+    ]
   }
 ]

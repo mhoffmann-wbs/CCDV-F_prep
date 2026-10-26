@@ -435,5 +435,76 @@
       "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
     ]
+  },
+  {
+    "id": "q-6.3-013",
+    "skillId": "6.3",
+    "difficulty": 2,
+    "stem": "A snap-count feature uses structured outputs to get each position group's share of offensive snaps as percentages. Every response is schema-valid, but sometimes the percentages add up to 97 or 104. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a \"sum\": 100 keyword to the JSON schema.",
+        "explanation": "JSON Schema has no keyword for summing across fields, and unsupported keywords are rejected or ignored."
+      },
+      {
+        "id": "B",
+        "text": "Validate the sum in code after parsing, and on failure retry with the specific error in the prompt or route the item for review. The JSON schema can't express cross-field rules like this.",
+        "explanation": "Correct. Structured outputs guarantee the shape, not business rules across fields. Semantic validation belongs in application code."
+      },
+      {
+        "id": "C",
+        "text": "Trust the output, since structured outputs guarantee correct responses.",
+        "explanation": "Schema-valid isn't the same as correct, and the observed sums prove it."
+      },
+      {
+        "id": "D",
+        "text": "Mark the tool strict so that the values are guaranteed to be consistent.",
+        "explanation": "Strict mode guarantees conformance to the schema. It doesn't enforce arithmetic between fields."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-6.3-014",
+    "skillId": "6.3",
+    "difficulty": 2,
+    "stem": "A salary-cap assistant confidently states each player's dead-money figure, computed from contract terms in the prompt. Spot checks find occasional arithmetic errors that read just as confidently as the correct answers. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Raise effort to max for every cap question.",
+        "explanation": "More reasoning may lower the error rate, but it doesn't make financial figures exact."
+      },
+      {
+        "id": "B",
+        "text": "Show only the answers Claude marks as \"high confidence\".",
+        "explanation": "Self-reported confidence doesn't track arithmetic correctness."
+      },
+      {
+        "id": "C",
+        "text": "Ask Claude to double-check its math in the same response before answering.",
+        "explanation": "Self-review in the same response can catch some errors but gives no guarantee. The errors already look plausible."
+      },
+      {
+        "id": "D",
+        "text": "Compute the figures deterministically, with a calculation tool, code execution or the app's own code, and have Claude explain the computed numbers rather than produce them.",
+        "explanation": "Correct. Fluent, confident text says nothing about whether the arithmetic is right. Exact numbers should come from deterministic computation."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/code-execution-tool"
+    ]
   }
 ]

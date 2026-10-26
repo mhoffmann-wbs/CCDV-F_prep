@@ -831,5 +831,46 @@
       "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
       "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview"
     ]
+  },
+  {
+    "id": "q-5.1-024",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "A rules assistant answers questions from the attached league rulebook, but it sometimes cites rule numbers that don't exist, and does so confidently. Which TWO prompt changes most directly reduce these fabrications? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Ask Claude to rate its confidence from 1 to 10 and show only the answers rated 8 or higher.",
+        "explanation": "Self-reported confidence is not reliably calibrated. A fabricated rule can come with high stated confidence."
+      },
+      {
+        "id": "B",
+        "text": "Ask Claude to first extract the relevant quotes from the rulebook, then answer only from those quotes.",
+        "explanation": "Correct. Grounding the answer in extracted quotes ties every claim to real text and makes fabrications easier to spot."
+      },
+      {
+        "id": "C",
+        "text": "Switch to a model with a larger context window.",
+        "explanation": "The rulebook already fits. Context size isn't what causes the fabrications."
+      },
+      {
+        "id": "D",
+        "text": "Tell Claude explicitly that it may answer \"the rulebook doesn't say\" when the rulebook doesn't cover a question.",
+        "explanation": "Correct. Giving explicit permission to admit uncertainty reduces the pressure to invent an answer."
+      },
+      {
+        "id": "E",
+        "text": "Raise max_tokens so that Claude has room to explain itself.",
+        "explanation": "Output length doesn't address whether a claim is grounded."
+      }
+    ],
+    "correct": [
+      "B",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations"
+    ]
   }
 ]

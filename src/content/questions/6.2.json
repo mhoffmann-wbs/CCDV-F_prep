@@ -546,5 +546,157 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview"
     ]
+  },
+  {
+    "id": "q-6.2-016",
+    "skillId": "6.2",
+    "difficulty": 1,
+    "stem": "A notification bot's prompt says \"Be brief.\" Messages still often exceed 80 characters, and the lock screen cuts them off mid-word. Which prompt change best fits current Claude models?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a sentence telling Claude never to write long messages.",
+        "explanation": "Telling Claude what not to do is weaker than giving the concrete target, and it still doesn't specify a length."
+      },
+      {
+        "id": "B",
+        "text": "State the exact constraint and the reason: \"Keep each message under 80 characters, because the phone lock screen cuts off anything longer.\"",
+        "explanation": "Correct. Explicit, measurable instructions with the reason behind them help Claude meet the goal. A vague word like \"brief\" leaves the length to interpretation."
+      },
+      {
+        "id": "C",
+        "text": "Set max_tokens to 20 so the output can't run long.",
+        "explanation": "max_tokens truncates rather than shortens, so messages would end mid-word, which is the problem the team has now."
+      },
+      {
+        "id": "D",
+        "text": "Change it to \"BE EXTREMELY BRIEF!!!\" so that the instruction stands out.",
+        "explanation": "Shouting adds emphasis but no target length. On current models, aggressive emphasis can also make Claude overreact in other ways."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+    ]
+  },
+  {
+    "id": "q-6.2-017",
+    "skillId": "6.2",
+    "difficulty": 2,
+    "stem": "A prompt contains the classification instructions, three example emails with their labels, and the email to classify, all as plain paragraphs one after another. Sometimes Claude classifies one of the example emails instead of the target email. Which change best fixes this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Put the email to classify in the system prompt so that it stands apart.",
+        "explanation": "The email is user input. Putting it in the system prompt mixes data with operator instructions."
+      },
+      {
+        "id": "B",
+        "text": "Write the section headings in capital letters.",
+        "explanation": "Capitalized headings help a little, but tags give unambiguous boundaries that the instructions can refer to by name."
+      },
+      {
+        "id": "C",
+        "text": "Wrap each part in descriptive XML tags, such as <instructions>, <examples> with <example> entries, and <email>, and refer to the tags by name in the instructions.",
+        "explanation": "Correct. XML tags separate instructions, examples and input clearly, so Claude can tell which text is the email to classify."
+      },
+      {
+        "id": "D",
+        "text": "Remove the examples so that only one email remains in the prompt.",
+        "explanation": "This avoids the confusion but gives up the examples' benefits. Clear structure solves the problem without losing them."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+    ]
+  },
+  {
+    "id": "q-6.2-018",
+    "skillId": "6.2",
+    "difficulty": 2,
+    "stem": "A team is revising a report-writing prompt for a current Claude model. Which THREE changes follow Anthropic's prompting best practices? (Select THREE.)",
+    "selectCount": 3,
+    "options": [
+      {
+        "id": "A",
+        "text": "Explain why a constraint exists, for example that reports are read aloud on a podcast.",
+        "explanation": "Correct. Giving the reason behind a constraint helps Claude apply it sensibly in cases the rule doesn't spell out."
+      },
+      {
+        "id": "B",
+        "text": "End the request with an assistant message containing \"#\" so that the report starts with a heading.",
+        "explanation": "Prefilling the assistant turn returns a 400 error on current models. Use instructions or structured outputs instead."
+      },
+      {
+        "id": "C",
+        "text": "Put the request before the documents so that Claude reads them with the goal in mind.",
+        "explanation": "This reverses the recommended order for long inputs."
+      },
+      {
+        "id": "D",
+        "text": "Put the long source documents at the top and the request at the end.",
+        "explanation": "Correct. Long inputs before the query improve quality, especially with several documents."
+      },
+      {
+        "id": "E",
+        "text": "Replace \"Don't use bullet points\" with \"Write in flowing prose paragraphs\".",
+        "explanation": "Correct. Telling Claude what to do works better than telling it what not to do."
+      },
+      {
+        "id": "F",
+        "text": "Mark every rule CRITICAL and write it in capital letters so that nothing is missed.",
+        "explanation": "Current models follow instructions closely, and blanket emphasis tends to make Claude over-apply rules."
+      }
+    ],
+    "correct": [
+      "A",
+      "D",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+    ]
+  },
+  {
+    "id": "q-6.2-019",
+    "skillId": "6.2",
+    "difficulty": 2,
+    "stem": "A single prompt asks Claude to research a topic from provided notes, outline a 3,000-word feature, draft it and then proofread it. Results are inconsistent: sometimes the outline is skipped, and proofreading rarely happens. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Split the work into a chain of prompts (outline, then draft, then proofread), passing each step's output to the next in XML tags, so each step gets Claude's full attention and can be checked.",
+        "explanation": "Correct. Prompt chaining breaks a complex task into focused subtasks. That makes each step more reliable and lets you inspect or fix one step at a time."
+      },
+      {
+        "id": "B",
+        "text": "Remove the outline and proofreading steps, since they're the ones that fail.",
+        "explanation": "This changes the requirement instead of meeting it."
+      },
+      {
+        "id": "C",
+        "text": "Raise max_tokens so that there's room for all four steps in one response.",
+        "explanation": "Room for more output doesn't stop steps from being skipped or skimped."
+      },
+      {
+        "id": "D",
+        "text": "Number the steps and add \"You MUST complete all four steps\".",
+        "explanation": "Emphasis doesn't change how much work one call takes on, so steps can still be skipped."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+    ]
   }
 ]

@@ -1336,5 +1336,53 @@
       "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
       "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
     ]
+  },
+  {
+    "id": "q-2.5-038",
+    "skillId": "2.5",
+    "difficulty": 2,
+    "stem": "A developer is building the request for a contract-review assistant on the Messages API. Which THREE placements respect Claude's content boundaries? (Select THREE.)",
+    "selectCount": 3,
+    "options": [
+      {
+        "id": "A",
+        "text": "The assistant's role, the operator's standing rules and the output format go in the system prompt.",
+        "explanation": "Correct. Stable operator instructions belong in the system prompt, which carries operator authority and caches well."
+      },
+      {
+        "id": "B",
+        "text": "The output of a clause-lookup tool goes in a tool_result block that references the matching tool_use id.",
+        "explanation": "Correct. Tool output is returned as a tool_result paired with its tool_use id, which keeps it separate from the user's own words."
+      },
+      {
+        "id": "C",
+        "text": "The contract a user uploaded goes in the user turn, wrapped in document tags with metadata such as the file name.",
+        "explanation": "Correct. User-supplied material belongs in the user turn, clearly delimited so it is treated as data rather than as instructions."
+      },
+      {
+        "id": "D",
+        "text": "A new standing rule from the operator, added mid-conversation, is appended to the text of the latest tool_result.",
+        "explanation": "Instructions hidden in tool results look like tool output and blur trust boundaries. Use the system prompt, or a mid-conversation system message on models that support it."
+      },
+      {
+        "id": "E",
+        "text": "Retrieved web pages about contract law go in the system prompt so that Claude reads them first.",
+        "explanation": "Retrieved third-party text is untrusted data. In the system prompt it would gain operator authority."
+      },
+      {
+        "id": "F",
+        "text": "The user's uploaded contract goes in the system prompt, so that Claude treats its terms as authoritative.",
+        "explanation": "Putting untrusted user content in the system prompt gives it operator authority, which mixes data with instructions."
+      }
+    ],
+    "correct": [
+      "A",
+      "B",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages"
+    ]
   }
 ]

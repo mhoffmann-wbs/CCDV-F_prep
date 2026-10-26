@@ -587,5 +587,40 @@
       "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/programmatic-tool-calling"
     ]
+  },
+  {
+    "id": "q-6.1-017",
+    "skillId": "6.1",
+    "difficulty": 2,
+    "stem": "An analyst assistant answers questions across five long scouting reports, about 150,000 tokens in total, sent in one request. Answers often mix up details between prospects. Which change best addresses this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Put the question before the reports, so that Claude knows what to look for while reading.",
+        "explanation": "The guidance is the reverse: put long inputs at the top and the query at the end."
+      },
+      {
+        "id": "B",
+        "text": "Raise effort to max and leave the prompt unchanged.",
+        "explanation": "More reasoning on a poorly structured prompt doesn't fix the mix-ups the structure causes."
+      },
+      {
+        "id": "C",
+        "text": "Send each report in a separate request and concatenate the five answers.",
+        "explanation": "Comparisons across prospects need all the reports in the same context, so separate calls lose them."
+      },
+      {
+        "id": "D",
+        "text": "Put the reports at the top in tagged document blocks with source metadata, put the question at the end, and ask Claude to quote the relevant passages for each prospect before answering.",
+        "explanation": "Correct. Long documents first and the query last improves long-context performance. Extracting quotes first keeps the answer grounded in the right report."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+    ]
   }
 ]

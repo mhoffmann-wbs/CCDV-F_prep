@@ -548,5 +548,76 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools"
     ]
+  },
+  {
+    "id": "q-8.1-016",
+    "skillId": "8.1",
+    "difficulty": 2,
+    "stem": "A harness runs Claude's parallel tool calls concurrently, but sends each tool_result back to the API in its own separate user message. Over a long session, Claude makes fewer and fewer parallel calls and works through tools one at a time. What should change?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Wait for all of the tools to finish, then send the results in reverse order.",
+        "explanation": "The order of the results isn't the problem. Sending them in separate messages is."
+      },
+      {
+        "id": "B",
+        "text": "Return all of the tool_result blocks for a turn in a single user message, so the history shows parallel calls being answered together.",
+        "explanation": "Correct. Splitting results across several messages teaches Claude, through the history, not to make parallel calls."
+      },
+      {
+        "id": "C",
+        "text": "Set disable_parallel_tool_use to false explicitly in tool_choice.",
+        "explanation": "Parallel calls are already enabled by default. The way the results are returned is what discourages them."
+      },
+      {
+        "id": "D",
+        "text": "Add \"Always call tools in parallel\" to the system prompt.",
+        "explanation": "The history keeps contradicting the instruction, so the root cause remains."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use"
+    ]
+  },
+  {
+    "id": "q-8.1-017",
+    "skillId": "8.1",
+    "difficulty": 1,
+    "stem": "On one particular turn, an app needs Claude to answer in plain text without calling any tools. The tool definitions must stay in the request so that the prompt cache prefix stays intact. Which setting fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "tool_choice {\"type\": \"none\"}",
+        "explanation": "Correct. With none, the tools stay defined, so the cached prefix is unchanged, but Claude won't call them on this turn."
+      },
+      {
+        "id": "B",
+        "text": "A system-prompt sentence asking Claude not to use tools this time.",
+        "explanation": "This is only a request that Claude may not follow, and editing the system prompt also breaks the cached prefix."
+      },
+      {
+        "id": "C",
+        "text": "tool_choice {\"type\": \"any\"}",
+        "explanation": "any forces a tool call, which is the opposite of what's needed. On the newest models it also returns a 400."
+      },
+      {
+        "id": "D",
+        "text": "Remove the tools array for this turn.",
+        "explanation": "Changing the tool set changes the prefix and invalidates the cache, which the requirement rules out."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
   }
 ]

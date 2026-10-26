@@ -551,5 +551,124 @@
       "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
       "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
     ]
+  },
+  {
+    "id": "q-7.1-015",
+    "skillId": "7.1",
+    "difficulty": 3,
+    "stem": "A fan chat app renders Claude's replies as Markdown. A red-team test plants a document that tells Claude to include an image whose URL embeds the user's email address and order history as query parameters. When the reply renders, the browser requests that URL from an attacker's server. Which defense addresses this exfiltration path most directly?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a system-prompt rule saying \"Never include images in your replies\".",
+        "explanation": "A prompt rule is the kind of control an injection tries to override, so it isn't enough on its own."
+      },
+      {
+        "id": "B",
+        "text": "Escape HTML in Claude's output before rendering the Markdown.",
+        "explanation": "Markdown image syntax isn't HTML. Escaping HTML leaves the image URL working."
+      },
+      {
+        "id": "C",
+        "text": "Treat model output as untrusted at render time: don't load images or links from domains outside an allowlist, by stripping or proxying them.",
+        "explanation": "Correct. The data leaves when the client renders the output and fetches the URL. Output handling has to block that channel, in addition to injection defenses on the input side."
+      },
+      {
+        "id": "D",
+        "text": "Rate-limit each user to 20 messages per hour.",
+        "explanation": "A single rendered reply is enough to leak the data, so rate limits don't stop it."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://genai.owasp.org/llmrisk/llm052025-improper-output-handling/",
+      "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
+    ]
+  },
+  {
+    "id": "q-7.1-016",
+    "skillId": "7.1",
+    "difficulty": 2,
+    "stem": "An assistant reads emails from outside senders, summarizes them and can send replies on the user's behalf. Which THREE measures belong in a layered defense against prompt injection? (Select THREE.)",
+    "selectCount": 3,
+    "options": [
+      {
+        "id": "A",
+        "text": "Screen inbound emails with an injection classifier and log and monitor the agent's tool calls for anomalies.",
+        "explanation": "Correct. Detection and monitoring catch attempts that get past the other layers."
+      },
+      {
+        "id": "B",
+        "text": "Give the agent administrator credentials so that it can verify senders against the directory.",
+        "explanation": "This increases the damage a successful injection can do, the opposite of least privilege."
+      },
+      {
+        "id": "C",
+        "text": "Keep the system prompt secret, since attackers can't inject what they can't see.",
+        "explanation": "Secrecy doesn't stop injected instructions in the email content from being followed."
+      },
+      {
+        "id": "D",
+        "text": "Give the agent only the tools it needs, and require explicit user confirmation before any send_reply call is executed.",
+        "explanation": "Correct. Least privilege and a human gate on the action with side effects limit what a successful injection can do."
+      },
+      {
+        "id": "E",
+        "text": "Rely on one system-prompt sentence telling Claude to ignore any injected instructions, and skip the other controls.",
+        "explanation": "A single prompt-level defense is exactly what injections are designed to get around."
+      },
+      {
+        "id": "F",
+        "text": "Delimit email bodies clearly as untrusted content, for example in tags, and instruct Claude to treat them as data and never follow instructions inside them.",
+        "explanation": "Correct. Clear boundaries help Claude separate data from instructions. On its own it isn't sufficient, but it is a useful layer."
+      }
+    ],
+    "correct": [
+      "A",
+      "D",
+      "F"
+    ],
+    "sourceLinks": [
+      "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+      "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/"
+    ]
+  },
+  {
+    "id": "q-7.1-017",
+    "skillId": "7.1",
+    "difficulty": 2,
+    "stem": "A sports network's public chatbot screens each user message with an input classifier. Red-teamers still get harmful outputs by splitting a request across several harmless-looking turns. Which addition best addresses this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Shorten the maximum message length so that requests can't be detailed.",
+        "explanation": "The attack already uses short, harmless-looking turns."
+      },
+      {
+        "id": "B",
+        "text": "Also screen Claude's outputs, and evaluate the conversation as a whole rather than only each new message.",
+        "explanation": "Correct. Splitting a request across turns defeats per-message input checks. Output screening and conversation-level evaluation catch what each message alone hides."
+      },
+      {
+        "id": "C",
+        "text": "Make the input classifier stricter so that it blocks more single messages.",
+        "explanation": "Each fragment is harmless on its own, so a stricter per-message filter mostly adds false positives."
+      },
+      {
+        "id": "D",
+        "text": "Clear the conversation history every turn so that fragments can't combine.",
+        "explanation": "This breaks normal multi-turn use for every user to stop one attack pattern."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks"
+    ]
   }
 ]

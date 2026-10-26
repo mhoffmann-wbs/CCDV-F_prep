@@ -436,5 +436,190 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
     ]
+  },
+  {
+    "id": "q-5.4-013",
+    "skillId": "5.4",
+    "difficulty": 2,
+    "stem": "A nightly job sends 10,000 independent requests. Each has 2,000 input tokens and 500 output tokens. At list prices of $2 per million input tokens and $10 per million output tokens, and with the Message Batches API billing at 50% of standard prices, what does the job cost as a batch?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "$70",
+        "explanation": "This applies the discount to input tokens only ($20 + $50). Batch pricing halves output tokens as well."
+      },
+      {
+        "id": "B",
+        "text": "$45",
+        "explanation": "Correct. At standard prices, input is 20M tokens at $2/M ($40) and output is 5M tokens at $10/M ($50), so $90 in total. The batch discount halves every token, giving $45."
+      },
+      {
+        "id": "C",
+        "text": "$90",
+        "explanation": "$90 is the standard (non-batch) price. The batch discount applies to the whole request."
+      },
+      {
+        "id": "D",
+        "text": "$65",
+        "explanation": "This applies the discount to output tokens only ($40 + $25). Batch pricing halves input tokens as well."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/pricing",
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing"
+    ]
+  },
+  {
+    "id": "q-5.4-014",
+    "skillId": "5.4",
+    "difficulty": 3,
+    "stem": "Ten requests share a 50,000-token prefix and all start within five minutes of each other. Base input costs $2 per million tokens. A 5-minute cache write costs 1.25× base, and a cache read costs 0.1× base. Ignoring the uncached tail of each request, what does the prefix cost across all ten requests with caching, compared with $1.00 without it?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "About $0.22: one write (50k × $2.50/M = $0.125) plus nine reads (450k × $0.20/M = $0.09).",
+        "explanation": "Correct. The first request pays the write premium, and the next nine read the prefix at a tenth of the base price."
+      },
+      {
+        "id": "B",
+        "text": "$1.00: caching only reduces latency, not cost.",
+        "explanation": "Cache reads are billed at a fraction of the base input price, so caching cuts cost substantially."
+      },
+      {
+        "id": "C",
+        "text": "About $1.25: every request pays the write premium.",
+        "explanation": "Only the first request writes. The later requests read the cache."
+      },
+      {
+        "id": "D",
+        "text": "About $0.10: ten reads at $0.20 per million.",
+        "explanation": "This forgets that the first request has to write the cache at 1.25× before any reads happen."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "https://platform.claude.com/docs/en/about-claude/pricing"
+    ]
+  },
+  {
+    "id": "q-5.4-015",
+    "skillId": "5.4",
+    "difficulty": 2,
+    "stem": "A support chat caches a 30,000-token system prompt. Users typically reply about every 20 minutes, and each reply triggers a request. With the default 5-minute TTL, almost every request writes the cache again. Which choice best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use the 1-hour TTL. Its write costs 2× base instead of 1.25×, but the entry survives the 20-minute gaps, so later turns read from the cache instead of rewriting it.",
+        "explanation": "Correct. The TTL should match the gap between requests that share a prefix. Gaps of 5–60 minutes are where the 1-hour TTL pays off."
+      },
+      {
+        "id": "B",
+        "text": "Add more cache breakpoints so that some of the entries survive.",
+        "explanation": "Every entry expires on the same timer. More breakpoints don't extend their lifetime."
+      },
+      {
+        "id": "C",
+        "text": "Keep the 5-minute TTL, because it is always the cheaper option.",
+        "explanation": "The 5-minute TTL is cheaper only when requests arrive less than five minutes apart. Here it expires between almost every pair of turns."
+      },
+      {
+        "id": "D",
+        "text": "Turn caching off, since the cache keeps expiring anyway.",
+        "explanation": "With the right TTL the cache would hit on most turns, and turning it off throws that saving away."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-5.4-016",
+    "skillId": "5.4",
+    "difficulty": 2,
+    "stem": "After moving a support bot from an Opus-tier model to a Haiku-tier model, cost per request fell 70%. But escalations to human agents doubled, and the average number of turns per resolved conversation rose from 3 to 7. How should the team judge whether the switch saved money?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Compare only the token prices of the two models.",
+        "explanation": "Unit prices say nothing about how many requests and escalations each completed task needs."
+      },
+      {
+        "id": "B",
+        "text": "Use cost per request, because that's what the API bills.",
+        "explanation": "Cost per request ignores the extra turns and escalations the switch caused."
+      },
+      {
+        "id": "C",
+        "text": "Compare cost per resolved conversation, including the extra turns and the cost of human escalations, rather than cost per request.",
+        "explanation": "Correct. What matters is the cost of a completed task. A cheaper request that needs more turns or human handling may cost more in total."
+      },
+      {
+        "id": "D",
+        "text": "Count only the human-escalation cost, since the API spend went down.",
+        "explanation": "Both components matter. The extra turns are API spend that needs to be counted too."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "https://platform.claude.com/docs/en/about-claude/pricing"
+    ]
+  },
+  {
+    "id": "q-5.4-017",
+    "skillId": "5.4",
+    "difficulty": 2,
+    "stem": "A team must reduce Claude API spend without lowering output quality at all. Which TWO levers fit that constraint? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Moving every route to a smaller model tier.",
+        "explanation": "A smaller model is a tradeoff that may lower quality. It needs an eval before it is applied."
+      },
+      {
+        "id": "B",
+        "text": "Setting max_tokens below the typical response length.",
+        "explanation": "This truncates answers and lowers quality. Truncated answers also tend to be retried, which costs more."
+      },
+      {
+        "id": "C",
+        "text": "Lowering effort on every route.",
+        "explanation": "Lower effort trades thoroughness for cost, which risks quality on hard tasks."
+      },
+      {
+        "id": "D",
+        "text": "Prompt caching for the large, stable prefix that every request repeats.",
+        "explanation": "Correct. Caching charges much less for repeated input and doesn't change what the model sees or produces."
+      },
+      {
+        "id": "E",
+        "text": "The Message Batches API for the workloads nobody waits on, such as nightly reports and evals.",
+        "explanation": "Correct. Batch processing halves token prices while running the same model and prompt."
+      }
+    ],
+    "correct": [
+      "D",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing"
+    ]
   }
 ]

@@ -7,7 +7,7 @@ It has three parts:
 | | What you get |
 |---|---|
 | **Learn** | One lesson for each of the 25 exam skills, with links to the official docs and the Skilljar courses |
-| **Check** | 428 practice questions in the style of the real exam, plus a timed 53-item mock exam with a score report |
+| **Check** | 485 practice questions in the style of the real exam, plus a timed 53-item mock exam with a score report |
 | **Build** | Ten hands-on Python labs, themed around a fictional NFL-style league, that together make one app ("Gridiron Assistant") |
 
 The web app runs entirely in your browser. It has no backend, never calls the Claude API and never asks for an API key. Your progress (answers, mastery and lab checklists) is stored in your browser's `localStorage`.

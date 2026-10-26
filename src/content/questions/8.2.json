@@ -362,5 +362,111 @@
     "sourceLinks": [
       "https://modelcontextprotocol.io/specification/latest/basic/transports"
     ]
+  },
+  {
+    "id": "q-8.2-011",
+    "skillId": "8.2",
+    "difficulty": 2,
+    "stem": "An MCP client auto-approves any tool whose annotations include readOnlyHint: true, including tools from community servers the team has never reviewed. A security reviewer objects. Why?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Annotations only work over stdio, so remote servers can't set them.",
+        "explanation": "Annotations are part of the tool definition and are independent of the transport."
+      },
+      {
+        "id": "B",
+        "text": "readOnlyHint is deprecated, so its value is always false.",
+        "explanation": "The annotation is valid. The issue is that it can't be trusted, not that it is deprecated."
+      },
+      {
+        "id": "C",
+        "text": "Read-only tools can still exhaust rate limits, so they always need approval.",
+        "explanation": "Rate limits aren't the concern here. The danger is a mislabeled destructive tool."
+      },
+      {
+        "id": "D",
+        "text": "Tool annotations are hints supplied by the server. Clients must treat them as untrusted unless the server itself is trusted, so a malicious server can label a destructive tool as read-only.",
+        "explanation": "Correct. The MCP spec warns that annotations are untrusted unless they come from trusted servers. Approval policy can't rest on self-declared hints."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://modelcontextprotocol.io/specification/2026-07-28/server/tools"
+    ]
+  },
+  {
+    "id": "q-8.2-012",
+    "skillId": "8.2",
+    "difficulty": 2,
+    "stem": "Claude calls an MCP tool book_practice_field with a date in the past. How should the server report this so that Claude can correct itself?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Close the connection so that the client retries the call automatically.",
+        "explanation": "A retry sends the same bad date again, and Claude never learns what was wrong."
+      },
+      {
+        "id": "B",
+        "text": "Return a JSON-RPC protocol error with code -32602 (invalid params).",
+        "explanation": "Protocol errors are meant for unknown tools and malformed requests. Clients may not show them to the model, and the model is less likely to recover from them."
+      },
+      {
+        "id": "C",
+        "text": "Return a normal tool result with isError: true and an actionable message, such as \"date must be in the future; today is 2026-10-26\".",
+        "explanation": "Correct. Tool execution errors, including input validation failures, go in the result with isError so the model sees them and can retry with adjusted arguments."
+      },
+      {
+        "id": "D",
+        "text": "Return an empty successful result so that the conversation continues.",
+        "explanation": "Claude would wrongly believe the booking succeeded."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://modelcontextprotocol.io/specification/2026-07-28/server/tools"
+    ]
+  },
+  {
+    "id": "q-8.2-013",
+    "skillId": "8.2",
+    "difficulty": 1,
+    "stem": "An agent's host connects to two MCP servers, one for stats and one for ticketing, and both expose a tool named search. Claude sometimes queries ticketing when it meant stats. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Disambiguate the names with a server prefix, such as stats_search and tickets_search, and make each description say what it searches.",
+        "explanation": "Correct. Tool names only need to be unique within one server, so a host that combines servers should namespace them. Clear descriptions help Claude choose the right one."
+      },
+      {
+        "id": "B",
+        "text": "Merge both servers into one tool that searches everything.",
+        "explanation": "A single broad tool hides which data source it uses and makes results noisier."
+      },
+      {
+        "id": "C",
+        "text": "Use each server's serverInfo name to tell them apart at run time.",
+        "explanation": "The spec notes that server names aren't guaranteed to be unique and shouldn't be relied on for disambiguation."
+      },
+      {
+        "id": "D",
+        "text": "Rely on the order of the servers in the configuration, since Claude prefers the tool listed first.",
+        "explanation": "Tool order isn't a reliable way to pick between tools with the same name."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
+      "https://www.anthropic.com/research/writing-tools-for-agents"
+    ]
   }
 ]
