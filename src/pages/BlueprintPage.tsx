@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import {
   COURSES,
   DOMAINS,
@@ -59,9 +60,13 @@ export default function BlueprintPage() {
                     </a>
                   ))}
                   {skill.labs.map((l) => (
-                    <span key={l} className="rounded bg-pigskin/10 px-2 py-0.5 text-pigskin">
+                    <Link
+                      key={l}
+                      to={`/labs/${l}`}
+                      className="rounded bg-pigskin/10 px-2 py-0.5 text-pigskin hover:bg-pigskin/20"
+                    >
                       {l}: {LABS[l]}
-                    </span>
+                    </Link>
                   ))}
                   <span className="rounded bg-neutral-100 px-2 py-0.5 text-neutral-600">
                     {questionsForSkill(skill.id).length} questions
