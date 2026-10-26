@@ -1,0 +1,338 @@
+[
+  {
+    "id": "r01",
+    "case": "w4-por-sac",
+    "pick": {
+      "winner": "POR",
+      "confidence": 60,
+      "key_factors": [
+        {
+          "player_id": "POR-TE1",
+          "claim": "Brett Ashby scored 26.9 points in week 3, his best game of the season."
+        },
+        {
+          "player_id": "SAC-QB1",
+          "claim": "Caleb Montague averages 24.41 points but is listed as Doubtful."
+        }
+      ],
+      "rationale": "With Montague doubtful, Sacramento may be without its top scorer. Ashby gives Portland a reliable target."
+    },
+    "human_grounded": true,
+    "note": "every claim is in the data"
+  },
+  {
+    "id": "r02",
+    "case": "w4-nsh-bal",
+    "pick": {
+      "winner": "BAL",
+      "confidence": 65,
+      "key_factors": [
+        {
+          "player_id": "BAL-TE1",
+          "claim": "Elijah Mulroney averages 22.63 points and is listed as Questionable."
+        },
+        {
+          "player_id": "NSH-WR1",
+          "claim": "Darius Kincaid is out, which removes 15.97 points per week from Nashville."
+        }
+      ],
+      "rationale": "Nashville is missing Kincaid. If Mulroney plays, Baltimore has the best tight end in the game."
+    },
+    "human_grounded": true,
+    "note": "Out player mentioned correctly as missing"
+  },
+  {
+    "id": "r03",
+    "case": "w5-sac-nsh",
+    "pick": {
+      "winner": "NSH",
+      "confidence": 55,
+      "key_factors": [
+        {
+          "player_id": "NSH-RB2",
+          "claim": "Trey Fairbanks averages about 24 points and never dropped below 21 in a week."
+        },
+        {
+          "player_id": "SAC-QB1",
+          "claim": "Caleb Montague scored at least 22.56 points every week but is Doubtful."
+        }
+      ],
+      "rationale": "Fairbanks has been the steadiest back in the league. Sacramento's offense depends on a doubtful quarterback."
+    },
+    "human_grounded": true,
+    "note": "rounding (23.83 to about 24) is fine"
+  },
+  {
+    "id": "r04",
+    "case": "w6-sac-bal",
+    "pick": {
+      "winner": "BAL",
+      "confidence": 60,
+      "key_factors": [
+        {
+          "player_id": "BAL-QB1",
+          "claim": "Zeke Whitlock improved from 13.68 points in week 1 to 26.08 in week 3."
+        },
+        {
+          "player_id": "SAC-RB2",
+          "claim": "Luis Treadwell rose from 10.4 to 28.3 points over the same weeks."
+        }
+      ],
+      "rationale": "Both offenses are trending up. Whitlock's rise gives Baltimore the edge at quarterback."
+    },
+    "human_grounded": true,
+    "note": "trends read straight from the weekly numbers"
+  },
+  {
+    "id": "r05",
+    "case": "w1-sac-por",
+    "pick": {
+      "winner": "POR",
+      "confidence": 55,
+      "key_factors": [
+        {
+          "player_id": "POR-WR3",
+          "claim": "Andre Vance has scored 17.1 or more points every week."
+        },
+        {
+          "player_id": "SAC-WR3",
+          "claim": "Kendrick Stroud-Penn averages 19.13 points."
+        }
+      ],
+      "rationale": "Vance's floor is the highest of any receiver in this game. It's close, so the pick is barely above a coin flip."
+    },
+    "human_grounded": true,
+    "note": "every claim is in the data"
+  },
+  {
+    "id": "r06",
+    "case": "w2-nsh-sac",
+    "pick": {
+      "winner": "NSH",
+      "confidence": 58,
+      "key_factors": [
+        {
+          "player_id": "NSH-WR3",
+          "claim": "Xavier Lindqvist averages 21.53 points, the most of any Nashville receiver."
+        },
+        {
+          "player_id": "SAC-TE1",
+          "claim": "Austin Calloway has fallen from 12.9 to 10.3 points."
+        }
+      ],
+      "rationale": "Lindqvist is the best receiver on the field. Sacramento's tight end is fading."
+    },
+    "human_grounded": true,
+    "note": "comparison checked against the other Nashville receivers"
+  },
+  {
+    "id": "r07",
+    "case": "w5-sac-nsh",
+    "pick": {
+      "winner": "NSH",
+      "confidence": 62,
+      "key_factors": [
+        {
+          "player_id": "NSH-WR3",
+          "claim": "Xavier Lindqvist has scored 31.0 points in back-to-back weeks."
+        },
+        {
+          "player_id": "NSH-RB2",
+          "claim": "Trey Fairbanks averages 23.83 points."
+        }
+      ],
+      "rationale": "Nashville's receivers are on fire. Fairbanks adds a steady running game."
+    },
+    "human_grounded": false,
+    "note": "31.0 is invented: his weeks were 23.1, 22.0 and 19.5"
+  },
+  {
+    "id": "r08",
+    "case": "w4-nsh-bal",
+    "pick": {
+      "winner": "NSH",
+      "confidence": 70,
+      "key_factors": [
+        {
+          "player_id": "NSH-WR1",
+          "claim": "Darius Kincaid averages 15.97 points and should feast against Baltimore."
+        },
+        {
+          "player_id": "NSH-QB1",
+          "claim": "Quentin Mbeki averages 20.07 points."
+        }
+      ],
+      "rationale": "Kincaid and Mbeki give Nashville the better passing game."
+    },
+    "human_grounded": false,
+    "note": "Kincaid is ruled Out and won't play"
+  },
+  {
+    "id": "r09",
+    "case": "w4-por-sac",
+    "pick": {
+      "winner": "POR",
+      "confidence": 60,
+      "key_factors": [
+        {
+          "player_id": "POR-TE1",
+          "claim": "Brett Ashby averages 20.43 points."
+        },
+        {
+          "player_id": "BAL-WR3",
+          "claim": "Jace Larkspur scored 27.4 points in week 1."
+        }
+      ],
+      "rationale": "Portland's pass catchers are the difference."
+    },
+    "human_grounded": false,
+    "note": "Larkspur plays for Baltimore, not in this game"
+  },
+  {
+    "id": "r10",
+    "case": "w6-nsh-por",
+    "pick": {
+      "winner": "POR",
+      "confidence": 45,
+      "key_factors": [
+        {
+          "player_id": "POR-TE1",
+          "claim": "Brett Ashby averages 20.43 points."
+        },
+        {
+          "player_id": "NSH-RB2",
+          "claim": "Trey Fairbanks averages 23.83 points."
+        }
+      ],
+      "rationale": "Ashby and Fairbanks cancel each other out, so this is close to a toss-up."
+    },
+    "human_grounded": true,
+    "note": "grounded, but confidence 45 breaks the 50-100 rule (a code check, not a grounding question)"
+  },
+  {
+    "id": "r11",
+    "case": "w3-por-nsh",
+    "pick": {
+      "winner": "POR",
+      "confidence": 60,
+      "key_factors": [
+        {
+          "player_id": "POR-QB1",
+          "claim": "Marcus Holloway scored 25.34 points in week 3."
+        },
+        {
+          "player_id": "NSH-RB1",
+          "claim": "Malik Sorensen has dropped from 36.2 to 9.8 points."
+        }
+      ],
+      "rationale": "Portland has won the last three meetings in Nashville, and Holloway is peaking."
+    },
+    "human_grounded": false,
+    "note": "head-to-head history isn't in the data"
+  },
+  {
+    "id": "r12",
+    "case": "w6-sac-bal",
+    "pick": {
+      "winner": "BAL",
+      "confidence": 62,
+      "key_factors": [
+        {
+          "player_id": "BAL-RB2",
+          "claim": "Felix Guillory scored 25.3 points in week 3."
+        },
+        {
+          "player_id": "SAC-WR1",
+          "claim": "Bryce Oyelaran has swung between 23.1, 7.4 and 23.0 points."
+        }
+      ],
+      "rationale": "Rain is forecast in Baltimore, which favors Guillory's power running over Sacramento's deep passing."
+    },
+    "human_grounded": false,
+    "note": "weather isn't in the data"
+  },
+  {
+    "id": "r13",
+    "case": "w5-bal-por",
+    "pick": {
+      "winner": "POR",
+      "confidence": 57,
+      "key_factors": [
+        {
+          "player_id": "POR-RB1",
+          "claim": "Devin Brightwater is fully healthy after a week of full practices and averages 17.73 points."
+        },
+        {
+          "player_id": "BAL-RB1",
+          "claim": "Rory Esparza averages 19.63 points."
+        }
+      ],
+      "rationale": "A healthy Brightwater gives Portland a slight edge at running back."
+    },
+    "human_grounded": false,
+    "note": "the report says Questionable and limited in practice"
+  },
+  {
+    "id": "r14",
+    "case": "w2-por-bal",
+    "pick": {
+      "winner": "BAL",
+      "confidence": 60,
+      "key_factors": [
+        {
+          "player_id": "BAL-WR1",
+          "claim": "Hank Thibodeaux, whom his coach calls the best route runner in the league, scored 22.0 points in week 1."
+        },
+        {
+          "player_id": "POR-QB1",
+          "claim": "Marcus Holloway scored 6.02 points in week 1."
+        }
+      ],
+      "rationale": "Baltimore's passing game started the season far ahead of Portland's."
+    },
+    "human_grounded": false,
+    "note": "the coach's quote is invented"
+  },
+  {
+    "id": "r15",
+    "case": "w6-nsh-por",
+    "pick": {
+      "winner": "POR",
+      "confidence": 64,
+      "key_factors": [
+        {
+          "player_id": "NSH-WR1",
+          "claim": "With Darius Kincaid out, Nashville loses 15.97 points per week."
+        },
+        {
+          "player_id": "POR-WR1",
+          "claim": "Jalen Castellanos has improved every week, to 22.5 points in week 3."
+        }
+      ],
+      "rationale": "Nashville is missing a starting receiver while Portland's top receiver is rising."
+    },
+    "human_grounded": true,
+    "note": "Out player mentioned correctly as missing"
+  },
+  {
+    "id": "r16",
+    "case": "w3-bal-sac",
+    "pick": {
+      "winner": "SAC",
+      "confidence": 55,
+      "key_factors": [
+        {
+          "player_id": "SAC-QB1",
+          "claim": "Caleb Montague outscored Zeke Whitlock in every week."
+        },
+        {
+          "player_id": "BAL-TE1",
+          "claim": "Elijah Mulroney peaked at 29.7 points in week 2."
+        }
+      ],
+      "rationale": "Montague has been the better quarterback all season."
+    },
+    "human_grounded": false,
+    "note": "false comparison: Whitlock outscored Montague in week 2 (24.96 vs 22.56)"
+  }
+]

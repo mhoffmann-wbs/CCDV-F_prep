@@ -1,0 +1,152 @@
+export const meta = {
+  labId: 'L9',
+  updated: '2026-10-26',
+  minutes: 75,
+  goal: "Debug a night of pick'em incidents by classifying each failure and finding its layer, then build an eval for structured picks: code graders for what rules can check, and an LLM judge calibrated against hand labels for what they can't.",
+  folder: 'L9-pickem-evals',
+  steps: [
+    { id: 'setup', title: 'Install, run the offline tests and read the incident log' },
+    { id: 'triage', title: 'Classify every failure and find its layer' },
+    { id: 'code-graders', title: 'Write a code grader for invented numbers' },
+    { id: 'judge', title: 'Write the judge and calibrate it against hand labels' },
+    { id: 'eval-run', title: 'Run the eval and keep outages out of the score' },
+    { id: 'experiment', title: 'Break the graders on purpose' },
+  ],
+}
+
+## Why this lab
+
+Pick'em night: the app predicts the winner of every game, with a confidence and the two or three players who'll decide it. Last Sunday it went badly. A burst of errors at kickoff, every request failing after a model upgrade, and a pick that leaned on a receiver who was ruled Out. The log is in `traces.jsonl`.
+
+You'll do two things that the exam treats as one skill set:
+
+- **Debug** (skill 4.1). Classify each failure: wait and retry, or fix something. Then decide whether the problem is in your integration or in the model's output.
+- **Evaluate output** (skill 6.3). The picks come back as valid JSON every time, and that proves nothing about whether they're true. You'll grade them in layers: code graders for what rules can check, an LLM judge for what they can't, and a judge you trust only as far as its agreement with human labels.
+
+## Setup
+
+The code is in `labs/L9-pickem-evals/`:
+
+| File | What it holds |
+|---|---|
+| `traces.jsonl` | Ten recorded calls from pick'em night: status, error, stop reason, tool calls and grader results |
+| `l9_errors.py` | `Failure`, `classify()` (outcome to action), `failure_from_exception()` and `triage()` (layer, action, evidence) |
+| `l9_cases.py` | One eval case per scheduled game, the `Pick` schema, `grade_code()`, the judge prompt and `calibration()` |
+| `recorded_picks.json` | 16 picks with human labels (grounded or not) and a note on each |
+| `test_l9_*.py` | Offline tests for the classifier, triage, graders and calibration |
+| `starter.py` | Your versions of the classifier, a number grader, the judge prompt and the eval loop, with TODOs |
+| `solution.py` | The reference solution |
+
+```bash
+cd labs
+uv sync
+uv run pytest                                          # offline tests, no key needed
+uv run python L9-pickem-evals/starter.py triage        # offline
+uv run python L9-pickem-evals/starter.py grade         # offline
+```
+
+Steps 1–3 run offline. Calibration (16 judge calls) and the eval run (12 picks plus 12 judge calls) cost a few cents on Haiku and Sonnet. Authenticate as in Lab L1.
+
+## Steps
+
+### 1. Install, run the offline tests and read the incident log
+
+Run `uv run pytest`, then open `traces.jsonl`. Each line is one call: its `request_id`, model, HTTP status, the error type and message, `retry-after`, the stop reason, the tool calls with how old their data was, and what the code graders said about the output. This is the minimum trace worth logging for every call. Without the `request_id` you can't ask support about a request, and without the tool calls you can't tell whose fault a bad answer was.
+
+### 2. Classify every failure and find its layer
+
+TODO 1: `classify()` in `starter.py`. Map each outcome to its action:
+
+| Outcome | Action |
+|---|---|
+| no response (connection error, timeout) | retry with backoff |
+| 429 with `retry-after` | wait that long, then retry |
+| 429 **without** `retry-after` that keeps failing | a monthly spend cap: stop and alert, because waiting won't help |
+| 500, 529 | retry with backoff |
+| 504 | stream, or move the job to Batches |
+| 413 | shrink or split the input |
+| 401, 403, 404 | fix the key, permissions or model ID |
+| any other 4xx | fix the request: the same body fails every time |
+| 200 with `max_tokens` / `refusal` | raise the limit / read `stop_details`, and never parse the output |
+
+The SDK already retries connection errors, 429 and 5xx (twice by default). `solution.py` raises that with `client.with_options(max_retries=4)`. Your code decides what happens after the retries run out. Catch the SDK's typed exceptions, most specific first, and never match on message text.
+
+Then run `solution.py triage`, which also finds the **layer**. Look at `t05` and `t07`: both are 200s with a wrong pick.
+
+- In `t05`, the injury tool returned data from October 7, a week old, so the model said Kincaid would play. That's an **integration** bug. Fix the feed. A better prompt can't fix data the model never saw.
+- In `t07`, the data was fresh and the model invented "31.0 points". That's the **model output**: fix the prompt, add an example, and keep the grader.
+
+The question that decides the layer is always the same: *was the input Claude saw correct?*
+
+### 3. Write a code grader for invented numbers
+
+Read `grade_code()` in `l9_cases.py`. It checks everything a rule can check:
+
+- the winner is one of the two teams
+- the confidence is between 50 and 100, and there are two or three factors (structured outputs don't enforce these limits)
+- every player exists and plays in this game
+- an Out player isn't cited as if he'll play
+
+TODO 2: write the most useful check yourself, `ungrounded_numbers()`. Every number in a claim must appear in that player's data, give or take rounding. Run `starter.py grade` and compare your results with the reference on the 16 recorded picks.
+
+Now look at the picks that are **not** grounded but pass every code check: `r11` (invented head-to-head history), `r12` (weather), `r13` ("fully healthy", against the injury report), `r14` (a made-up quote) and `r16` (a false comparison with no numbers in it). Rules can't see these. That's the job of the judge. Also note `r10`: grounded, but its confidence of 45 breaks a rule. Code graders and the judge answer different questions.
+
+### 4. Write the judge and calibrate it against hand labels
+
+TODO 3: the starter's judge prompt asks "is the pick good?", which is vague and isn't even the question you care about. Rewrite it as a rubric:
+
+- **one** question: is every claim supported by the data?
+- what counts as supported: stated in the data, rounding, simple comparisons
+- what doesn't: records, streaks, history, weather, quotes, and health beyond the report
+- a line saying the pick's wisdom doesn't matter
+
+The schema puts `reasoning` before `grounded`, so the judge works through the claims before it gives a verdict.
+
+Run `starter.py calibrate` with the weak prompt first, then with yours. Calibration compares the judge with the 16 human labels and reports three numbers:
+
+- **agreement**
+- **false passes**: ungrounded picks the judge accepted. These reach users, so drive this number down first.
+- **false fails**: good picks it rejected. They cost you trust in the eval.
+
+Read every disagreement. Sometimes the human label is the thing that's wrong.
+
+Then try `--judge haiku`. If the cheaper judge agrees as well as Sonnet does, use it. If not, you've just measured why not.
+
+### 5. Run the eval and keep outages out of the score
+
+TODO 4: in `run_eval`, catch `anthropic.APIError` around the pick call. Print the case and the classified action, then skip the case. **An outage is not a wrong pick**: if a 529 counted as a failed case, your score would measure the API's uptime, not your prompt.
+
+Run `starter.py run --tier haiku`. Every pick goes through the code graders and then the judge. `solution.py run` also saves the run to `out/eval-<model>.json`. Keep it: the next prompt or model change is measured against this baseline (the L10 release gate used exactly such files).
+
+### 6. Break the graders on purpose
+
+1. **Remove "don't invent" from `PICK_SYSTEM`** and run the eval again. Which grader catches the difference, and on which cases?
+2. **Judge with the pick before the data.** Swap the order in `judge_messages`. Does calibration change?
+3. **Let the judge answer first.** Move `grounded` before `reasoning` in `JudgeVerdict`, then recalibrate.
+4. **Same model as judge and predictor.** Judge Haiku's picks with Haiku. Do false passes rise? A judge tends to accept the kind of mistakes it makes itself, which is why you calibrate it before you trust it.
+
+## Done when
+
+- `uv run pytest` passes, and your `classify()` matches the reference on all ten incidents.
+- Your number grader flags `r07` and nothing that humans labelled grounded.
+- Your judge prompt has a false-pass rate you can state, measured against the hand labels.
+- The eval run reports outages separately from failed picks.
+
+## Exam angle
+
+- **Classify before you retry** (4.1). 429 (with `retry-after`), 500, 529 and connection errors are transient. 400, 401, 403, 404 and 413 need a fix, and resending the same request never helps. A 429 without `retry-after` that keeps failing is a spend cap.
+- **Let the SDK retry** (4.1). It retries 429, 5xx and connection errors with backoff (`max_retries`, two by default). Catch typed exceptions, most specific first.
+- **200 isn't success** (4.1, 6.3). Check `stop_reason` before you parse: `max_tokens` truncates, `refusal` declines. Errors can also arrive mid-stream after a 200.
+- **Find the layer** (4.1). Log the `request_id`, the full request, the tool calls and the `stop_reason`. If the model's input was wrong (stale data, an empty template variable, a missing `tool_result`), it's an integration bug, and no prompt change will fix it.
+- **Valid JSON is not a correct answer** (6.3). Structured outputs guarantee shape. Graders check facts, and limits the schema can't express go in code.
+- **Grade in layers** (6.3). Code graders first (cheap, exact), then an LLM judge with a one-question rubric and reasoning before the verdict, then humans to label a sample.
+- **Calibrate the judge** (6.3). Measure agreement and the false-pass rate against human labels before you trust it, and re-check it when you change the judge's model or prompt.
+- **Keep infrastructure failures out of quality scores** (4.1, 6.3). Report them separately.
+
+Official docs:
+
+- [API errors](https://platform.claude.com/docs/en/api/errors)
+- [Handling stop reasons](https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons)
+- [Define success criteria and build evaluations](https://platform.claude.com/docs/en/test-and-evaluate/develop-tests)
+- [Structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+- [Reduce hallucinations](https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations)
