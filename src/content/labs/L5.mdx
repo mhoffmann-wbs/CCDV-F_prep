@@ -1,0 +1,150 @@
+export const meta = {
+  labId: 'L5',
+  updated: '2026-10-26',
+  minutes: 75,
+  goal: "Wrap L4's stats and injury functions in an MCP server with tools, resources and a prompt, then use the same server from Claude Code and from your own API app, first over stdio and then over Streamable HTTP.",
+  folder: 'L5-league-mcp',
+  steps: [
+    { id: 'setup', title: 'Install, run the offline tests and connect the app to the starter' },
+    { id: 'tools', title: 'Expose the tools' },
+    { id: 'resources-prompts', title: 'Add a resource, a resource template and a prompt' },
+    { id: 'claude-code', title: 'Connect the server to Claude Code' },
+    { id: 'api-app', title: 'Use the server from your API app' },
+    { id: 'remote', title: 'Serve it over Streamable HTTP and break it on purpose' },
+  ],
+}
+
+## Why this lab
+
+In Lab L4, `get_player_stats` and `get_injury_status` were custom tools that lived inside one app. Now the scouting agent wants them too, and so does your Claude Code session. Copying the code into each app would leave three versions to keep in sync. Instead you put the functions behind the **Model Context Protocol**: one **League Stats** server that any MCP host can connect to.
+
+The exam asks you to pick the right MCP **primitive** for a capability, the right **transport** for a deployment, and the right **way to extend Claude** in the first place (skills 8.2 and 8.3). It also tests how SDKs wrap the wire protocol (5.2) and the client/server mechanics underneath (2.4).
+
+You will build:
+
+- two read-only **tools** (model-controlled: Claude decides when to call them)
+- a schedule **resource** and a team-roster **resource template** (application-controlled: the host decides what to attach)
+- a `weekly-preview` **prompt** (user-controlled: a slash command in Claude Code)
+- a stdio server for local use, then the same server over **Streamable HTTP**
+- an API app that runs its own MCP client and hands the server's tools to Claude through the SDK's tool runner
+
+## Setup
+
+The code is in `labs/L5-league-mcp/`:
+
+| File | What it holds |
+|---|---|
+| `l5_data.py` | The season schedule and team rosters. It also imports L4's `stats_text` and `injury_text`, so the server wraps existing code |
+| `starter.py` | The server you complete. `get_injury_status` is done as the worked example |
+| `solution.py` | The reference server |
+| `l5_app.py` | An API app: an MCP client plus Claude through the tool runner |
+| `test_l5_*.py` | Offline tests that connect a real MCP client to the server in-process |
+
+```bash
+cd labs
+uv sync
+uv run pytest                                                    # offline tests, no key needed
+uv run python L5-league-mcp/l5_app.py --server L5-league-mcp/starter.py
+```
+
+The server uses the Python MCP SDK 2.x (`mcp`), where the high-level server class is `MCPServer` (it was called `FastMCP` in 1.x). Clients and servers speak the stateless 2026-07-28 protocol version. Authenticate for the API app as in Lab L1.
+
+## Steps
+
+### 1. Install, run the offline tests and connect the app to the starter
+
+Run `uv run pytest`. The L5 tests connect an MCP `Client` to the **solution** server in-process and check what a host would see. Then run `l5_app.py` against the starter. It launches the server as a subprocess, connects over stdio, and then fails because the schedule resource doesn't exist yet. That's your task list.
+
+Read `get_injury_status` in `starter.py`. The docstring becomes the tool description, the type hints become the input schema, and `READ_ONLY` annotations tell hosts that calls have no side effects. A `ToolError` reaches Claude as an `isError` result with your message. Any other exception reaches it as a generic failure with the details withheld.
+
+### 2. Expose the tools
+
+TODO 1: add `get_player_stats` the same way. Use `Literal["summary", "full"]` for `detail` so the schema gets an `enum`, and write a docstring that says **when** to call the tool.
+
+Notice what the server does **not** offer: `set_lineup`. A shared server gives every connected host the same powers, so the write path stays inside the one app that has a human approval gate (L4). This is least privilege applied to MCP.
+
+### 3. Add a resource, a resource template and a prompt
+
+TODO 2: the schedule **resource** at `league://schedule/2026`. It's read-only reference data, so it isn't a tool: the host attaches it as context, and Claude doesn't need to spend a turn calling for it.
+
+TODO 3: the roster **resource template** `league://teams/{team}/roster`. The function's `team` parameter fills the placeholder. An unknown team raises `ResourceNotFoundError`.
+
+TODO 4: the `weekly-preview` **prompt**. It returns a message with the week's games inside `<schedule>` tags first and the request last, and it tells Claude to get the numbers from the tools.
+
+Run `uv run pytest`, then point it at your starter by changing the path in `test_l5_server.py` from `solution.py` to `starter.py`. When the tests pass, change it back.
+
+### 4. Connect the server to Claude Code
+
+From `labs/`, register your server at local scope (only you, only this project):
+
+```bash
+claude mcp add --transport stdio league -- uv run --directory "$(pwd)" python L5-league-mcp/starter.py
+claude mcp list
+```
+
+Everything after `--` is the command that Claude Code runs as a subprocess. Start `claude` and try:
+
+1. `/mcp` shows `league` as connected, with 2 tools.
+2. "How has Andre Vance scored this season?" Claude calls `mcp__league__get_player_stats`. That full name is also the one permission rules and hook matchers use.
+3. `@league:league://schedule/2026 Which week does Portland play Baltimore at home?` The `@` mention attaches the resource. You chose the context, and Claude made no tool call for it.
+4. `/mcp__league__weekly-preview 4` runs your prompt as a slash command.
+
+To share the server with your team, you would use `--scope project`, which writes `.mcp.json` to the repo. Claude Code asks each person to approve a project-scoped server before it first uses it.
+
+### 5. Use the server from your API app
+
+Read `l5_app.py`, then run it: `uv run python L5-league-mcp/l5_app.py`. With no question, it fetches the `weekly-preview` prompt for week 4. It:
+
+1. launches the server and connects an MCP `Client` (the SDK spawns the subprocess and frames the JSON-RPC for you)
+2. converts each MCP tool with `async_mcp_tool` and passes them to `client.beta.messages.tool_runner`, which runs the loop you wrote by hand in L4
+3. reads the schedule **resource** and attaches it as a document block, because the app decides what context to include
+4. starts from the server's **prompt**, or from your question: `l5_app.py "Ashby or Mulroney at TE?"`
+
+Why not the Messages API's **MCP connector** (`mcp_servers`)? Anthropic's servers make those calls, so the connector can only reach a **remote** server on the internet, and it uses only the server's **tools**. A local stdio server, its resources and its prompts all need your own client, as here.
+
+### 6. Serve it over Streamable HTTP and break it on purpose
+
+TODO 5: support `--http`. Then run the server in one terminal and connect in another:
+
+```bash
+uv run python L5-league-mcp/starter.py --http
+uv run python L5-league-mcp/l5_app.py --url http://127.0.0.1:8765/mcp
+claude mcp add --transport http league-http http://127.0.0.1:8765/mcp
+```
+
+It's the same server code and the same JSON-RPC messages, sent as HTTP POSTs to one `/mcp` endpoint. One running server can now serve every app. Before you deploy it for real: bind to `127.0.0.1` (never `0.0.0.0`) while it has no auth, put it behind OAuth 2.1 when it leaves your machine, check that tokens were issued for this server, and never forward a user's token to other services.
+
+Then break it, one change at a time, using your stdio starter in Claude Code (run `/mcp` and choose Reconnect after each change):
+
+1. **`print()` in a tool.** Add `print("debug")` to `get_injury_status`. stdout is the protocol channel, so the host receives a line that isn't JSON-RPC. A tolerant client logs a parse error and carries on; a strict one drops the connection. Either way the stream is corrupted. `log.info(...)` goes to stderr and is safe.
+2. **A plain exception.** Raise `KeyError` instead of `ToolError` for an unknown id. Claude now gets only `Error executing tool get_injury_status`, without your hint about valid ids, so it has to guess what went wrong.
+3. **A vague description.** Change `get_player_stats`'s docstring to "Stats." and ask the step 4 question again. Does Claude still call the tool?
+4. **A tool for reference data.** Turn the schedule into a `get_schedule` tool. It works, but now every question about the schedule costs a model turn, and the host can't attach the schedule by itself.
+
+## Done when
+
+- `uv run pytest` passes, and the server tests pass against your `starter.py` too.
+- Claude Code lists `league` in `/mcp`, calls its tools, attaches the schedule with `@`, and runs `/mcp__league__weekly-preview 4`.
+- `l5_app.py` answers a question through the server over stdio and over `--url`.
+- You can say which primitive each capability uses, and why `set_lineup` isn't on the server.
+
+## Exam angle
+
+- **Pick the primitive by who controls it** (8.2). Tools are model-controlled actions. Resources are application-controlled, read-only context with a URI (templates take parameters). Prompts are user-controlled templates, which Claude Code shows as slash commands.
+- **Pick the transport by who shares the server** (8.2). stdio is for a local subprocess that one host launches. Streamable HTTP is for a remote server that many clients share, secured with OAuth 2.1. Standalone SSE is legacy.
+- **Never write to stdout from a stdio server** (8.2). Log to stderr.
+- **Errors are results here too** (8.2). Raise `ToolError` with a fixable message, so the host passes an `isError` result to Claude.
+- **Choose the extension point** (8.3). A capability that one app needs is a custom tool (L4). A capability that several hosts share is an MCP server. Know-how and procedures are a Skill. Built-in tools are for what the host already does, such as reading files or running commands.
+- **The API's MCP connector reaches remote servers only, and uses tools only** (8.2). For local servers, resources or prompts, run your own MCP client.
+- **SDKs wrap the protocol** (5.2). The MCP client spawns the subprocess and frames JSON-RPC, `async_mcp_tool` turns MCP tools into API tools, and the tool runner drives the loop. You don't hand-roll JSON-RPC or HTTP.
+- **Least privilege on shared servers** (8.2, 8.3). A server gives every host the same tools, so keep writes behind the one app that can ask a human.
+- **Claude Code names MCP tools `mcp__server__tool`** (8.3). Use that name in permissions and hook matchers. Project scope means `.mcp.json`, which teammates approve once.
+
+Official docs:
+
+- [MCP server concepts (tools, resources, prompts)](https://modelcontextprotocol.io/docs/learn/server-concepts)
+- [MCP spec: transports](https://modelcontextprotocol.io/specification/latest/basic/transports)
+- [MCP Python SDK](https://py.sdk.modelcontextprotocol.io/v2/)
+- [Claude Code: connect to MCP servers](https://code.claude.com/docs/en/mcp)
+- [Claude API: MCP connector](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector)
+- [Tool runner](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner)
