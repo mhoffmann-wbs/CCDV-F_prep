@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { z } from 'zod'
 import type { DomainScore } from '../quiz/grading'
 
 // All persisted learner state lives behind this module. Bump VERSION and add a
@@ -113,6 +114,59 @@ export function setLessonRead(skillId: string, read: boolean) {
 export function setLabStep(labId: string, stepId: string, done: boolean) {
   const others = (state.labSteps[labId] ?? []).filter((id) => id !== stepId)
   commit({ ...state, labSteps: { ...state.labSteps, [labId]: done ? [...others, stepId] : others } })
+}
+
+// Imports come from files people pick, so they are validated in full before replacing anything.
+const count = z.number().int().nonnegative()
+const ProgressSchema = z.object({
+  version: z.literal(VERSION),
+  questions: z.record(
+    z.string(),
+    z.object({ attempts: count, correct: count, lastCorrect: z.boolean(), lastAt: z.number(), streak: count }),
+  ),
+  mockResults: z.array(
+    z.object({
+      at: z.number(),
+      total: count,
+      correct: count,
+      scaledEstimate: z.number(),
+      byDomain: z.array(z.object({ domainId: z.number(), title: z.string(), total: count, correct: count })),
+    }),
+  ),
+  lessonsRead: z.array(z.string()),
+  labSteps: z.record(z.string(), z.array(z.string())),
+})
+
+const EXPORT_APP = 'gridiron-prep'
+
+/** The learner's progress as a JSON document they can save and import elsewhere. */
+export function exportProgress(at: Date = new Date()): string {
+  return JSON.stringify({ app: EXPORT_APP, exportedAt: at.toISOString(), progress: state }, null, 2)
+}
+
+/**
+ * Replaces all progress with the contents of an export. Exports from the v1 store are migrated.
+ * Throws an Error with a message for the learner if the file isn't a usable export.
+ */
+export function importProgress(json: string) {
+  let doc: { app?: unknown; progress?: { version?: unknown } }
+  try {
+    doc = JSON.parse(json)
+  } catch {
+    throw new Error("This file isn't valid JSON.")
+  }
+  if (doc?.app !== EXPORT_APP || typeof doc.progress !== 'object' || doc.progress === null) {
+    throw new Error("This file isn't a Gridiron Prep progress export.")
+  }
+  const { version } = doc.progress
+  if (typeof version === 'number' && version > VERSION) {
+    throw new Error('This export comes from a newer version of the app. Update the app, then import it again.')
+  }
+  // The schema check below catches anything the migration lets through.
+  const raw = version === 1 ? migrateV1(doc.progress as Parameters<typeof migrateV1>[0]) : { ...empty(), ...doc.progress }
+  const result = ProgressSchema.safeParse(raw)
+  if (!result.success) throw new Error('This export is damaged or incomplete, so nothing was imported.')
+  commit(result.data)
 }
 
 export function resetProgress() {

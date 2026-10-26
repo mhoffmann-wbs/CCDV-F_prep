@@ -1,11 +1,11 @@
 import { render, screen, waitForElementToBeRemoved, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App'
 import { EXAM_FORMAT, SKILLS } from '../content/blueprint'
 import { QUESTIONS } from '../content/questions'
-import { getProgress, recordAnswer, resetProgress } from '../progress/store'
+import { exportProgress, getProgress, recordAnswer, resetProgress } from '../progress/store'
 
 /** Renders the app at `path` and waits for the lazy-loaded page to replace the fallback. */
 async function renderAt(path: string) {
@@ -223,6 +223,21 @@ describe('keyboard shortcuts', () => {
     expect(screen.getByText(/^Item 2 of/)).toBeInTheDocument()
     await user.keyboard('{ArrowLeft}')
     expect(screen.getByText(/^Item 1 of/)).toBeInTheDocument()
+  })
+})
+
+describe('scoreboard data', () => {
+  it('imports a progress export after confirmation', async () => {
+    const user = userEvent.setup()
+    recordAnswer(QUESTIONS[0].id, true)
+    const file = new File([exportProgress()], 'backup.json', { type: 'application/json' })
+    resetProgress()
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    await renderAt('/progress')
+    await user.upload(screen.getByLabelText('Import progress'), file)
+    expect(await screen.findByRole('status')).toHaveTextContent('Imported progress from backup.json.')
+    expect(getProgress().questions[QUESTIONS[0].id].correct).toBe(1)
+    confirm.mockRestore()
   })
 })
 

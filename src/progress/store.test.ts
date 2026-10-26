@@ -1,5 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { getProgress, recordAnswer, recordMockResult, reloadProgress, resetProgress } from './store'
+import {
+  exportProgress,
+  getProgress,
+  importProgress,
+  recordAnswer,
+  recordMockResult,
+  reloadProgress,
+  resetProgress,
+  setLessonRead,
+} from './store'
 
 beforeEach(() => {
   localStorage.clear()
@@ -57,5 +66,35 @@ describe('progress store', () => {
     localStorage.setItem('gridiron-prep:progress', '{not json')
     reloadProgress()
     expect(getProgress().questions).toEqual({})
+  })
+
+  it('round-trips progress through an export file', () => {
+    recordAnswer('q-2.3-001', true, 5)
+    setLessonRead('2.3', true)
+    const file = exportProgress(new Date('2026-10-26T12:00:00Z'))
+    expect(JSON.parse(file)).toMatchObject({ app: 'gridiron-prep', exportedAt: '2026-10-26T12:00:00.000Z' })
+    const before = getProgress()
+    resetProgress()
+    importProgress(file)
+    expect(getProgress()).toEqual(before)
+    reloadProgress()
+    expect(getProgress()).toEqual(before)
+  })
+
+  it('migrates a v1 export on import', () => {
+    const v1 = { version: 1, questions: { 'q-1.1-001': { attempts: 1, correct: 1, lastCorrect: true, lastAt: 1 } } }
+    importProgress(JSON.stringify({ app: 'gridiron-prep', progress: v1 }))
+    expect(getProgress().questions['q-1.1-001'].streak).toBe(1)
+  })
+
+  it('rejects unusable files and keeps the current progress', () => {
+    recordAnswer('q-2.3-001', true, 5)
+    const before = getProgress()
+    const exportOf = (progress: unknown) => JSON.stringify({ app: 'gridiron-prep', progress })
+    expect(() => importProgress('{not json')).toThrow(/valid JSON/)
+    expect(() => importProgress(JSON.stringify({ questions: {} }))).toThrow(/progress export/)
+    expect(() => importProgress(exportOf({ version: 99 }))).toThrow(/newer version/)
+    expect(() => importProgress(exportOf({ version: 2, questions: { x: { attempts: 'lots' } } }))).toThrow(/damaged/)
+    expect(getProgress()).toBe(before)
   })
 })

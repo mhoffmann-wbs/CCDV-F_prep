@@ -1,8 +1,9 @@
+import { useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router'
 import { EXAM_FORMAT, LABS, SKILLS, getSkill } from '../content/blueprint'
 import { QUESTIONS } from '../content/questions'
 import { skillReadiness, weightedReadiness } from '../progress/readiness'
-import { useProgress } from '../progress/store'
+import { exportProgress, importProgress, useProgress } from '../progress/store'
 
 const pct = (n: number) => `${Math.round(n * 100)}%`
 
@@ -74,7 +75,60 @@ export default function DashboardPage() {
           ))}
         </ul>
       </section>
+
+      <YourData />
     </div>
+  )
+}
+
+/** Progress lives in this browser only, so learners can move it between devices as a file. */
+function YourData() {
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+
+  function download() {
+    const url = URL.createObjectURL(new Blob([exportProgress()], { type: 'application/json' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `gridiron-prep-progress-${new Date().toISOString().slice(0, 10)}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  async function upload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = '' // let the same file be picked again
+    if (!file) return
+    if (!window.confirm('Importing replaces all progress in this browser. Continue?')) return
+    try {
+      importProgress(await file.text())
+      setMessage({ ok: true, text: `Imported progress from ${file.name}.` })
+    } catch (err) {
+      setMessage({ ok: false, text: (err as Error).message })
+    }
+  }
+
+  return (
+    <section className="rounded-lg border border-neutral-200 bg-white p-4">
+      <h2 className="font-semibold">Your data</h2>
+      <p className="mt-1 text-sm text-neutral-600">
+        Progress is saved in this browser only. Export it to keep a backup or to continue on another device, then
+        import the file there.
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button onClick={download} className="rounded border px-4 py-2 text-sm">
+          Export progress
+        </button>
+        <label className="cursor-pointer rounded border px-4 py-2 text-sm">
+          Import progress
+          <input type="file" accept="application/json,.json" onChange={upload} className="sr-only" />
+        </label>
+      </div>
+      {message && (
+        <p role="status" className={`mt-2 text-sm ${message.ok ? 'text-green-600' : 'text-red-600'}`}>
+          {message.text}
+        </p>
+      )}
+    </section>
   )
 }
 
