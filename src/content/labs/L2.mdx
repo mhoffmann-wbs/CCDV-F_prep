@@ -1,0 +1,145 @@
+export const meta = {
+  labId: 'L2',
+  updated: '2026-10-26',
+  minutes: 60,
+  goal: 'Produce all twelve weekly team recaps as one Message Batch with a cached league context, then back the choice of tier and mode with a cost report built from measured usage.',
+  folder: 'L2-weekly-recaps',
+  steps: [
+    { id: 'setup', title: 'Install, run the offline tests and read the request builder' },
+    { id: 'plan', title: 'Count tokens and project the cost' },
+    { id: 'compare', title: 'Compare the tiers in realtime with a 5-minute cache' },
+    { id: 'batch', title: 'Submit the batch and poll it' },
+    { id: 'results', title: 'Collect results by custom_id and report the actual cost' },
+    { id: 'experiment', title: 'Break the cache on purpose' },
+  ],
+}
+
+## Why this lab
+
+Every Tuesday, "The Gridiron Weekly" publishes one short recap per team per week. That's twelve recaps for weeks 1–3, and nobody is waiting on any single one of them. This is the textbook case for the **Message Batches API**: 50% off, results within a day (usually within an hour), and no rate-limit juggling.
+
+All twelve requests share the same long league context: rosters, scoring rules and the newsletter's style guide. That's the textbook case for **prompt caching**: write the shared prefix once, then read it at a fraction of the input price. The two discounts **stack**.
+
+Finally, you have to pick a tier. Don't pick by feel. You'll measure Haiku, Sonnet and Opus on the same recaps and put the numbers in a cost report. The exam asks when to batch and when to stay realtime (skill 2.3), how to choose a model on quality, latency and cost (5.3), and how to model and cut token costs (5.4).
+
+## Setup
+
+The code is in `labs/L2-weekly-recaps/`:
+
+| File | What it holds |
+|---|---|
+| `l2_recaps.py` | `LEAGUE_CONTEXT` (the shared, cached prefix), `box_score`, `build_params` and `build_requests`, plus `foreign_players` (a cheap quality check) |
+| `l2_costs.py` | The price table, `Tokens.from_usage`, `cost` (one request) and `project` (a whole job) |
+| `test_l2_*.py` | Offline tests for the requests, the cost model and result collection |
+| `starter.py` | The script you complete: one subcommand per step, with numbered TODOs |
+| `solution.py` | The reference solution |
+
+```bash
+cd labs
+uv sync
+uv run pytest                                          # offline tests, no key needed
+uv run python L2-weekly-recaps/starter.py plan         # your version
+uv run python L2-weekly-recaps/solution.py plan        # the reference
+```
+
+Authenticate as in Lab L1. The whole lab costs cents: the default batch tier is Haiku, and the realtime comparison makes 9 short calls.
+
+## Steps
+
+### 1. Install, run the offline tests and read the request builder
+
+Run `uv run pytest`, then `starter.py plan`, which prints the first request's user message and stops. Read `build_params` in `l2_recaps.py`, because the whole lab rests on its shape:
+
+```python
+{
+    "model": model,
+    "max_tokens": 4000,                      # thinking counts toward this too
+    "output_config": {"effort": "low"},      # short prose doesn't need deep thinking
+    "system": [{"type": "text", "text": LEAGUE_CONTEXT,
+                "cache_control": {"type": "ephemeral", "ttl": "1h"}}],
+    "messages": [{"role": "user", "content": box_score + request}],
+}
+```
+
+The cache is a **prefix match** in the order `tools`, `system`, `messages`, so:
+
+- `LEAGUE_CONTEXT` is byte-identical in all twelve requests. It has no date, no team name and no request id. One changed byte would mean a new prefix and no cache hit.
+- The `cache_control` breakpoint sits on the last block of the shared part. Everything that differs per request (the box score and the ask) comes after it.
+- `ttl: "1h"`: a batch can take longer than 5 minutes, so the default 5-minute entry could expire between requests.
+
+### 2. Count tokens and project the cost
+
+TODO 1: `plan`. `count_tokens` is free, so measure before you spend. For each tier, count the shared context and the whole first request, then project the job with `project(...)` in five modes: realtime, realtime with a 5-minute cache, batch, batch with a 1-hour cache, and batch with a 1-hour cache at 50% hits.
+
+Check two things in your output:
+
+- **Is `shared` above 512 tokens on every tier?** That's the minimum cacheable length on the current models. Below it, `cache_control` is silently ignored: no error, just a `cache_creation_input_tokens` of 0.
+- **How do the modes rank?** Batch halves everything. Caching saves on the shared part only, and on twelve short requests a 1-hour write (2× input) takes several reads to pay back. The cheapest mode depends on how big the shared part is compared with the rest.
+
+The output size is an assumption (`ASSUMED_OUTPUT = 800`) until you measure it in the next step. Projections are only as good as their inputs.
+
+### 3. Compare the tiers in realtime with a 5-minute cache
+
+TODO 2: `compare`. Run the same three recaps (`SAMPLE`) on each tier, one after another, with `cache="5m"`. The calls follow each other within seconds, so the 5-minute TTL is enough, and the cheaper write is the right choice. For each tier, record the seconds per recap, the token split, the realtime cost, the cost if batched, and any `foreign_players` issues. `solution.py compare` also saves the table to `out/cost-report.md`.
+
+Read the usage lines. On each tier the first call should show a cache **write** and the next two a cache **read**. Each model has its own cache, so every tier pays its own first write. Then read the three recaps for `por-w3` side by side and decide which tier you'd ship, citing the table: the cheapest tier whose recaps pass your checks and read well.
+
+Current prices per million tokens (input / output, standard): Opus 5.5 $4 / $20, Sonnet 5.5 $2 / $10, Haiku 5.5 $0.10 / $0.50. Cache reads cost 0.05× input on Opus 5.5 and Sonnet 5.5 and 0.1× on Haiku 5.5. Haiku 5.5 costs more ($0.50 / $2.50) for any request whose prompt is over 100,000 tokens, counting cache reads and writes. `cost()` applies that rule per request.
+
+### 4. Submit the batch and poll it
+
+TODO 3 and TODO 4. `submit` sends all twelve requests in one `client.messages.batches.create(requests=build_requests(model))` call, each with a `custom_id` such as `por-w3`, and saves the batch id. `status` calls `batches.retrieve(id)` and prints `processing_status` and `request_counts`. Poll every minute or so until the status is `ended`; most batches finish within an hour.
+
+```bash
+uv run python L2-weekly-recaps/starter.py submit --tier haiku
+uv run python L2-weekly-recaps/starter.py status
+```
+
+Limits worth knowing: up to 100,000 requests or 256 MB per batch. A batch that hasn't finished after 24 hours expires, and the requests that didn't run aren't billed. Results stay available for 29 days.
+
+### 5. Collect results by custom_id and report the actual cost
+
+TODO 5: `collect`. Iterate `client.messages.batches.results(id)` and handle every result type:
+
+- `succeeded`: check the stop reason, save the recap as `out/recaps/<custom_id>.md`, and add its usage and batch cost.
+- `errored` with `error.error.type == "invalid_request_error"`: put it on the **fix** list. It will fail the same way if you resend it unchanged.
+- any other error, `canceled` or `expired`: put it on the **resubmit** list, and resend those with `submit --only por-w3,...`.
+
+**Results arrive in any order.** Key everything on `custom_id`, never on position. The test `test_collect_keys_by_custom_id_and_sorts_failures` feeds `collect` shuffled results.
+
+Run `results`. Compare the actual batch cost with the realtime price of the same tokens, and count the cache hits. In a batch they are **best effort**: requests run concurrently, so several may start before the first write lands. The docs report hit rates from 30% to 98%. Use this measured rate in your projection, not the 100% that the realtime run showed.
+
+### 6. Break the cache on purpose
+
+Change one thing at a time, rerun `compare` (it's cheap and immediate), and watch the cache columns:
+
+1. **A timestamp in the prefix.** Add `f"Generated {datetime.now()}"` to `LEAGUE_CONTEXT`. Every call now writes and nothing is read: you pay the write premium on every request and save nothing. This is the most common silent cache killer.
+2. **Too short to cache.** Cut `LEAGUE_CONTEXT` down to its first paragraph. Cache writes drop to 0 with no error, because the prefix is under 512 tokens.
+3. **Per-request content before the breakpoint.** Move the box score into `system`. Each request now has a different prefix, so there's nothing to share.
+4. **An invalid request in the batch.** Add `"temperature": 0.7` to one job's params and submit. Current models reject non-default sampling parameters. Depending on where the check happens, either the create call fails or that one item comes back `errored` with `invalid_request_error`. Either way it's a fix, not a resubmit.
+
+## Done when
+
+- `uv run pytest` passes.
+- `plan` prints token counts and projections for all three tiers, and `shared` is above 512 on each.
+- `compare` shows a cache write followed by cache reads on every tier, and you've chosen a tier using `out/cost-report.md`.
+- A batch of twelve has ended, `results` saved the recaps by `custom_id`, and you can explain its cache hit rate and its actual cost.
+
+## Exam angle
+
+- **Batch when nobody is waiting** (2.3). The Batches API is 50% off input and output, usually finishes within an hour, and has a 24-hour limit. Use realtime (and streaming) for anything a user watches. Batching cuts cost, not latency.
+- **Match results by `custom_id`** (2.3). Order isn't guaranteed. Invalid requests need a fix, while server errors and expired requests can be resubmitted.
+- **Caching is a prefix match** (5.4). Static content goes first, followed by the breakpoint and then the variable content. A timestamp or per-request id in the prefix silently disables caching, and so does a prefix under the minimum length (512 tokens on current models).
+- **Know the multipliers** (5.4). Writes cost 1.25× input (5-minute TTL) or 2× (1-hour TTL). Reads cost 0.1× on most models and 0.05× on Opus 5.5 and Sonnet 5.5. A read refreshes the TTL. All of this stacks with the batch discount.
+- **Use the 1-hour TTL for batches** (5.4). Batches can outlast 5 minutes, and their cache hits are best effort, so project costs with a realistic hit rate.
+- **Measure tokens, don't guess** (5.4). `count_tokens` is free. `usage` reports `input_tokens`, `cache_creation_input_tokens` (split by TTL in `cache_creation`), `cache_read_input_tokens` and `output_tokens`, and output includes thinking.
+- **Choose a tier by measurement** (5.3). Run the same task on each tier, check quality in code where you can, and pick the cheapest tier that passes. Prices differ by 40× between Opus and Haiku, and Haiku 5.5 has a higher price tier for prompts over 100K tokens.
+- **Caches are per model** (5.3, 5.4). Switching tiers in the middle of a job means a fresh cache write on the new model.
+
+Official docs:
+
+- [Batch processing](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
+- [Prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)
+- [Pricing](https://platform.claude.com/docs/en/about-claude/pricing)
+- [Token counting](https://platform.claude.com/docs/en/build-with-claude/token-counting)
+- [Choosing a model](https://platform.claude.com/docs/en/about-claude/models/choosing-a-model)
