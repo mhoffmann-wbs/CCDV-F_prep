@@ -21,8 +21,8 @@ The web app runs entirely in your browser. It has no backend, never calls the Cl
 **You need:** [Node.js](https://nodejs.org/) **22.12 or newer** (check with `node -v`) and Git.
 
 ```bash
-git clone <repo-url> gridiron-prep
-cd gridiron-prep
+git clone https://github.com/mhoffmann-wbs/CCDV-F_prep.git
+cd CCDV-F_prep
 npm install
 npm run dev
 ```
