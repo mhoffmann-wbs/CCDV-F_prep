@@ -626,5 +626,162 @@
       "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
       "https://code.claude.com/docs/en/features-overview"
     ]
+  },
+  {
+    "id": "q-8.3-017",
+    "skillId": "8.3",
+    "difficulty": 1,
+    "stem": "A fantasy app built on the Claude API lets users upload a season of weekly stats as a CSV file and ask for trends, correlations and a chart. The team plans to build and host its own Python sandbox as a custom tool so Claude can run analysis code. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Enable the code execution server tool, and pass the CSV in through the Files API.",
+        "explanation": "Correct. Code execution is a built-in server tool: Claude runs Python in an Anthropic-hosted sandbox with data libraries preinstalled, reads files uploaded through the Files API, and can save charts you download afterwards. Nothing needs to be built or hosted."
+      },
+      {
+        "id": "B",
+        "text": "Paste the CSV into the prompt and ask Claude to work out the statistics in its answer.",
+        "explanation": "Without code to run, Claude computes correlations by reasoning over raw numbers, which is less reliable and spends context on the whole file. It also can't produce a chart file."
+      },
+      {
+        "id": "C",
+        "text": "Build an MCP server that wraps the sandbox, so other Claude apps could reuse it later.",
+        "explanation": "Nothing in the scenario calls for reuse across apps, and the team would still have to build and secure its own sandbox. A built-in tool already does the job."
+      },
+      {
+        "id": "D",
+        "text": "Write a Skill that describes the analysis steps, and run it without any execution tool.",
+        "explanation": "A Skill adds know-how, not compute. On the API, Skills themselves run inside the code execution container, so a Skill alone can't run analysis code."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/code-execution-tool",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview"
+    ]
+  },
+  {
+    "id": "q-8.3-018",
+    "skillId": "8.3",
+    "difficulty": 2,
+    "stem": "A rules assistant on the Claude API must answer questions about rulebook PDFs and press releases on the league's own websites. Users paste the links into the chat, and answers must cite the passages they rely on. An engineer proposes a custom download_url tool that the app would run. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use the web search tool alone, since it returns the complete text of any page it finds.",
+        "explanation": "Web search finds pages for a query and returns search results; it isn't meant for reading the full content of a specific URL the user supplied."
+      },
+      {
+        "id": "B",
+        "text": "Build the download_url tool, because built-in server tools cannot read PDF documents.",
+        "explanation": "The premise is false. The web fetch tool retrieves both web pages and PDFs, so a custom download tool only adds code to build and maintain."
+      },
+      {
+        "id": "C",
+        "text": "Enable the web fetch server tool with citations on, and limit it with allowed_domains.",
+        "explanation": "Correct. Web fetch is a built-in server tool that reads the full content of URLs present in the conversation, including PDFs. Citations are optional and can be enabled, and allowed_domains keeps fetching to the league's sites."
+      },
+      {
+        "id": "D",
+        "text": "Ask users to paste each document's text instead of a link, so nothing needs fetching.",
+        "explanation": "This pushes the work onto users and loses PDF structure and page-level citations. A built-in tool already handles the links they paste."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-fetch-tool",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools"
+    ]
+  },
+  {
+    "id": "q-8.3-019",
+    "skillId": "8.3",
+    "difficulty": 2,
+    "stem": "In Claude Code, a developer asks Claude to find every place the depth-chart service reads injury data. Claude reads about 60 files to answer, and afterwards the main session is so full of file contents that it loses track of the refactor in progress. The team runs investigations like this several times a week. Which extension best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "A subagent, which does the reading in its own context and sends back only a summary.",
+        "explanation": "Correct. Subagents run in an isolated context window. They can read dozens of files, and the main conversation receives only their findings, so the refactor's context stays intact."
+      },
+      {
+        "id": "B",
+        "text": "A Skill that describes how to search the codebase, loaded whenever the topic comes up.",
+        "explanation": "A Skill's content loads into the main conversation, and the files it leads Claude to read land there too. It adds know-how but doesn't isolate context."
+      },
+      {
+        "id": "C",
+        "text": "A longer CLAUDE.md section that lists where each service reads its data from.",
+        "explanation": "CLAUDE.md loads in full every session, so this costs context all the time, goes stale as code changes, and doesn't keep investigation output out of the main session."
+      },
+      {
+        "id": "D",
+        "text": "An MCP server that exposes the repository's files as tools for Claude to call.",
+        "explanation": "Claude Code already has built-in file tools, and results from MCP tools also land in the main context. The problem is where the work happens, not access."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/features-overview",
+      "https://code.claude.com/docs/en/sub-agents"
+    ]
+  },
+  {
+    "id": "q-8.3-020",
+    "skillId": "8.3",
+    "difficulty": 2,
+    "stem": "A team is setting up Claude Code for a stats repository. They have three needs: (1) Claude must always know the build and test commands; (2) a 25-step season-rollover procedure that they run once a year; (3) the formatter must run after every file Claude edits, with no exceptions. Which choices fit best? (Select THREE.)",
+    "selectCount": 3,
+    "options": [
+      {
+        "id": "A",
+        "text": "Put the build and test commands in CLAUDE.md, which loads in every session.",
+        "explanation": "Correct. CLAUDE.md is for facts Claude should always know, such as build commands and conventions."
+      },
+      {
+        "id": "B",
+        "text": "Put the season-rollover procedure in CLAUDE.md so that it is always available.",
+        "explanation": "CLAUDE.md loads in full every session, so a yearly 25-step procedure would cost context on every request. Procedures needed only sometimes belong in a Skill."
+      },
+      {
+        "id": "C",
+        "text": "Capture the season-rollover procedure as a Skill that is invoked when needed.",
+        "explanation": "Correct. A Skill loads only its description until it is used, then brings in the full procedure. It can also be started on demand with its slash command."
+      },
+      {
+        "id": "D",
+        "text": "Add a CLAUDE.md rule telling Claude to run the formatter after each edit.",
+        "explanation": "An instruction is a request that Claude interprets, not a guarantee. \"No exceptions\" calls for something that runs automatically."
+      },
+      {
+        "id": "E",
+        "text": "Package the build commands as an MCP server that Claude can query for them.",
+        "explanation": "MCP connects Claude to external services. A few commands Claude should always know need no server, only always-loaded context."
+      },
+      {
+        "id": "F",
+        "text": "Add a PostToolUse hook that runs the formatter after each file edit.",
+        "explanation": "Correct. Hooks fire on lifecycle events without Claude deciding, so the formatter runs after every matching edit."
+      }
+    ],
+    "correct": [
+      "A",
+      "C",
+      "F"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/features-overview",
+      "https://code.claude.com/docs/en/hooks",
+      "https://code.claude.com/docs/en/skills"
+    ]
   }
 ]

@@ -1162,5 +1162,264 @@
       "https://docs.npmjs.com/cli/commands/npm-ci",
       "https://semver.org/"
     ]
+  },
+  {
+    "id": "q-2.4-033",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A finance dashboard lists the organization's Message Batches through the API to total each week's batch spend. It only ever reports the 20 most recent batches, though far more were run. The code makes one GET request to the list endpoint and reads the `data` array. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Raise the request timeout, so that the endpoint has time to return every batch in one response",
+        "explanation": "The response isn't cut off by time. List endpoints return one page at a time by design."
+      },
+      {
+        "id": "B",
+        "text": "Call the endpoint repeatedly until two responses in a row return exactly the same data",
+        "explanation": "Without a cursor, each call returns the same first page, so this would stop after one page."
+      },
+      {
+        "id": "C",
+        "text": "Follow the pagination: while `has_more` is true, pass `last_id` as `after_id`, or use the SDK's auto-paging list",
+        "explanation": "Correct. The list endpoint is paginated. The client must follow the cursor until no more pages remain, which the SDK can do automatically."
+      },
+      {
+        "id": "D",
+        "text": "Use the batch results endpoint instead, because it returns every batch the organization has run in a single response",
+        "explanation": "The results endpoint returns the results of one batch, not the list of all batches."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "https://platform.claude.com/docs/en/api/overview"
+    ]
+  },
+  {
+    "id": "q-2.4-034",
+    "skillId": "2.4",
+    "difficulty": 1,
+    "stem": "A service builds the JSON body for a stats webhook by joining strings: `'{\"note\": \"' + note + '\"}'`. It fails whenever a scouting note contains a quotation mark or a line break. Which fix is most robust?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Build the payload as an object and serialize it with the language's JSON library",
+        "explanation": "Correct. A JSON serializer escapes every special character correctly, so any note produces valid JSON."
+      },
+      {
+        "id": "B",
+        "text": "Strip quotation marks and line breaks out of every note before joining the strings",
+        "explanation": "This loses data and still misses other characters that need escaping, such as backslashes."
+      },
+      {
+        "id": "C",
+        "text": "Wrap the note in single quotes instead of double quotes inside the joined string",
+        "explanation": "JSON strings must use double quotes, so this produces invalid JSON for every note."
+      },
+      {
+        "id": "D",
+        "text": "Ask Claude to rewrite each note without punctuation before the webhook is called",
+        "explanation": "This adds cost and latency, changes the data, and still doesn't guarantee valid JSON."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify"
+    ]
+  },
+  {
+    "id": "q-2.4-035",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "An internal roster service that a Claude tool calls returns HTTP 200 for every request and reports failures in the body, such as `{\"ok\": false, \"msg\": \"player not found\"}`. Monitoring shows no errors, the API gateway caches failed lookups, and every client must parse the body to detect a failure. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep 200 for every response, and add a numeric error-code field to the JSON body that every client has to check",
+        "explanation": "Clients still have to parse every body, and HTTP-level tools such as monitoring, caching and retries still see each failure as a success."
+      },
+      {
+        "id": "B",
+        "text": "Return 500 for every kind of failure, so that clients and the gateway always retry those requests",
+        "explanation": "500 means a server fault. Treating a missing player or bad input as one invites pointless retries of requests that can never succeed."
+      },
+      {
+        "id": "C",
+        "text": "Return 204 No Content for failures, since a failed lookup has no player data to send back",
+        "explanation": "204 is a success status, so monitoring and caching would still treat the failure as a successful response."
+      },
+      {
+        "id": "D",
+        "text": "Use status codes that fit each outcome, such as 404 or 400, and return failures to Claude as `is_error` results",
+        "explanation": "Correct. Accurate status codes let standard tooling see, cache and retry correctly, and an `is_error` tool result tells Claude the call failed so it can adapt."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/implement-tool-use"
+    ]
+  },
+  {
+    "id": "q-2.4-036",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "Recaps from a team's pipeline started showing wrong quarter scores at some point in the last 60 commits. Nobody knows which commit caused it, but a script can check a fixed sample game and report right or wrong. Which approach finds the cause most efficiently?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Ask Claude Code to read all 60 diffs and name the commit it thinks is most likely responsible",
+        "explanation": "This is a guess that still needs verifying, and it scales poorly. The script already gives an objective test."
+      },
+      {
+        "id": "B",
+        "text": "Run `git bisect` between a known-good and a known-bad commit, using the script to mark each step",
+        "explanation": "Correct. Bisect searches the history by halving, so 60 commits take about six checks, and the script can run each check automatically."
+      },
+      {
+        "id": "C",
+        "text": "Revert the last 60 commits one at a time until the sample game comes out right again",
+        "explanation": "This is a slow linear search, and it rewrites the branch with reverts along the way."
+      },
+      {
+        "id": "D",
+        "text": "Check out the commit from 60 commits ago and redo all of the later work from that point",
+        "explanation": "This throws away good work and doesn't identify the faulty change at all."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://git-scm.com/docs/git-bisect"
+    ]
+  },
+  {
+    "id": "q-2.4-037",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A team wants a CI job that runs Claude Code on each pull request to list functions that lack tests, and a later step parses the list. The first attempt hangs waiting for a permission prompt, and the parser chokes on prose. Which TWO changes best fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run `claude -p` with `--allowedTools` listing only the tools the job needs, such as `Read`",
+        "explanation": "Correct. Non-interactive mode with pre-approved tools removes the prompt, and listing only what's needed keeps the job least-privilege."
+      },
+      {
+        "id": "B",
+        "text": "Add `--output-format json` with `--json-schema`, and read the `structured_output` field",
+        "explanation": "Correct. A schema gives the parser structured data instead of prose. The script should still check that the field is present."
+      },
+      {
+        "id": "C",
+        "text": "Start an interactive session in the CI container and pipe \"yes\" into every prompt it shows",
+        "explanation": "This approves whatever Claude asks for, without review, and is fragile to automate."
+      },
+      {
+        "id": "D",
+        "text": "Commit an allow rule for every Bash command to the repository, so no prompt can ever appear",
+        "explanation": "This grants far more than a read-only analysis job needs, to every developer and every run."
+      },
+      {
+        "id": "E",
+        "text": "Tell Claude in the prompt to answer in JSON only, and pull the list out with a regular expression",
+        "explanation": "A prompt request doesn't guarantee the format, and regex parsing of free text stays fragile."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/headless"
+    ]
+  },
+  {
+    "id": "q-2.4-038",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "Claude Code wrote a new contract-proration function and twelve passing unit tests for it. In review, the reviewer sees that the tests compute their expected values by calling helper functions from the implementation itself. Which TWO review responses best fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Ask for tests whose expected values come from the spec or hand-worked examples, not from the code under test",
+        "explanation": "Correct. Tests that derive expectations from the implementation agree with it by construction, so they can't catch its bugs."
+      },
+      {
+        "id": "B",
+        "text": "Check that a deliberately broken version of the function would make at least some of the tests fail",
+        "explanation": "Correct. If a planted bug still passes, the tests aren't checking behavior. This is a quick way to find out."
+      },
+      {
+        "id": "C",
+        "text": "Approve the change, because twelve passing tests show that the function is correct",
+        "explanation": "Passing tests prove nothing when the expected values come from the same code that is being tested."
+      },
+      {
+        "id": "D",
+        "text": "Ask Claude to add more tests in the same style until line coverage reaches 100 percent",
+        "explanation": "More tests of the same kind raise coverage without checking anything new."
+      },
+      {
+        "id": "E",
+        "text": "Delete all of the tests, since tests written by an AI tool can't be trusted in review",
+        "explanation": "The problem is how the expected values are derived, not who wrote the tests. Fixed tests are worth keeping."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/common-workflows"
+    ]
+  },
+  {
+    "id": "q-2.4-039",
+    "skillId": "2.4",
+    "difficulty": 2,
+    "stem": "A team must rename the method `getPlayerStats` to `fetchPlayerStats` across 900 TypeScript files. Some files also contain unrelated strings and comments that mention `getPlayerStats`. They plan to use Claude Code. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Have Claude write and test an AST-based codemod, run it, then review the diff and run the test suite",
+        "explanation": "Correct. A syntax-aware codemod changes only real references, gives the same result in every file, and leaves a reviewable diff."
+      },
+      {
+        "id": "B",
+        "text": "Run a global regular-expression find-and-replace for `getPlayerStats` across every file in the repository",
+        "explanation": "Text replacement also rewrites the unrelated strings and comments, and it can't tell real references from lookalikes."
+      },
+      {
+        "id": "C",
+        "text": "Ask Claude to open and edit all 900 files by hand, one after another in a single session",
+        "explanation": "This fills the context, is slow, and risks inconsistent edits that a script would avoid."
+      },
+      {
+        "id": "D",
+        "text": "Add `fetchPlayerStats` as an alias and leave every existing caller unchanged for now",
+        "explanation": "This doesn't perform the rename. The old name stays in use everywhere."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/common-workflows"
+    ]
   }
 ]

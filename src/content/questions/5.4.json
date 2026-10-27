@@ -621,5 +621,117 @@
       "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
       "https://platform.claude.com/docs/en/build-with-claude/batch-processing"
     ]
+  },
+  {
+    "id": "q-5.4-018",
+    "skillId": "5.4",
+    "difficulty": 2,
+    "stem": "A fantasy-league assistant runs on many worker processes. Each worker builds its tools list from a plugin registry whose iteration order differs between processes. The 20,000-token system prompt is cached, but cache_read_input_tokens stays near zero whenever a request lands on a different worker than the one before. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move the cache breakpoint onto the user message so the tools are no longer part of the prefix.",
+        "explanation": "Tools render before the system prompt and messages, so they are in the prefix wherever the breakpoint sits. A changing tool order still breaks the match."
+      },
+      {
+        "id": "B",
+        "text": "Switch to the 1-hour cache duration so that each separate worker keeps its own cached entry for longer.",
+        "explanation": "A longer TTL doesn't make different prefixes match. Each tool order would still need its own cache write."
+      },
+      {
+        "id": "C",
+        "text": "Serialize the tools in a fixed order, such as sorted by name, so every worker sends identical bytes.",
+        "explanation": "Correct. Caching is an exact prefix match, and tools come first in that prefix. A deterministic tool order makes every request's prefix identical, so any worker can read the cached entry."
+      },
+      {
+        "id": "D",
+        "text": "Place the tool definitions after the system prompt so that changes to them don't affect the cache.",
+        "explanation": "The request renders tools first, then system, then messages, and the client can't change that order. The fix is to make the tool list stable."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-5.4-019",
+    "skillId": "5.4",
+    "difficulty": 3,
+    "stem": "A draft-night assistant shares a 60,000-token cached prefix across all fans. After each deploy, the first fan's question is noticeably slower because the prefix must be written to the cache, and later questions are fast. The team wants that first real question to be fast too, at minimal cost. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Switch the shared prefix to the 1-hour cache duration so the entry survives each deploy.",
+        "explanation": "A new deploy that starts cold still has to write the entry once, and a longer TTL costs more per write. It doesn't remove the first slow request."
+      },
+      {
+        "id": "B",
+        "text": "On startup, send a max_tokens 0 request with the same prefix, model, thinking and effort settings.",
+        "explanation": "Correct. A max_tokens 0 request writes the cache and returns without generating output, so the first real question reads from cache. The settings must match real traffic, or the warm-up writes an entry that traffic never hits."
+      },
+      {
+        "id": "C",
+        "text": "On startup, send a short warm-up question at low effort so that it costs less than a real fan request.",
+        "explanation": "Thinking and effort settings are part of what gets cached, so a warm-up with different settings may write an entry real traffic doesn't read. It also bills output tokens that nobody uses."
+      },
+      {
+        "id": "D",
+        "text": "Remove caching from the first request after a deploy and only enable it from the second one on.",
+        "explanation": "Without caching on the first request, nothing is written, so the second request becomes the slow one. The cold start just moves."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-5.4-020",
+    "skillId": "5.4",
+    "difficulty": 2,
+    "stem": "A long coaching chat moves its cache breakpoint to the latest turn on every request, and cache reads normally cover the whole earlier conversation. Which two changes made mid-conversation would make the cached conversation history miss on the next request? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Appending the fan's new message after the previous turn",
+        "explanation": "New content after the cached prefix is the normal case. The earlier conversation is still read from cache."
+      },
+      {
+        "id": "B",
+        "text": "Sending some turns to a cheaper model to save money",
+        "explanation": "Correct. Caches are model-scoped, so a turn on a different model can't read the entry the first model wrote. The whole prefix is written again."
+      },
+      {
+        "id": "C",
+        "text": "Turning streaming on for the next request in the chat",
+        "explanation": "Streaming is a transport option, not part of the cached prefix, so switching it doesn't affect cache reads."
+      },
+      {
+        "id": "D",
+        "text": "Changing the top-level effort level between two turns",
+        "explanation": "Correct. Thinking and effort settings are part of the cached prompt, and a top-level change invalidates the cached messages. Pin effort per route instead of varying it per turn."
+      },
+      {
+        "id": "E",
+        "text": "Moving the breakpoint forward to the newest user turn",
+        "explanation": "This is the recommended checkpointing pattern. Earlier breakpoints remain valid read points, so the history is still read from cache."
+      }
+    ],
+    "correct": [
+      "B",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "https://platform.claude.com/docs/en/build-with-claude/effort"
+    ]
   }
 ]

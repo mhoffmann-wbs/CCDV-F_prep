@@ -827,5 +827,231 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/api/rate-limits"
     ]
+  },
+  {
+    "id": "q-5.2-024",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A ticket-pricing assistant's nightly job suddenly fails every request with a 429 rate_limit_error. The response has no retry-after header, the error details carry the code enforced_spend_limit_reached, and the SDK's automatic retries keep failing. Traffic was normal all evening. Which response best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Raise max_retries and the backoff delay so the job keeps on trying until enough capacity frees up again.",
+        "explanation": "This 429 comes from the organization's monthly spend cap, not from per-minute capacity. Retries keep failing until access resumes, so more of them only burn time."
+      },
+      {
+        "id": "B",
+        "text": "Treat it as the monthly spend cap: alert a human and raise the limit or wait for access to resume.",
+        "explanation": "Correct. A spend-cap 429 has the same error type as a rate limit but no retry-after header, and its error code identifies it. It won't clear by waiting seconds; it needs a higher limit or the next billing month."
+      },
+      {
+        "id": "C",
+        "text": "Spread the job's requests over more API keys in the organization so each key gets its own quota.",
+        "explanation": "Spend caps and rate limits apply at the organization level, so extra keys in the same organization share the same cap."
+      },
+      {
+        "id": "D",
+        "text": "Ramp the request rate up more gradually so the job stops triggering acceleration limits.",
+        "explanation": "Acceleration limits come from sudden traffic spikes, and traffic was normal. The error code points to the spend cap, which no ramp-up will lift."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/rate-limits",
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  },
+  {
+    "id": "q-5.2-025",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A Python service that writes long season-preview reports raises max_tokens to a very large value. The official SDK now raises an error before sending the non-streaming request, saying it is expected to take too long. The service only needs the finished report, not live text. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Catch the error and resend the same request with raw HTTP so the SDK check is skipped.",
+        "explanation": "The check exists because long idle non-streaming connections can be dropped by networks and time out. Bypassing it with raw HTTP keeps the risk and loses the SDK's retries and typed errors."
+      },
+      {
+        "id": "B",
+        "text": "Lower max_tokens back below the limit and split the report into several shorter, separate requests.",
+        "explanation": "Splitting the report changes the product to work around a transport issue, and adds stitching and consistency problems. Streaming handles long outputs directly."
+      },
+      {
+        "id": "C",
+        "text": "Raise the client's timeout to several hours, which also removes this error at the same time.",
+        "explanation": "A huge timeout removes the error but keeps a long idle connection open, which some networks drop. The documented recommendation for long requests is streaming."
+      },
+      {
+        "id": "D",
+        "text": "Use the SDK's streaming helper and collect the final message, since no live display is needed.",
+        "explanation": "Correct. Streaming keeps data flowing on the connection, so long generations don't hit idle-connection drops. The SDK's stream helper can still return the complete message at the end."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-5.2-026",
+    "skillId": "5.2",
+    "difficulty": 1,
+    "stem": "A nightly job submits 300 player-profile requests as one Message Batch, in roster order. When the batch ends, the job writes result 1 to player 1, result 2 to player 2 and so on. Some profiles end up attached to the wrong players. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Give each request a custom_id such as the player's ID and match results by that ID.",
+        "explanation": "Correct. Batch results can come back in any order. The custom_id on each request is returned with its result, so matching on it is the reliable way to pair them."
+      },
+      {
+        "id": "B",
+        "text": "Sort the results by their message ID before matching them up with the roster order.",
+        "explanation": "Message IDs are not tied to the order of requests in the batch, so sorting on them doesn't restore the original order."
+      },
+      {
+        "id": "C",
+        "text": "Send the 300 requests as 300 single-request batches so each result has only one owner.",
+        "explanation": "This works around the problem at the cost of managing hundreds of batches. The built-in custom_id already pairs each result with its request."
+      },
+      {
+        "id": "D",
+        "text": "Wait a few minutes after the batch ends so the results finish sorting into request order.",
+        "explanation": "Results are not reordered over time. The documentation states they may not match the order in which requests were submitted."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing"
+    ]
+  },
+  {
+    "id": "q-5.2-027",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A Python async web server (asyncio-based) answers fan questions by calling Claude with the SDK's synchronous Anthropic client inside its request handlers. Under load, the whole server stalls while any single Claude call is in flight, even for requests that don't use Claude. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Lower the client timeout to a few seconds so that each blocking call finishes much sooner.",
+        "explanation": "A shorter timeout cuts off legitimate answers and still blocks the event loop for every call in progress. It treats the symptom, not the cause."
+      },
+      {
+        "id": "B",
+        "text": "Replace the SDK with hand-written HTTP calls, because the SDK can't be used in async code.",
+        "explanation": "The SDK has an async client with the same interface. Hand-written HTTP would lose retries, typed errors and stream helpers for no gain."
+      },
+      {
+        "id": "C",
+        "text": "Switch to the SDK's AsyncAnthropic client and await its calls so the event loop stays free.",
+        "explanation": "Correct. The synchronous client blocks the thread it runs on, which in an asyncio server is the event loop serving every request. The async client exposes the same methods as awaitable calls, so other requests proceed while one waits on Claude."
+      },
+      {
+        "id": "D",
+        "text": "Set max_retries to 0 so that failed calls return at once instead of blocking all the other requests.",
+        "explanation": "Retries are not what blocks the server; the synchronous call is. Removing retries only makes transient failures reach users more often."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python"
+    ]
+  },
+  {
+    "id": "q-5.2-028",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A recap service reads `response.content[0].text` to get Claude's answer. After the team enables thinking and turns on citations for its source documents, the code crashes on some responses and drops part of the answer on others. Which two changes make the response handling robust? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Turn thinking off on every request so the first block is always the text answer.",
+        "explanation": "Some current models reject requests that disable thinking, and other block types can still come first. The code should handle the block list rather than force a fixed shape."
+      },
+      {
+        "id": "B",
+        "text": "Iterate over the content blocks and narrow each one by its type before reading text.",
+        "explanation": "Correct. Content is a list of typed blocks, such as thinking, text and tool use. Checking each block's type avoids reading text from a block that has none."
+      },
+      {
+        "id": "C",
+        "text": "Read the last content block instead of the first, since the answer always comes last.",
+        "explanation": "The last block can be a tool use block, and with citations the answer is split across several text blocks. Any fixed position is fragile."
+      },
+      {
+        "id": "D",
+        "text": "Join the text of every text block in order, since one answer can span several blocks.",
+        "explanation": "Correct. With citations, a response is split into several text blocks, some carrying citations. Taking only one block drops the rest of the answer."
+      },
+      {
+        "id": "E",
+        "text": "Convert the response to a JSON string and extract the answer with a regular expression.",
+        "explanation": "Regex over serialized JSON throws away the SDK's typed blocks and breaks when the structure or escaping changes."
+      }
+    ],
+    "correct": [
+      "B",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "https://platform.claude.com/docs/en/build-with-claude/thinking"
+    ]
+  },
+  {
+    "id": "q-5.2-029",
+    "skillId": "5.2",
+    "difficulty": 2,
+    "stem": "A stats-commentary service on Claude Sonnet 4.6 sends temperature 0.3 on every request. The team upgrades the official SDK to its newest major version and changes nothing else. Every request now fails with a 400 error, although the model ID is the same. Which two statements correctly explain or fix this? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "The model ID was silently pointed at a newer model that rejects sampling parameters.",
+        "explanation": "A model ID names a fixed model and doesn't change underneath you. What changed is the API version the new SDK sends."
+      },
+      {
+        "id": "B",
+        "text": "The new SDK major version sends API version 2026-10-21, which rejects sampling parameters.",
+        "explanation": "Correct. Each SDK major version sends the API version that was current at its release. In 2026-10-21, any request that sends temperature, top_p or top_k returns a 400 on every model."
+      },
+      {
+        "id": "C",
+        "text": "The 400 is a transient server error, so retrying with exponential backoff will clear it.",
+        "explanation": "A 400 means the request is invalid. The same request fails again on every retry until it changes."
+      },
+      {
+        "id": "D",
+        "text": "Stop sending temperature and steer consistency with clearer prompts, examples and validation.",
+        "explanation": "Correct. The migration guide says to stop sending the parameter (or keep that request on the older API version for now). Without it, requests sample with the defaults, so consistency has to come from prompt design and checks."
+      },
+      {
+        "id": "E",
+        "text": "Send temperature at its default value of 1.0 instead, which the new API version accepts.",
+        "explanation": "In 2026-10-21 a sampling parameter returns a 400 even at its default value. The parameter has to be left out entirely."
+      }
+    ],
+    "correct": [
+      "B",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/migration-2026-10-21",
+      "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python"
+    ]
   }
 ]

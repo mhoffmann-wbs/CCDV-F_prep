@@ -620,5 +620,119 @@
       "https://platform.claude.com/docs/en/api/errors",
       "https://platform.claude.com/docs/en/api/rate-limits"
     ]
+  },
+  {
+    "id": "q-2.1-018",
+    "skillId": "2.1",
+    "difficulty": 2,
+    "stem": "A league's compliance office requires that, for any disputed injury summary produced by a Claude feature, the team can reconstruct within 30 days exactly what produced it. The architect is turning this into an infrastructure requirement. Which requirement best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep the final summaries in the data warehouse for 30 days, so any disputed one can be pulled up again later",
+        "explanation": "The output alone doesn't show what produced it. Without the inputs, prompt version and model, nobody can explain or reproduce the summary."
+      },
+      {
+        "id": "B",
+        "text": "Log each request's prompt version, model ID, inputs, output and request ID, and keep them for 30 days",
+        "explanation": "Correct. The requirement is reconstruction, so every factor that shaped the output has to be recorded and retained for the stated period."
+      },
+      {
+        "id": "C",
+        "text": "Re-run the same prompt when a dispute arises, so the disputed summary can be regenerated on demand",
+        "explanation": "Outputs vary between runs, and the prompt or model may have changed since. A rerun shows what the system does now, not what it did then."
+      },
+      {
+        "id": "D",
+        "text": "Ask Claude to append a short explanation of its reasoning to the end of every summary it writes",
+        "explanation": "A self-description inside the output is not an audit trail. It records neither the configuration nor the exact inputs that were sent."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors",
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.1-019",
+    "skillId": "2.1",
+    "difficulty": 3,
+    "stem": "A fan app expects about 40,000 questions in the first ten minutes after kickoff each Sunday. The business requirement says \"no fan sees an error at kickoff.\" The pilot ran fine at a few hundred requests per hour. Which step best turns this into a testable infrastructure requirement before launch?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Rely on the SDK's automatic retries, which absorb any rate-limit errors that appear during the kickoff traffic peak",
+        "explanation": "Retries smooth over brief spikes, but sustained demand above the organization's limits keeps failing and the retries add more load."
+      },
+      {
+        "id": "B",
+        "text": "Pick the model with the largest context window, so that each request can carry more questions at once",
+        "explanation": "Context size has nothing to do with request throughput. The requirement is about peak volume against rate limits."
+      },
+      {
+        "id": "C",
+        "text": "Run the pilot traffic again for a week and approve the launch if no errors appear during that time",
+        "explanation": "Pilot volume is orders of magnitude below the kickoff peak, so a clean week says nothing about the peak requirement."
+      },
+      {
+        "id": "D",
+        "text": "Estimate peak requests and tokens per minute, check them against rate limits, and load-test at that rate",
+        "explanation": "Correct. A measurable capacity target, checked against the actual limits and verified by a load test, makes the business requirement testable and shows whether higher limits are needed."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/rate-limits",
+      "https://platform.claude.com/docs/en/api/errors"
+    ]
+  },
+  {
+    "id": "q-2.1-020",
+    "skillId": "2.1",
+    "difficulty": 2,
+    "stem": "A club's ticketing assistant may help fans move to different seats. The business requirements say no order may change without the fan's explicit confirmation, and the assistant must never see card numbers. Which TWO design requirements follow most directly? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "The change_seats tool only creates a pending change, and the app applies it after the fan clicks Confirm in the UI",
+        "explanation": "Correct. Confirmation is enforced by the application, outside the model, so no model output alone can change an order."
+      },
+      {
+        "id": "B",
+        "text": "The system prompt tells Claude to always ask the fan before it calls the change_seats tool",
+        "explanation": "A prompt instruction is guidance, not a guarantee. A hard business rule needs a control the model can't skip."
+      },
+      {
+        "id": "C",
+        "text": "Payment stays on the existing payment page, and tool results sent to Claude carry only order IDs and seat details",
+        "explanation": "Correct. The surest way to keep card numbers away from the assistant is never to put them in its context."
+      },
+      {
+        "id": "D",
+        "text": "Claude receives the full order record, including card details, and is told not to repeat them",
+        "explanation": "The card data would still reach the model's context, which breaks the requirement however well Claude follows the instruction."
+      },
+      {
+        "id": "E",
+        "text": "Fans confirm by typing \"yes\" anywhere in the chat, and Claude decides whether that counts as confirmation",
+        "explanation": "This leaves the confirmation decision to the model's interpretation of free text, which is not the explicit confirmation the requirement asks for."
+      }
+    ],
+    "correct": [
+      "A",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks"
+    ]
   }
 ]

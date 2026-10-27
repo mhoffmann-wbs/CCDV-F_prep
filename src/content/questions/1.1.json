@@ -658,5 +658,152 @@
     "sourceLinks": [
       "https://www.anthropic.com/engineering/building-effective-agents"
     ]
+  },
+  {
+    "id": "q-1.1-019",
+    "skillId": "1.1",
+    "difficulty": 2,
+    "stem": "A club's Agent SDK app has a lead agent that edits game-plan files and delegates film breakdown to a `film-analyst` subagent. The film-analyst only needs to read play-by-play logs, but its definition sets no `tools` field. In a test, it rewrote a playbook file it was only supposed to read. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a line to the subagent's prompt saying it must never change any file it reads",
+        "explanation": "A prompt asks; it doesn't guarantee. The subagent would still hold write tools and could use them again."
+      },
+      {
+        "id": "B",
+        "text": "Remove the subagent and let the lead agent read every play-by-play log itself",
+        "explanation": "This gives up the context isolation the subagent provides, and the lead agent keeps its write tools anyway."
+      },
+      {
+        "id": "C",
+        "text": "Set the subagent's model to a smaller one so it is less likely to take extra steps",
+        "explanation": "Model choice changes cost and capability, not which tools the subagent is allowed to call."
+      },
+      {
+        "id": "D",
+        "text": "Give the subagent a `tools` list with only read tools such as Read, Grep and Glob",
+        "explanation": "Correct. Without a `tools` field a subagent inherits every available tool. Listing only read tools gives it least privilege, so it can analyze logs but has no way to edit files."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/subagents"
+    ]
+  },
+  {
+    "id": "q-1.1-020",
+    "skillId": "1.1",
+    "difficulty": 2,
+    "stem": "A scouting app defines a subagent named `cap-checker` with the description \"Helper agent.\" Its prompt explains salary-cap rules in detail. When coaches ask whether a trade fits under the cap, the main agent answers on its own and never delegates, and its cap math is often wrong. What is the most likely cause, and the best fix?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Subagents only run when the parent's context is full; lower the main agent's context limit",
+        "explanation": "Delegation isn't triggered by a full context. Claude chooses to delegate based on the task and the subagent descriptions."
+      },
+      {
+        "id": "B",
+        "text": "Claude picks subagents by description; say it handles salary-cap and trade-fit questions",
+        "explanation": "Correct. Claude decides when to invoke a subagent from its `description`. \"Helper agent.\" gives it nothing to match against, so a clear, specific description of when to use it fixes the routing."
+      },
+      {
+        "id": "C",
+        "text": "The cap rules belong in the main prompt, so move them there and delete the subagent",
+        "explanation": "That gives up the specialization the subagent was built for and doesn't explain why delegation failed."
+      },
+      {
+        "id": "D",
+        "text": "The subagent needs the parent's whole chat history, so set its model option to inherit",
+        "explanation": "The `inherit` model setting only reuses the main model. It doesn't share history, and history isn't why the subagent was skipped."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/subagents"
+    ]
+  },
+  {
+    "id": "q-1.1-021",
+    "skillId": "1.1",
+    "difficulty": 1,
+    "stem": "During live games, a sideline tablet must suggest a play within two seconds of each snap. The input is always the same: down, distance, field position and the opponent's formation. An engineer proposes an autonomous agent that explores the play database with tools until it is confident. Which design fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The proposed agent, with a turn cap so that it always stops after ten tool calls",
+        "explanation": "A turn cap bounds cost, but ten model round trips still can't reliably fit a two-second window. The task doesn't need open-ended exploration."
+      },
+      {
+        "id": "B",
+        "text": "An orchestrator that splits every snap into subtasks for several worker agents",
+        "explanation": "Orchestrator-workers suits tasks whose subtasks are unknown in advance. Here the input and the step are fixed, and the extra calls add latency."
+      },
+      {
+        "id": "C",
+        "text": "An evaluator-optimizer loop that critiques and refines each play suggestion",
+        "explanation": "Repeated critique rounds add the latency the constraint rules out, for a task with no clear criteria to iterate against."
+      },
+      {
+        "id": "D",
+        "text": "One model call per snap, with the relevant play options passed in the prompt",
+        "explanation": "Correct. The task is a single, well-defined step with fixed inputs and a hard latency limit. A single call meets it; an agent's extra round trips add cost and latency without adding value."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/engineering/building-effective-agents"
+    ]
+  },
+  {
+    "id": "q-1.1-022",
+    "skillId": "1.1",
+    "difficulty": 2,
+    "stem": "A media team built a lead agent that sends every fan question to four subagents (stats, injuries, history and rules) and merges their answers. A month of logs shows five observations. Which TWO suggest the multi-agent split is hurting rather than helping? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Most questions are simple lookups that one agent answers in two turns, yet every one fans out to all four.",
+        "explanation": "Correct. Each subagent adds its own model calls. When the work is simple and can't be split usefully, fanning out multiplies cost and latency with no gain in quality."
+      },
+      {
+        "id": "B",
+        "text": "The stats subagent reads large box scores, and none of that text ends up in the lead agent's context.",
+        "explanation": "This is context isolation working as intended: only the subagent's summary returns to the lead."
+      },
+      {
+        "id": "C",
+        "text": "Each subagent needs nearly everything the others found, so the lead resends long context to each of them.",
+        "explanation": "Correct. Tightly coupled work is a poor fit for subagents. If every step needs everything the others learned, one agent holding the shared context is simpler and cheaper."
+      },
+      {
+        "id": "D",
+        "text": "For deep research questions, the four subagents finish in about the time of the slowest one.",
+        "explanation": "That is the parallelization benefit, which helps the questions that really do have independent parts."
+      },
+      {
+        "id": "E",
+        "text": "The history subagent runs on a cheaper model, which cut the cost of reading-heavy archive work.",
+        "explanation": "Routing reading-heavy work to a cheaper model is one of the standard reasons to use a subagent."
+      }
+    ],
+    "correct": [
+      "A",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://www.anthropic.com/engineering/building-effective-agents",
+      "https://code.claude.com/docs/en/agent-sdk/subagents"
+    ]
   }
 ]

@@ -1297,5 +1297,259 @@
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/code-execution-tool",
       "https://platform.claude.com/docs/en/build-with-claude/files"
     ]
+  },
+  {
+    "id": "q-2.3-036",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "An analyst tool sends a 60,000-token league rulebook with each request, cached with a default `cache_control` marker. Analysts ask a question about every 15 to 20 minutes, and the logs show a new cache write on almost every request. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Set the rulebook's cache TTL to one hour, so the entry survives the gaps between questions",
+        "explanation": "Correct. The default entry lives five minutes, so 15-to-20-minute gaps let it expire. The one-hour TTL costs more to write but keeps the entry alive between questions."
+      },
+      {
+        "id": "B",
+        "text": "Move the rulebook after the analyst's question, so the stable content sits at the end of the prompt",
+        "explanation": "Caching matches a prefix. Putting the varying question first would break the cache on every request."
+      },
+      {
+        "id": "C",
+        "text": "Add a second cache breakpoint on the same rulebook block, which doubles the entry's lifetime",
+        "explanation": "Extra breakpoints mark more cache positions. They don't extend how long an entry lives."
+      },
+      {
+        "id": "D",
+        "text": "Send the questions through the Message Batches API, which keeps cached content for 24 hours",
+        "explanation": "Batches are for asynchronous bulk work, not interactive questions, and they don't extend cache lifetime to 24 hours."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-2.3-037",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A team charges internal departments for Claude usage based on the token counts in each streamed response. Long answers show almost no output tokens. The code records usage only from the `message_start` event. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Count the characters in every text delta and divide by four to estimate the output tokens",
+        "explanation": "This is a rough estimate, not the billed count, and it ignores tokens that aren't visible text."
+      },
+      {
+        "id": "B",
+        "text": "Turn streaming off, because streamed responses do not report output token usage at all",
+        "explanation": "Streamed responses do report usage. The code is just reading it from the wrong event."
+      },
+      {
+        "id": "C",
+        "text": "Read the cumulative usage in the final `message_delta` event, or take it from the SDK's final message",
+        "explanation": "Correct. `message_start` arrives before any output is generated. The cumulative usage in the final `message_delta` reflects the whole response."
+      },
+      {
+        "id": "D",
+        "text": "Send each finished answer to the token-counting endpoint and record the number it returns as output usage",
+        "explanation": "Token counting estimates the size of a prompt. It doesn't report what this response was actually billed for."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    ]
+  },
+  {
+    "id": "q-2.3-038",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A film-review tool sends 30 sideline screenshots, each 3000×2000 pixels, as image blocks in one Messages API request. The request is rejected with an `invalid_request_error` that mentions many-image requests. Sending 15 of the same screenshots works. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Upload the screenshots through the Files API instead, which lifts the per-image limits for the request",
+        "explanation": "Referencing images by `file_id` keeps the payload small, but the per-image limits still apply to the request."
+      },
+      {
+        "id": "B",
+        "text": "Resize each screenshot so neither side exceeds 2000 px, or send 20 images or fewer per request",
+        "explanation": "Correct. Above 20 images in one request, a stricter per-image dimension limit applies. Smaller images or smaller groups both stay within it."
+      },
+      {
+        "id": "C",
+        "text": "Combine the screenshots into one PDF, so that the request no longer contains any image blocks at all",
+        "explanation": "Each PDF page is still processed as an image, and on some platforms document blocks count toward the same threshold, so this only moves the problem."
+      },
+      {
+        "id": "D",
+        "text": "Retry the same request with exponential backoff until the API has enough capacity to accept it",
+        "explanation": "This is an invalid request, not a capacity problem. The same request fails the same way on every retry."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/vision"
+    ]
+  },
+  {
+    "id": "q-2.3-039",
+    "skillId": "2.3",
+    "difficulty": 3,
+    "stem": "A team moves a play-tagging service to Claude Opus 5.5. The old code set `tool_choice` to `{\"type\": \"tool\", \"name\": \"record_tags\"}` to guarantee a call with schema-valid input. Every request now fails with a 400 error about `tool_choice`. Which change best fits while keeping schema-valid tag data?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep the forced tool choice and repeat the tool's schema in the system prompt",
+        "explanation": "The 400 comes from the forced `tool_choice` itself. Adding text to the prompt doesn't change that."
+      },
+      {
+        "id": "B",
+        "text": "Set `tool_choice` to `{\"type\": \"any\"}`, so Claude must call one of the tools",
+        "explanation": "Forcing any tool is also rejected on this model, so the requests would still fail."
+      },
+      {
+        "id": "C",
+        "text": "Ask for the tags as plain text and parse them out with a regular expression",
+        "explanation": "This drops the schema guarantee the team relied on and adds fragile parsing."
+      },
+      {
+        "id": "D",
+        "text": "Use `auto` with `strict: true` on the tool and an instruction to call it, or use structured outputs",
+        "explanation": "Correct. Forced tool use isn't supported on this model. Strict tool schemas keep the input valid, and structured outputs fit when the call only existed to get JSON back."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/implement-tool-use",
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-2.3-040",
+    "skillId": "2.3",
+    "difficulty": 3,
+    "stem": "A nightly Message Batches job sends 3,000 requests that all share the same 20,000-token scouting glossary at the start of the system prompt. Prompt caching is on, but cache hits are low. Which TWO changes are most likely to raise the hit rate? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Put identical `cache_control` markers on the glossary block in every request of the batch",
+        "explanation": "Correct. Hits depend on matching prefixes and markers, so every request should mark the shared block the same way."
+      },
+      {
+        "id": "B",
+        "text": "Use the one-hour cache TTL on the glossary, since batch processing can take longer than five minutes",
+        "explanation": "Correct. Batch requests run asynchronously over a longer window, so a five-minute entry can expire between them."
+      },
+      {
+        "id": "C",
+        "text": "Add a request with `max_tokens: 0` at the start of the batch to pre-warm the cache",
+        "explanation": "Pre-warming with `max_tokens: 0` is not supported inside a batch."
+      },
+      {
+        "id": "D",
+        "text": "Put each player's name at the very top of the system prompt, so requests are easy to trace",
+        "explanation": "A value that differs per request at the start of the prompt breaks the shared prefix, so nothing after it can be read from cache."
+      },
+      {
+        "id": "E",
+        "text": "Rely on a guaranteed hit for every request once the first request has written the cache",
+        "explanation": "Batch requests run concurrently, so cache hits are best-effort. There is no guarantee to rely on."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-2.3-041",
+    "skillId": "2.3",
+    "difficulty": 2,
+    "stem": "A fantasy chat assistant caches a long system prompt and its tool definitions. For a new \"trade mode\", a developer adds a `propose_trade` tool to the tools list only while the user is in that mode. Cache reads drop to zero on every mode switch. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Send one fixed, sorted tool list on every request and signal the mode in the message content",
+        "explanation": "Correct. Tools render first in the prompt, so any change to the list invalidates everything cached after it. A stable tool list keeps the prefix intact."
+      },
+      {
+        "id": "B",
+        "text": "Move the cache breakpoint to the latest user message, so the cache covers the whole conversation",
+        "explanation": "The breakpoint position doesn't matter when the tools at the start of the prefix keep changing."
+      },
+      {
+        "id": "C",
+        "text": "Switch to a cheaper model while in trade mode, to offset the cost of the extra cache writes",
+        "explanation": "Caches are scoped to a model, so switching models forces another full write instead of saving money."
+      },
+      {
+        "id": "D",
+        "text": "Put a separate cache breakpoint on the `propose_trade` tool, so that it is cached on its own",
+        "explanation": "Adding or removing a tool still changes the prefix that all later cache entries depend on."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-2.3-042",
+    "skillId": "2.3",
+    "difficulty": 1,
+    "stem": "An app moved to Claude Sonnet 5.5. It used to end each request with a partial assistant turn containing `{` so that Claude would reply in JSON. Those requests now return a 400 error. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Prefill a longer string, such as the first key of the expected object, in the assistant turn",
+        "explanation": "Any assistant prefill is rejected on this model, however long it is."
+      },
+      {
+        "id": "B",
+        "text": "Remove the prefill and use structured outputs with a JSON schema in `output_config.format`",
+        "explanation": "Correct. Prefilling isn't supported on current models. Structured outputs guarantee JSON that matches the schema."
+      },
+      {
+        "id": "C",
+        "text": "Send the opening brace as a second user message instead of in an assistant turn",
+        "explanation": "This only adds an odd user message. It doesn't constrain the output format."
+      },
+      {
+        "id": "D",
+        "text": "Pin an older version of the SDK, so the prefill is sent the way it used to be",
+        "explanation": "The API rejects the request, not the SDK, so an older SDK sends the same failing request."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
+    ]
   }
 ]

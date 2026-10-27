@@ -670,5 +670,118 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks"
     ]
+  },
+  {
+    "id": "q-7.1-018",
+    "skillId": "7.1",
+    "difficulty": 2,
+    "stem": "A ticketing chatbot keeps recent conversation turns in a server-side cache so it can carry context between messages. To save memory, the cache is keyed by the stadium section a fan asks about. A fan asking about section 112 receives another fan's name and order number in the reply. Which change best addresses the root cause?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Key the cached conversation state to each authenticated fan's session, not to the section.",
+        "explanation": "Correct. The leak happens because one fan's turns enter another fan's context. Scoping conversation state per authenticated user removes that path, so there is nothing to leak."
+      },
+      {
+        "id": "B",
+        "text": "Add a system-prompt rule telling Claude never to repeat another fan's name or order details.",
+        "explanation": "A prompt rule is advisory. The other fan's data is still in the context, and a confused or manipulated reply can still expose it."
+      },
+      {
+        "id": "C",
+        "text": "Filter every reply for names and order numbers before it is shown to the fan in the chat.",
+        "explanation": "An output filter treats the symptom and misses paraphrases. The data has already crossed the boundary between users, and the filter would also strip the fan's own legitimate details."
+      },
+      {
+        "id": "D",
+        "text": "Shorten the cache lifetime so other fans' earlier turns expire within a few minutes.",
+        "explanation": "A shorter lifetime shrinks the window but keeps the shared state. Two fans asking about the same section a minute apart still see each other's data."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/secure-deployment"
+    ]
+  },
+  {
+    "id": "q-7.1-019",
+    "skillId": "7.1",
+    "difficulty": 3,
+    "stem": "A scouting assistant reads public prospect blogs and has a read_scouting_file tool that takes a file path and returns that file from the club's scouting share. In a red-team test, a blog post makes Claude call the tool with `../finance/payroll.csv`, and the payroll file comes back. The tool must keep serving scouting files. Which control best closes this gap?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "State in the tool description that Claude may request only files inside the scouting folder.",
+        "explanation": "A tool description guides the model but enforces nothing. The injected blog text already persuaded Claude to ignore its intended scope once, and can do so again."
+      },
+      {
+        "id": "B",
+        "text": "Screen the blog text with an injection classifier and leave the file tool itself unchanged.",
+        "explanation": "Screening is a useful layer, but novel injections will eventually get through, and the tool would still hand out any file on the share when they do."
+      },
+      {
+        "id": "C",
+        "text": "Log every tool call with its path so the security team can review suspicious reads weekly.",
+        "explanation": "Audit logs help detect misuse after the fact, but the payroll file has already been read and could already be in a reply by the time anyone looks."
+      },
+      {
+        "id": "D",
+        "text": "In the tool code, resolve the path and reject any file outside the scouting folder.",
+        "explanation": "Correct. Integrity controls belong in code: validating tool arguments against an allowlist means even a successful injection can only reach the files the task needs."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "https://code.claude.com/docs/en/agent-sdk/secure-deployment"
+    ]
+  },
+  {
+    "id": "q-7.1-020",
+    "skillId": "7.1",
+    "difficulty": 2,
+    "stem": "A draft-research system uses two agents. A reader agent browses public web pages and returns findings. An orchestrator turns those findings into trade proposals and can email the general manager. The team worries that a hidden instruction on a web page could reach the orchestrator through the reader's findings. Which TWO design choices best contain this risk? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Give the reader agent the email tool as well, so it can report urgent findings directly.",
+        "explanation": "This puts a write tool next to the agent that reads untrusted pages, which is the worst place for it. An injection would no longer even need to pass through the orchestrator."
+      },
+      {
+        "id": "B",
+        "text": "Give the reader agent only read-only browsing tools, with no email or other write access.",
+        "explanation": "Correct. The agent most exposed to injected text should have the least power. If a page hijacks it, there is nothing harmful it can do directly."
+      },
+      {
+        "id": "C",
+        "text": "Run the orchestrator on the most capable model, since it follows its instructions more reliably.",
+        "explanation": "Model capability does not address injection. A model that follows instructions closely may follow injected ones just as readily."
+      },
+      {
+        "id": "D",
+        "text": "Pass the findings to the orchestrator as data labelled with their web source, never as instructions.",
+        "explanation": "Correct. Output from an agent that read untrusted content is itself untrusted. Labelling it as sourced data, under a policy that it is never followed as instructions, keeps the trust boundary intact across agents."
+      },
+      {
+        "id": "E",
+        "text": "Insert the reader's findings into the orchestrator's system prompt so they carry full weight.",
+        "explanation": "The system prompt carries operator authority. Putting web-derived text there gives any injected instruction the most weight, not the least."
+      }
+    ],
+    "correct": [
+      "B",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "https://code.claude.com/docs/en/agent-sdk/secure-deployment"
+    ]
   }
 ]

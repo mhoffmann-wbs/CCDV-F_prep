@@ -1,6 +1,6 @@
 export const meta = {
   skillId: '6.3',
-  updated: '2026-10-20',
+  updated: '2026-10-27',
   tldr: 'Get structure from structured outputs or strict tools, check stop_reason before you parse, validate both shape and meaning, and never treat confident, well-formed output as proof that it is correct.',
   links: [
     { title: 'Structured outputs', url: 'https://platform.claude.com/docs/en/build-with-claude/structured-outputs' },
@@ -32,7 +32,7 @@ Constrained decoding guarantees **schema shape**, with documented exceptions:
 - **`stop_reason: "refusal"`**: the refusal takes precedence and the output may not match the schema.
 - **`stop_reason: "max_tokens"`**: the JSON may be cut off. Retry with a higher limit.
 - **Enum casing** isn't guaranteed. Compare enum values case-insensitively.
-- **Unsupported constraints** (`minimum`, `maxLength` and similar) are removed from the schema Claude sees. The validating SDK helpers still enforce them client-side. A raw schema doesn't, so check them yourself.
+- **Unsupported constraints** (`minimum`, `maxLength` and similar): a raw schema that contains them is rejected with a 400. Most SDK helpers strip them from the schema Claude sees, note them in the field description and, if the helper validates, enforce them on the response client-side. Otherwise, check them yourself.
 - It guarantees nothing about whether the **values are true**.
 
 ### 3. Defensive parsing

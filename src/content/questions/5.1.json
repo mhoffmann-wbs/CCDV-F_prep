@@ -872,5 +872,196 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations"
     ]
+  },
+  {
+    "id": "q-5.1-025",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "A replay-review prompt asks Claude to output a one-word verdict first (\"Overturn\" or \"Stand\") and then explain its reasoning. Reviewers notice that the explanation sometimes argues for the opposite of the verdict printed above it. Thinking is not surfaced, and the team wants the visible reasoning and the verdict to agree. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep the order but add an instruction telling Claude to make the explanation match the verdict.",
+        "explanation": "The verdict is already written before any of the visible reasoning exists, so the instruction can only bend the explanation to fit a choice made without it. It hides the inconsistency instead of fixing it."
+      },
+      {
+        "id": "B",
+        "text": "Run the request twice and keep the verdict only when both runs agree on the same final answer.",
+        "explanation": "Agreement between two runs says nothing about whether the verdict follows from the reasoning. It doubles cost and still prints a verdict chosen before its explanation."
+      },
+      {
+        "id": "C",
+        "text": "Ask for the reasoning first and the verdict last, so the verdict is generated after the analysis.",
+        "explanation": "Correct. Claude generates tokens one at a time, each conditioned on what came before. A verdict written first cannot draw on reasoning that comes after it; putting the analysis first lets the verdict build on it."
+      },
+      {
+        "id": "D",
+        "text": "Lower the effort level so the model writes a shorter explanation that is less likely to drift away.",
+        "explanation": "Lower effort makes answers terser, but it doesn't change the order of generation. The verdict would still be committed before the reasoning that should support it."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/glossary",
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+    ]
+  },
+  {
+    "id": "q-5.1-026",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "A season-long fantasy coaching chat works well for the first weeks, but conversations that have run since preseason now fail with a 400 error saying the prompt is too long. Each new message is short. A developer is puzzled because \"Claude remembers the chat on its side\". Which explanation and fix best fit?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The API is stateless, so the app resends the whole history each turn; summarize or compact older turns.",
+        "explanation": "Correct. The model keeps nothing between requests. The client sends the full conversation every time, so the input grows with each turn until it exceeds the window. Compacting or summarizing older turns keeps the input within limits."
+      },
+      {
+        "id": "B",
+        "text": "The server-side memory for the conversation is full; start a new API session to clear it.",
+        "explanation": "There is no server-side conversation memory to fill or clear in the Messages API. The size comes from the history the client sends on every request."
+      },
+      {
+        "id": "C",
+        "text": "Each short message is padded to a fixed token size; send fewer, longer user messages instead.",
+        "explanation": "Messages are not padded to a fixed size. The growth comes from resending every earlier turn, including Claude's own long replies."
+      },
+      {
+        "id": "D",
+        "text": "Prompt caching has expired on the old turns; enable caching again so they stop counting toward the limit.",
+        "explanation": "Caching changes the price of repeated input, not its size. Cached tokens still occupy the context window, so the request would still be too long."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "https://platform.claude.com/docs/en/build-with-claude/compaction"
+    ]
+  },
+  {
+    "id": "q-5.1-027",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "A team compares two prompt versions for a game-preview writer. They run each of 20 test cases once, and the new prompt wins by two cases, so they plan to ship it. Nothing else about the requests changed. What is the most important flaw in this evaluation?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The test should have set temperature to 0 so that both prompts produce repeatable outputs.",
+        "explanation": "Even at temperature 0 outputs were never fully deterministic, and current models reject sampling parameters. The fix has to come from the evaluation design."
+      },
+      {
+        "id": "B",
+        "text": "Twenty cases is too many to judge; a smaller, hand-picked set would make the difference between prompts easier to see.",
+        "explanation": "A smaller, hand-picked set makes chance and selection bias worse, not better. The problem is that each case was sampled only once."
+      },
+      {
+        "id": "C",
+        "text": "The new prompt should have been tested on a different model so that its effect is isolated.",
+        "explanation": "Changing the model at the same time would mix two variables. Keeping the model fixed was right; the missing part is repeated trials."
+      },
+      {
+        "id": "D",
+        "text": "Outputs vary between identical requests, so each case needs several runs before a small gap means anything.",
+        "explanation": "Correct. Generation samples from a probability distribution, so the same request can score differently on another run. A two-case gap from single runs may be noise; running each case several times shows whether the improvement is real."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/glossary",
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-5.1-028",
+    "skillId": "5.1",
+    "difficulty": 3,
+    "stem": "A play-explainer route on a current model sets max_tokens to 600 because the visible answers are always short. On hard questions at high effort, some responses end with stop_reason \"max_tokens\" and contain little or no visible text. The team wants complete answers on those questions. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add an instruction asking Claude to keep its answer under 600 tokens so it finishes in time.",
+        "explanation": "The visible answer is already short. The cap is being consumed before the answer is written, so asking for a short answer doesn't free up the budget that is running out."
+      },
+      {
+        "id": "B",
+        "text": "Raise max_tokens to leave room for thinking, since thinking tokens count against the same cap.",
+        "explanation": "Correct. max_tokens is the hard limit for everything the model generates, thinking included. At high effort on hard questions, thinking can use most of a 600-token cap; more headroom (or lower effort where quality allows) lets the answer finish."
+      },
+      {
+        "id": "C",
+        "text": "Switch the route to fast mode so that the full response is generated before the cap is reached.",
+        "explanation": "Fast mode raises output speed, not the token budget. The same number of tokens would be generated, just sooner, and the cap would still cut them off."
+      },
+      {
+        "id": "D",
+        "text": "Retry each truncated response automatically, because a second attempt usually thinks less.",
+        "explanation": "A retry has the same cap and the same hard question, so it is likely to stop the same way. It adds cost without addressing why the cap is reached."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "https://platform.claude.com/docs/en/build-with-claude/effort"
+    ]
+  },
+  {
+    "id": "q-5.1-029",
+    "skillId": "5.1",
+    "difficulty": 2,
+    "stem": "An agent for a scouting department hits context-window limits much sooner than its developer predicted. The estimate counted only the user's messages and the attached scouting reports. Which three also take up space in the context window? (Select THREE.)",
+    "selectCount": 3,
+    "options": [
+      {
+        "id": "A",
+        "text": "The tool definitions sent with each request",
+        "explanation": "Correct. Tool names, descriptions and schemas are part of the input and occupy the window on every request."
+      },
+      {
+        "id": "B",
+        "text": "The HTTP headers, such as the API key and the API version",
+        "explanation": "Headers carry authentication and versioning for the HTTP request. They are not part of the prompt and don't consume tokens in the context window."
+      },
+      {
+        "id": "C",
+        "text": "Tool results from earlier turns that are resent in the history",
+        "explanation": "Correct. The full history, including every earlier tool result, is sent again with each request and counts toward the window."
+      },
+      {
+        "id": "D",
+        "text": "The facts the model learned during training about the league",
+        "explanation": "Training knowledge lives in the model's weights, not in the request. It doesn't consume any of the context window."
+      },
+      {
+        "id": "E",
+        "text": "The thinking and text the model generates in its response",
+        "explanation": "Correct. The window covers output as well as input, and thinking is part of the output, so a long response reduces the room left."
+      },
+      {
+        "id": "F",
+        "text": "The system prompt, but only on the first turn of a conversation",
+        "explanation": "The system prompt is sent and counted on every request, not just the first. The API keeps no state between turns."
+      }
+    ],
+    "correct": [
+      "A",
+      "C",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-windows"
+    ]
   }
 ]

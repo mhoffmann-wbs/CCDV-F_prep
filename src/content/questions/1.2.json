@@ -835,5 +835,189 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/managed-agents/overview"
     ]
+  },
+  {
+    "id": "q-1.2-024",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "A team's Agent SDK scouting agent needs to call an existing Python function, `get_snap_counts(player_id)`, that queries the club's stats database. The team doesn't want to run a separate server process or publish a new network endpoint for it. Which approach fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Paste the database connection string into the system prompt so Claude can query it with Bash",
+        "explanation": "This puts a secret into the model's context and relies on ad-hoc shell commands instead of a defined tool."
+      },
+      {
+        "id": "B",
+        "text": "Wrap the function in a small HTTP service and let the agent call it with the WebFetch tool",
+        "explanation": "That adds the separate process and network endpoint the team wanted to avoid."
+      },
+      {
+        "id": "C",
+        "text": "Switch to the client SDK's Tool Runner, because the Agent SDK can't run custom tools",
+        "explanation": "The Agent SDK does support custom tools, so there is no need to give up its harness and built-in tools."
+      },
+      {
+        "id": "D",
+        "text": "Define it with the SDK's tool helper and pass it to `mcpServers` in an in-process MCP server",
+        "explanation": "Correct. The Agent SDK's in-process MCP server (`createSdkMcpServer` / `create_sdk_mcp_server`) runs inside the application, so the function becomes a tool with no extra process or endpoint."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/custom-tools",
+      "https://code.claude.com/docs/en/agent-sdk/mcp"
+    ]
+  },
+  {
+    "id": "q-1.2-025",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "A headless Agent SDK agent that reviews scouting notes should only ever read files. The team set `allowedTools: [\"Read\", \"Grep\", \"Glob\"]` together with `permissionMode: \"bypassPermissions\"` so it never stops for a prompt. In a test, it ran a Bash command that deleted a temp folder. Which change best enforces read-only behavior?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep the setup and add a system-prompt rule that the agent must never use Bash or Write",
+        "explanation": "A prompt is a request, not a control. The bypass mode would still approve any Bash call the model makes."
+      },
+      {
+        "id": "B",
+        "text": "Add Bash to `allowedTools` with an empty pattern so it matches no commands",
+        "explanation": "Allow rules only pre-approve calls; they never block anything. Unmatched calls still fall through to the permission mode."
+      },
+      {
+        "id": "C",
+        "text": "Keep `allowedTools` but set the mode to `dontAsk` so unlisted tool calls are denied",
+        "explanation": "Correct. `allowedTools` only pre-approves the listed tools, and `bypassPermissions` approves everything else. With `dontAsk`, any call that would need approval is denied instead, which gives a fixed, read-only tool surface."
+      },
+      {
+        "id": "D",
+        "text": "Switch the mode to `acceptEdits` so file changes are still auto-approved but shell is not",
+        "explanation": "`acceptEdits` auto-approves edits and filesystem commands such as `rm`, the opposite of a read-only agent."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/permissions"
+    ]
+  },
+  {
+    "id": "q-1.2-026",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "A club runs a Managed Agents agent that drafts contract summaries. It needs the current cap figure from an internal payroll service that is reachable only from the club's own backend, which already holds the service's credentials. The club doesn't want to operate any sandbox infrastructure. Which approach fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Define a custom tool; the backend runs the payroll call and returns a custom tool result",
+        "explanation": "Correct. Managed Agents never runs a custom tool itself. The session emits a custom tool use event, the club's backend makes the call inside its network and sends the result back, so the service stays private and no sandbox is needed."
+      },
+      {
+        "id": "B",
+        "text": "Expose the payroll service on the internet and let the agent call it from bash with a token",
+        "explanation": "This opens an internal service to the internet only so the cloud sandbox can reach it, which the constraint is meant to avoid."
+      },
+      {
+        "id": "C",
+        "text": "Move tool execution to a self-hosted sandbox environment inside the club's network",
+        "explanation": "That would reach the service, but it means running environment workers, the sandbox infrastructure the club doesn't want."
+      },
+      {
+        "id": "D",
+        "text": "Copy the payroll figures into the agent's system prompt each morning before sessions start",
+        "explanation": "Figures in the prompt go stale during the day, and every config change creates a new agent version."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/managed-agents/tools",
+      "https://platform.claude.com/docs/en/managed-agents/overview"
+    ]
+  },
+  {
+    "id": "q-1.2-027",
+    "skillId": "1.2",
+    "difficulty": 3,
+    "stem": "An Agent SDK app checks every Bash command against a blocklist inside its `canUseTool` callback. To cut down on prompts, a developer added `Bash` to `allowedTools`. An audit later finds commands that ran without ever reaching the callback. The check must run on every Bash call from now on. Which change fits best?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Switch to `bypassPermissions`, since it routes every call through `canUseTool` first",
+        "explanation": "It does the opposite: `bypassPermissions` approves calls before the callback is consulted, so even fewer would reach it."
+      },
+      {
+        "id": "B",
+        "text": "Repeat the blocklist in the system prompt so Claude avoids those commands",
+        "explanation": "The model may still issue a blocked command. A prompt can't guarantee that a check runs."
+      },
+      {
+        "id": "C",
+        "text": "Add a `PostToolUse` hook on Bash that logs each command after it has run",
+        "explanation": "A post-hook sees the command only after it has executed, too late to block it."
+      },
+      {
+        "id": "D",
+        "text": "Move the blocklist check into a `PreToolUse` hook that matches the Bash tool",
+        "explanation": "Correct. Calls approved by an allow rule skip `canUseTool`. Hooks run first in the permission flow, before allow rules and modes, so a `PreToolUse` deny applies to every Bash call."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/permissions",
+      "https://code.claude.com/docs/en/agent-sdk/hooks"
+    ]
+  },
+  {
+    "id": "q-1.2-028",
+    "skillId": "1.2",
+    "difficulty": 2,
+    "stem": "A sports-data company self-hosts the Agent SDK for two workloads. First, a stat-correction job that runs once per game, fixes the box score and ends. Second, a Slack bot that answers coaches all day with steady traffic. Which TWO hosting choices fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run each stat-correction job in its own container that is created for the task and destroyed when it ends.",
+        "explanation": "Correct. One-off tasks suit ephemeral sessions: a container per task, a turn cap, and nothing to keep running between games."
+      },
+      {
+        "id": "B",
+        "text": "Keep a warm long-running container for the stat-correction job so it is ready whenever a game ends.",
+        "explanation": "A job that runs once per game would leave the container idle almost all the time, paying for capacity it doesn't use."
+      },
+      {
+        "id": "C",
+        "text": "Serve the Slack bot from long-running containers that hold sessions open and pin each session to one container.",
+        "explanation": "Correct. Continuous message streams suit long-running sessions; routing each session to the same container keeps its subprocess and state warm."
+      },
+      {
+        "id": "D",
+        "text": "Start a fresh container for every Slack message and discard it afterwards, without any session store.",
+        "explanation": "Each message would lose the conversation so far, because transcripts on local disk vanish with the container."
+      },
+      {
+        "id": "E",
+        "text": "Run both workloads for all clubs in one shared container with default settings loading.",
+        "explanation": "Default settings loading reads CLAUDE.md and settings from disk, so clubs sharing a container could see each other's context."
+      }
+    ],
+    "correct": [
+      "A",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/hosting"
+    ]
   }
 ]

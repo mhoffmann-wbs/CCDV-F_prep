@@ -622,5 +622,153 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
     ]
+  },
+  {
+    "id": "q-6.1-018",
+    "skillId": "6.1",
+    "difficulty": 2,
+    "stem": "A lead scouting agent built on the Agent SDK spends an hour with the coach agreeing which six formations to chart and which two games to skip. It then delegates the film breakdown to a subagent with the prompt \"Chart the opponent's formations.\" The subagent charts every game and every formation, ignoring what was agreed. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Raise the subagent's maxTurns so it has time to find the agreed decisions.",
+        "explanation": "More turns don't help. A subagent starts with a fresh context and never sees the parent's conversation, so there is nothing for it to find."
+      },
+      {
+        "id": "B",
+        "text": "Give the subagent the same tools as the lead agent so it can read the session.",
+        "explanation": "Tools control what the subagent can do, not what it knows. The parent's history and tool results are not part of a subagent's context."
+      },
+      {
+        "id": "C",
+        "text": "Put the agreed formation list and the games to skip in the delegation prompt.",
+        "explanation": "Correct. The delegation prompt is the only content passed from parent to subagent, so decisions the subagent needs must be written into it. Its film reading still stays isolated in its own context."
+      },
+      {
+        "id": "D",
+        "text": "Move the film breakdown back into the lead agent so it sees the full history.",
+        "explanation": "This would follow the decisions, but it gives up the reason for delegating: hours of film output would land in the lead agent's context and bloat it."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/subagents"
+    ]
+  },
+  {
+    "id": "q-6.1-019",
+    "skillId": "6.1",
+    "difficulty": 3,
+    "stem": "A roster-management agent uses on-demand compaction. During each session the general manager and the agent build up, across many turns, a list of player IDs to move to injured reserve. After a compaction, the summary says only that \"several players are moving to IR\", and later turns fail because the IDs are gone. The list is different in every session. Which fix best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use a custom summarization prompt that requires the IR player IDs to be kept verbatim.",
+        "explanation": "Correct. When the default summary drops something later turns need, you can write your own summarization prompt. It replaces the default one, so it should also ask for whatever else the session needs to continue."
+      },
+      {
+        "id": "B",
+        "text": "Raise the compaction threshold so that compaction happens later in each session.",
+        "explanation": "This only delays the loss. The next summary drops the IDs the same way, and the longer history adds context rot in the meantime."
+      },
+      {
+        "id": "C",
+        "text": "Replace compaction with tool-result clearing so that nothing gets summarized at all.",
+        "explanation": "Context editing clears old tool results and thinking. The list is built in the conversation turns, which keep growing toward the limit, so the session still needs compaction."
+      },
+      {
+        "id": "D",
+        "text": "After each compaction, append the full earlier transcript behind the compaction block.",
+        "explanation": "Re-adding the transcript undoes the compaction: the request is as large as before and the context is no smaller."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/compaction",
+      "https://platform.claude.com/docs/en/build-with-claude/compaction-on-demand"
+    ]
+  },
+  {
+    "id": "q-6.1-020",
+    "skillId": "6.1",
+    "difficulty": 2,
+    "stem": "A free-agency research agent runs dozens of searches per session and has tool-result clearing enabled. Clearing keeps the context small, but by the time it writes the final report, the agent has lost contract figures it found early on, so it runs the same searches again. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Turn off tool-result clearing so that every search result stays available.",
+        "explanation": "This brings back the bloat that clearing was solving. Dozens of full search results would fill the context with mostly stale material."
+      },
+      {
+        "id": "B",
+        "text": "Add the search tool to exclude_tools so that its results are never cleared.",
+        "explanation": "Search is the agent's main tool, so excluding it would stop nearly all clearing. That option suits a single result that must persist, not dozens."
+      },
+      {
+        "id": "C",
+        "text": "Set clear_tool_inputs to true so that the cleared calls take up less space.",
+        "explanation": "This clears the tool call parameters as well as the results. It removes more context, not less, and does nothing to keep the figures."
+      },
+      {
+        "id": "D",
+        "text": "Enable the memory tool so Claude saves key findings to memory before results are cleared.",
+        "explanation": "Correct. Used with context editing, Claude is warned as context nears the clearing threshold and can save what matters to memory files, so the facts survive the clearing."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool"
+    ]
+  },
+  {
+    "id": "q-6.1-021",
+    "skillId": "6.1",
+    "difficulty": 2,
+    "stem": "A long-running play-design agent with thinking enabled runs for hundreds of turns. Token counting shows that most of each request is thinking blocks from earlier assistant turns and the results of file reads it no longer needs. Which TWO context-editing settings target these two sources? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use clear_thinking_20251015 with keep set to the last few thinking turns.",
+        "explanation": "Correct. This strategy manages thinking blocks from earlier assistant turns. Its keep setting preserves the most recent ones and clears the rest."
+      },
+      {
+        "id": "B",
+        "text": "Use clear_tool_uses_20250919 with a trigger and a keep count of recent tool uses.",
+        "explanation": "Correct. Once the trigger is passed, old tool results are cleared and replaced with placeholders, while the most recent uses stay intact."
+      },
+      {
+        "id": "C",
+        "text": "Raise max_tokens so that the growing history fits into each request.",
+        "explanation": "max_tokens caps the length of the response, not the input. It does nothing about old thinking or stale tool results."
+      },
+      {
+        "id": "D",
+        "text": "Turn thinking off for the rest of the session once the history gets long.",
+        "explanation": "Blocks already in the history stay there, and reasoning quality drops. Some current models also reject requests that disable thinking."
+      },
+      {
+        "id": "E",
+        "text": "Move to a model with a larger context window so the history has more room.",
+        "explanation": "A bigger window is a limit, not a fix. The stale tokens still dilute attention and still cost money on every request."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/context-editing"
+    ]
   }
 ]

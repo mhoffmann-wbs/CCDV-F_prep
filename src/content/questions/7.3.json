@@ -392,5 +392,40 @@
     "sourceLinks": [
       "https://code.claude.com/docs/en/hooks"
     ]
+  },
+  {
+    "id": "q-7.3-012",
+    "skillId": "7.3",
+    "difficulty": 3,
+    "stem": "A team connects Claude Code to an MCP server named `roster`, which exposes read tools and several destructive tools whose names start with `delete_`. Claude must never run any of the delete tools. An engineer adds a PreToolUse hook with the matcher `mcp__roster` that returns a deny decision, but in testing the hook never fires and a player record is deleted. Which fix works?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Keep the `mcp__roster` matcher and make the hook exit with code 1 so the failure blocks the call.",
+        "explanation": "Exit code 1 is a non-blocking error, so the call would proceed anyway. The real problem is that the matcher never matches, so the hook doesn't run at all."
+      },
+      {
+        "id": "B",
+        "text": "Change the matcher to `mcp__roster__delete_.*` so the hook fires on each delete tool and denies it.",
+        "explanation": "Correct. MCP tools are named `mcp__<server>__<tool>`, and a matcher made only of plain name characters is compared as an exact string, so `mcp__roster` matches no tool. A regex covering the delete tools makes the PreToolUse deny apply."
+      },
+      {
+        "id": "C",
+        "text": "Move the hook to PostToolUse with a `mcp__roster__.*` matcher and exit 2 whenever a delete ran.",
+        "explanation": "PostToolUse runs after the tool has executed. Exiting 2 there only sends feedback to Claude; the record is already deleted."
+      },
+      {
+        "id": "D",
+        "text": "Set the matcher to `Bash`, since Claude Code runs MCP tools through the shell, and deny delete calls.",
+        "explanation": "MCP tool calls are their own tools, not Bash commands. A Bash matcher would never see them."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/hooks"
+    ]
   }
 ]

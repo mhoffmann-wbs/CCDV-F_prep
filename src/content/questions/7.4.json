@@ -435,5 +435,76 @@
       "https://code.claude.com/docs/en/settings",
       "https://code.claude.com/docs/en/authentication"
     ]
+  },
+  {
+    "id": "q-7.4-013",
+    "skillId": "7.4",
+    "difficulty": 2,
+    "stem": "An audit finds that a production highlights service authenticates with a legacy workspace API key. The key never expires, and nobody can say who created it. The service runs on the club's own servers, with no identity provider that Workload Identity Federation could use. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Create a service account, issue it a key for that workspace, deploy it, then delete the old key.",
+        "explanation": "Correct. A service account key gives the unattended workload its own managed identity, so the key stops working when that identity is archived. Deploying the new key before deleting the old one avoids downtime."
+      },
+      {
+        "id": "B",
+        "text": "Replace it with the tech lead's personal key, so the key is tied to a person the club can name.",
+        "explanation": "A personal key acts as one person and stops working when they leave. Shared or automated workloads should have their own service account identity."
+      },
+      {
+        "id": "C",
+        "text": "Keep the workspace key but edit it to add a 90-day expiration, so a leaked copy stops working.",
+        "explanation": "Expiration is chosen when a key is created and cannot be changed afterwards. The key would also remain ownerless, which is the audit finding."
+      },
+      {
+        "id": "D",
+        "text": "Keep the workspace key and record the tech lead as its owner in the club's internal docs.",
+        "explanation": "A note in documentation changes nothing about the key. It still belongs to no identity and outlives anyone who leaves."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/manage-claude/authentication"
+    ]
+  },
+  {
+    "id": "q-7.4-014",
+    "skillId": "7.4",
+    "difficulty": 2,
+    "stem": "A club is building an iOS app in which fans ask Claude about game stats. The team does not want to run a back end or a proxy, and the app must not contain an API key, because any key in an app bundle can be extracted. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use App Attest, so genuine installs of the registered app get short-lived workspace tokens.",
+        "explanation": "Correct. App Attest proves each installation is a genuine build of the registered app and issues a short-lived token limited to the Messages API, so no key ships in the app. Tokens identify the app, not the fan, so per-user limits stay in the app."
+      },
+      {
+        "id": "B",
+        "text": "Ship a personal API key with a 7-day expiration and publish an app update with a new key weekly.",
+        "explanation": "The key is still in the bundle and can be extracted. Anyone who does so gets a week of access billed to the club, and old app versions would break."
+      },
+      {
+        "id": "C",
+        "text": "Obfuscate the API key inside the app bundle and rotate it whenever workspace usage looks unusual.",
+        "explanation": "Obfuscation slows extraction but does not prevent it. A key on the device is a key an attacker can recover."
+      },
+      {
+        "id": "D",
+        "text": "Use Workload Identity Federation, with each fan's phone exchanging an OIDC token for access.",
+        "explanation": "Federation is for workloads that already have a platform-issued identity, such as cloud services, CI jobs or Kubernetes pods. For apps distributed to end users on iOS or macOS, the documented option is App Attest."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/manage-claude/app-attest",
+      "https://platform.claude.com/docs/en/manage-claude/authentication"
+    ]
   }
 ]

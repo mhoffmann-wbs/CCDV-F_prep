@@ -468,5 +468,82 @@
       "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
       "https://www.anthropic.com/research/writing-tools-for-agents"
     ]
+  },
+  {
+    "id": "q-8.2-014",
+    "skillId": "8.2",
+    "difficulty": 2,
+    "stem": "A league MCP server should let coordinators attach any club's current roster to a conversation as read-only context, choosing the club from a picker in the host app. The league has 32 clubs, and rosters change every week. Which design best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Register 32 direct resources, one fixed URI per club, and keep that list in sync by hand.",
+        "explanation": "This works, but it repeats one definition 32 times and must be maintained as the league changes. A parameterized URI expresses the same thing once."
+      },
+      {
+        "id": "B",
+        "text": "Expose a get_roster tool so Claude fetches a roster whenever it decides that one is needed.",
+        "explanation": "Tools are model-controlled: Claude decides when to call them. The requirement is that the coordinator picks the roster in the host app and attaches it as context."
+      },
+      {
+        "id": "C",
+        "text": "Expose a roster prompt that takes the club as an argument and returns the roster as text.",
+        "explanation": "Prompts are user-invoked templates for instructions and workflows. Read-only data that the application attaches as context is what resources are for."
+      },
+      {
+        "id": "D",
+        "text": "Expose a resource template such as league://teams/{team}/roster, with team completion.",
+        "explanation": "Correct. Resource templates are parameterized URIs for application-controlled, read-only context. Hosts discover them with resources/templates/list, can offer completion for the team argument, and read the current roster when it's attached."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://modelcontextprotocol.io/docs/learn/server-concepts"
+    ]
+  },
+  {
+    "id": "q-8.2-015",
+    "skillId": "8.2",
+    "difficulty": 3,
+    "stem": "An MCP server's book_practice_field tool finds that the requested slot is taken, and the coach must choose one of two open slots before it can continue. Separately, booking requires the coach to connect their own account at a third-party field-rental service. Which approaches follow the MCP specification? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Collect the rental service's password with a form-mode elicitation and store it on the server.",
+        "explanation": "The spec forbids this: servers must not use form mode to request passwords, API keys, access tokens or payment credentials, because form data passes through the client."
+      },
+      {
+        "id": "B",
+        "text": "Send a form-mode elicitation whose schema offers the two open slots as an enum to choose from.",
+        "explanation": "Correct. Form-mode elicitation lets a server ask the user for structured, non-sensitive input in the middle of a tool call. The server must also handle the coach declining or cancelling."
+      },
+      {
+        "id": "C",
+        "text": "Return isError: true and let Claude pick whichever slot it thinks the coach would prefer.",
+        "explanation": "The requirement is that the coach chooses. An error result hands the decision to the model instead of asking the user."
+      },
+      {
+        "id": "D",
+        "text": "Send a URL-mode elicitation so that the coach authorizes the rental service outside the client.",
+        "explanation": "Correct. URL mode sends the user to a page outside the MCP client for sensitive steps such as third-party authorization. The server stores the resulting credentials itself, bound to the user, and never passes them to the client."
+      },
+      {
+        "id": "E",
+        "text": "Forward the coach's access token for this MCP server to the rental service on each booking.",
+        "explanation": "This is token passthrough, which the spec forbids. A token issued for the MCP server must not be used to call other services."
+      }
+    ],
+    "correct": [
+      "B",
+      "D"
+    ],
+    "sourceLinks": [
+      "https://modelcontextprotocol.io/specification/latest/client/elicitation",
+      "https://modelcontextprotocol.io/specification/latest/basic/authorization"
+    ]
   }
 ]

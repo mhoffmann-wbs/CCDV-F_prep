@@ -574,5 +574,152 @@
       "https://code.claude.com/docs/en/permissions",
       "https://code.claude.com/docs/en/settings"
     ]
+  },
+  {
+    "id": "q-2.6-017",
+    "skillId": "2.6",
+    "difficulty": 2,
+    "stem": "A developer keeps personal notes for a repository, such as her local test database URL and preferred test flags, in a gitignored CLAUDE.local.md. She now works in three git worktrees of the repository, and Claude only knows the notes in the first one. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move the notes into the shared CLAUDE.md, so that every worktree picks them up",
+        "explanation": "This commits personal settings for the whole team to see and use, which is what CLAUDE.local.md avoids."
+      },
+      {
+        "id": "B",
+        "text": "Copy CLAUDE.local.md into each worktree by hand whenever she changes it",
+        "explanation": "Manual copies drift apart over time, so the worktrees end up with different notes."
+      },
+      {
+        "id": "C",
+        "text": "Keep the notes in a file under `~/.claude/` and pull it in with an `@~/...` import",
+        "explanation": "Correct. A gitignored local file exists only in one worktree. Importing a file from the home directory gives every worktree the same notes."
+      },
+      {
+        "id": "D",
+        "text": "Put the notes in the project's committed `.claude/settings.json` under a custom key",
+        "explanation": "Settings files hold configuration, not instructions, and this one is shared with the team."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/memory"
+    ]
+  },
+  {
+    "id": "q-2.6-018",
+    "skillId": "2.6",
+    "difficulty": 2,
+    "stem": "A repository's committed `.claude/settings.json` allows `Bash(npm test *)`. A developer adds an allow rule for `Bash(npm run lint)` to her user settings, expecting it to replace the project's list. She is surprised that Claude can still run `npm test` without asking. What explains this?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "List settings such as `permissions.allow` merge across settings files, so both rules apply",
+        "explanation": "Correct. Claude Code combines lists from each scope instead of letting one file's list replace another's."
+      },
+      {
+        "id": "B",
+        "text": "User settings rank below project settings, so her user file is ignored entirely",
+        "explanation": "Her user settings are still read. Lists from both files combine rather than one file winning."
+      },
+      {
+        "id": "C",
+        "text": "Allow rules are cached for the session, so her change only applies after a restart",
+        "explanation": "Caching isn't the issue. Even after a restart, both allow rules would apply."
+      },
+      {
+        "id": "D",
+        "text": "Project settings override keys by name, so only the project's allow list is ever read and the user list is dropped",
+        "explanation": "List keys aren't overridden by name. They are merged across scopes."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/settings"
+    ]
+  },
+  {
+    "id": "q-2.6-019",
+    "skillId": "2.6",
+    "difficulty": 2,
+    "stem": "A company wants its Claude Code users to choose only Sonnet and Haiku models, with no way to pick Opus or Fable through `/model`, `--model` or their own settings files. Which configuration best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Set `model` to a Sonnet model in the committed project settings of every repository",
+        "explanation": "A `model` setting is only a starting default. Users can still switch with `/model` or `--model`."
+      },
+      {
+        "id": "B",
+        "text": "Ask developers to add an allowlist of approved models to their own user settings",
+        "explanation": "Users control their own settings, so they could edit or remove the list."
+      },
+      {
+        "id": "C",
+        "text": "Set `ANTHROPIC_MODEL` to a Sonnet model in every developer's shell profile",
+        "explanation": "An environment variable picks a default but doesn't stop anyone from choosing another model."
+      },
+      {
+        "id": "D",
+        "text": "Set `availableModels` in managed settings to the allowed model families",
+        "explanation": "Correct. A managed `availableModels` allowlist applies wherever users choose a model, and their own settings can't extend it."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/model-config",
+      "https://code.claude.com/docs/en/settings"
+    ]
+  },
+  {
+    "id": "q-2.6-020",
+    "skillId": "2.6",
+    "difficulty": 2,
+    "stem": "A developer starts Claude Code at the root of a monorepo. The root has a CLAUDE.md, and `services/billing/` and `services/scouting/` each have their own CLAUDE.md. Which TWO statements about how these files load are accurate? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "The root CLAUDE.md loads at launch, because it is in the working directory",
+        "explanation": "Correct. CLAUDE.md files in the working directory and the directories above it load at launch."
+      },
+      {
+        "id": "B",
+        "text": "`services/scouting/CLAUDE.md` loads once Claude reads or edits a file in `services/scouting/`",
+        "explanation": "Correct. CLAUDE.md files in subdirectories load on demand, when Claude works with files there."
+      },
+      {
+        "id": "C",
+        "text": "All three files load at launch, because they belong to the same repository",
+        "explanation": "Subdirectory files aren't loaded at launch. They wait until Claude works in that directory."
+      },
+      {
+        "id": "D",
+        "text": "The nearest CLAUDE.md replaces the root one, so only one file is ever in context",
+        "explanation": "Files at different levels add to each other. A nested file doesn't replace the root file."
+      },
+      {
+        "id": "E",
+        "text": "Subdirectory CLAUDE.md files are ignored unless the root CLAUDE.md imports them",
+        "explanation": "Claude Code discovers subdirectory CLAUDE.md files on its own, without any import."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/memory"
+    ]
   }
 ]

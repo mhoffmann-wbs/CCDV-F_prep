@@ -619,5 +619,155 @@
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
     ]
+  },
+  {
+    "id": "q-8.1-018",
+    "skillId": "8.1",
+    "difficulty": 2,
+    "stem": "A scouting assistant on the Messages API uses the web_search tool for deep research. On long requests, some responses come back with stop_reason \"pause_turn\" and no final answer, and the harness shows that partial response to the user as if it were finished. Which handling best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Send a new user message saying \"Please continue\" so that Claude picks up where it stopped.",
+        "explanation": "Not needed and not how the turn resumes. The API continues a paused turn from the paused assistant content itself; an extra user message turns it into a new request instead of finishing the old one."
+      },
+      {
+        "id": "B",
+        "text": "Treat pause_turn as a failure and retry the original request from scratch with more max_tokens.",
+        "explanation": "pause_turn is not an output-length cut-off. It means the server-side tool loop reached its iteration limit, so restarting throws away the searches already done and can pause again at the same point."
+      },
+      {
+        "id": "C",
+        "text": "Append the paused content as-is, resend it with the same tools, and cap the continuations.",
+        "explanation": "Correct. pause_turn means the server-side loop paused mid-turn. Sending the response back unchanged, with the same tools so any pending server tool can run, lets Claude finish; a turn can pause again, so cap the continuations as with any retry loop."
+      },
+      {
+        "id": "D",
+        "text": "Return a tool_result for each server_tool_use block so that the server loop can carry on.",
+        "explanation": "web_search is a server tool: Anthropic runs it and supplies the result blocks. The harness never writes tool_result blocks for server tools."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools",
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons"
+    ]
+  },
+  {
+    "id": "q-8.1-019",
+    "skillId": "8.1",
+    "difficulty": 2,
+    "stem": "A film-room agent's get_play_diagram tool renders a play as a PNG. The harness returns the image as a base64 string inside the tool_result's text, and Claude answers questions about the formation as if it had never seen the picture. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Describe typical diagrams in the tool's description so Claude knows what they usually show.",
+        "explanation": "A description says when and how to call the tool; it can't show Claude this particular play. Claude would still be guessing at the formation."
+      },
+      {
+        "id": "B",
+        "text": "Return the PNG as an image content block inside the tool_result's content list.",
+        "explanation": "Correct. A tool_result's content can be a list of blocks, including text, image and document blocks. An image block lets Claude actually see the rendered play, whereas a base64 string inside text is just characters to it."
+      },
+      {
+        "id": "C",
+        "text": "Upload the PNG to a public URL and have Claude read it with the web fetch tool.",
+        "explanation": "Web fetch handles text, HTML and PDF, not images, and publishing internal film-room material to a public URL creates a needless exposure."
+      },
+      {
+        "id": "D",
+        "text": "Wait for Claude's reply, then send the PNG as an image in the next user message.",
+        "explanation": "By then Claude has already answered without the diagram. The image belongs in the result of the call that produced it, in the same turn."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-fetch-tool"
+    ]
+  },
+  {
+    "id": "q-8.1-020",
+    "skillId": "8.1",
+    "difficulty": 3,
+    "stem": "A recap agent calls a publish_recap tool whose input holds a full game write-up. Now and then a recap goes live cut off mid-sentence. Logs show those responses ended with stop_reason \"max_tokens\" and a tool_use block as the last content block; the harness ran the tool because the input still parsed. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Set strict: true on publish_recap so that a truncated input can no longer reach the tool.",
+        "explanation": "Strict tool use guarantees the input matches the schema's shape. A write-up cut off mid-sentence is still a valid string, so strict mode can't tell it is incomplete."
+      },
+      {
+        "id": "B",
+        "text": "Return an is_error result saying the input was cut off, and let Claude call the tool again.",
+        "explanation": "The call was never finished, so answering it as if it ran misreads the problem. Claude would regenerate the input under the same output limit and is likely to be cut off again."
+      },
+      {
+        "id": "C",
+        "text": "Lower max_tokens so that Claude learns to keep the inputs of its tool calls shorter.",
+        "explanation": "A lower limit makes truncation more likely, not less. max_tokens is a hard cut-off Claude doesn't plan around, not a style instruction."
+      },
+      {
+        "id": "D",
+        "text": "Check stop_reason before running tools; on max_tokens, retry with a higher max_tokens.",
+        "explanation": "Correct. A response stopped by max_tokens can end in an incomplete tool_use block whose partial input still parses. The harness should not execute it, and should retry the request with a higher max_tokens to get the full call."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"
+    ]
+  },
+  {
+    "id": "q-8.1-021",
+    "skillId": "8.1",
+    "difficulty": 2,
+    "stem": "A roster agent can call release_player and sign_player. The league's cap system rejects a signing unless the matching release has already gone through, but Claude often requests both in one response and the harness runs them concurrently. When a release fails, the harness skips the signing and returns only the release's error, and the next request fails with a 400. Which changes best fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Set tool_choice to {\"type\": \"any\"} so that Claude has to make its calls one at a time.",
+        "explanation": "\"any\" forces Claude to call some tool; it doesn't limit how many. Forced tool use also returns a 400 on Claude Opus 5.5 and Sonnet 5.5."
+      },
+      {
+        "id": "B",
+        "text": "Add disable_parallel_tool_use: true as a top-level parameter of the Messages request.",
+        "explanation": "Right idea, wrong place. disable_parallel_tool_use is a field inside the tool_choice object, not a top-level request parameter."
+      },
+      {
+        "id": "C",
+        "text": "Run calls with side effects in order, and return an is_error result for any call you skip.",
+        "explanation": "Correct. The harness decides how to execute a batch of calls; dependent, side-effecting calls belong in sequence. A skipped call still needs a tool_result, marked is_error with a short reason such as \"not executed: release failed\"."
+      },
+      {
+        "id": "D",
+        "text": "Remove the skipped sign_player call from the history so that only completed calls remain.",
+        "explanation": "Editing Claude's earlier turn hides what it asked for and breaks the history's integrity. Answer the call with an error result instead."
+      },
+      {
+        "id": "E",
+        "text": "Set disable_parallel_tool_use: true inside tool_choice, so each response has at most one call.",
+        "explanation": "Correct. With tool_choice auto, this limits Claude to at most one tool call per response, so the release completes and is reported before Claude decides on the signing."
+      }
+    ],
+    "correct": [
+      "C",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"
+    ]
   }
 ]

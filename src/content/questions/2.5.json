@@ -1384,5 +1384,342 @@
       "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages"
     ]
+  },
+  {
+    "id": "q-2.5-039",
+    "skillId": "2.5",
+    "difficulty": 1,
+    "stem": "In an agentic coding tool built on a current Claude model, a developer types \"Can you suggest some improvements to this parser?\" Claude replies with a list of ideas but changes no files, though the developer expected edits. What best explains this, and what should the developer do?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Claude has no write permission by default, so the developer should grant edit permission in the project's settings file",
+        "explanation": "Nothing here points to a permissions problem. Claude chose to answer the question as asked."
+      },
+      {
+        "id": "B",
+        "text": "The effort level is too low for edits, so the developer should raise it to the maximum",
+        "explanation": "Effort controls how much Claude thinks, not whether it treats a request as asking for edits."
+      },
+      {
+        "id": "C",
+        "text": "Current models follow instructions precisely, so the developer should ask directly, such as \"Change this parser to...\"",
+        "explanation": "Correct. A request to suggest changes gets suggestions. Stating the action explicitly gets the edits."
+      },
+      {
+        "id": "D",
+        "text": "Claude only edits files at the start of a session, so the developer should run /clear and ask again",
+        "explanation": "Session state has nothing to do with it. The wording of the request decided the outcome."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices"
+    ]
+  },
+  {
+    "id": "q-2.5-040",
+    "skillId": "2.5",
+    "difficulty": 2,
+    "stem": "Two hours into a Claude Code session that is refactoring a stats importer, the context is nearly full. The developer wants to continue the same task, keeping the agreed column mappings and test commands, while dropping the long log output from earlier debugging. Which step best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run `/compact` with instructions such as \"Keep the column mappings and test commands\"",
+        "explanation": "Correct. Compaction summarizes the conversation, and focus instructions tell it what to preserve, so the task continues with less clutter."
+      },
+      {
+        "id": "B",
+        "text": "Run `/clear`, then paste the full transcript of the session back into the prompt",
+        "explanation": "Pasting the whole transcript back brings all the clutter with it, which defeats the point of clearing."
+      },
+      {
+        "id": "C",
+        "text": "Open a second session in the same checkout and continue the work in both at once",
+        "explanation": "Two sessions editing one checkout can overwrite each other, and the new one has none of the agreed decisions."
+      },
+      {
+        "id": "D",
+        "text": "Keep working, since Claude Code drops old messages without summarizing once the window is full",
+        "explanation": "Claude Code summarizes when it compacts rather than silently dropping messages, and waiting gives no say in what survives."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/costs"
+    ]
+  },
+  {
+    "id": "q-2.5-041",
+    "skillId": "2.5",
+    "difficulty": 2,
+    "stem": "A monorepo's CLAUDE.md has grown to 600 lines, and half of it is rules that apply only to the React front end under `web/`. Claude follows instructions less reliably, and backend sessions carry front-end rules they never use. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Move the front-end rules into a separate file and import it with an `@` line from the root CLAUDE.md",
+        "explanation": "Imported files load together with the file that imports them, so this tidies the file without cutting what is loaded."
+      },
+      {
+        "id": "B",
+        "text": "Shorten every rule to a single line, so the whole file fits in fewer tokens",
+        "explanation": "This trims some tokens but still loads front-end rules into every backend session."
+      },
+      {
+        "id": "C",
+        "text": "Pass the front-end rules with `--append-system-prompt` in every developer's sessions, so they are always applied",
+        "explanation": "This still puts the rules in every session, including backend ones, and moves them out of version-controlled memory."
+      },
+      {
+        "id": "D",
+        "text": "Move them into `.claude/rules/` files with a `paths` field matching `web/**`, so they load only for those files",
+        "explanation": "Correct. Path-scoped rules load only when Claude works with matching files, which keeps CLAUDE.md short and backend sessions clean."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/memory"
+    ]
+  },
+  {
+    "id": "q-2.5-042",
+    "skillId": "2.5",
+    "difficulty": 2,
+    "stem": "A team's Claude Code skill `/release` tags a version and publishes the package. Developers should run it on purpose, but Claude once started a release on its own after a developer mentioned \"getting this out the door\". Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Rename the skill to something that Claude is less likely to connect with releasing",
+        "explanation": "A name change only makes accidental triggering less likely. It doesn't stop Claude from invoking the skill."
+      },
+      {
+        "id": "B",
+        "text": "Set `disable-model-invocation: true` in the skill's frontmatter, so only a user can invoke it",
+        "explanation": "Correct. With this setting Claude can't start the skill on its own, while developers can still run `/release` themselves."
+      },
+      {
+        "id": "C",
+        "text": "Set `user-invocable: false`, so that the skill runs only at the moments when Claude decides it is needed",
+        "explanation": "This does the opposite. It hides the skill from users and leaves Claude free to invoke it."
+      },
+      {
+        "id": "D",
+        "text": "Add \"never release unless asked\" to the instructions in the skill's own body",
+        "explanation": "The body loads only once the skill is invoked, so the warning would arrive after the decision to run it."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/skills"
+    ]
+  },
+  {
+    "id": "q-2.5-043",
+    "skillId": "2.5",
+    "difficulty": 2,
+    "stem": "A structured-outputs schema for injury notes makes `expected_return_date` a required string. Many notes give no return date, and in those cases Claude fills in plausible dates that nobody wrote. Which schema change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Allow null for `expected_return_date` and say in its description to use null when the note gives no date",
+        "explanation": "Correct. The schema forced a value to exist. Allowing null lets Claude say the date is unknown instead of inventing one."
+      },
+      {
+        "id": "B",
+        "text": "Remove the field's description, so that Claude has less guidance to over-interpret",
+        "explanation": "Less guidance doesn't change the fact that the schema still demands a date in every response."
+      },
+      {
+        "id": "C",
+        "text": "Change the field to an integer number of days, so that Claude can no longer produce a made-up calendar date",
+        "explanation": "A required integer still has to be filled, so Claude would invent a number of days instead."
+      },
+      {
+        "id": "D",
+        "text": "Keep the schema as it is and add \"do not guess\" at the end of the user message",
+        "explanation": "The schema still requires a string in every response, which conflicts with the instruction not to guess."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools"
+    ]
+  },
+  {
+    "id": "q-2.5-044",
+    "skillId": "2.5",
+    "difficulty": 2,
+    "stem": "An Agent SDK agent triages a league office's inbox. It reads emails, opens attached PDFs, queries a third-party MCP server for news, and follows a system prompt written by the office's own engineers. Which THREE sources should the design treat as untrusted data that can't give instructions? (Select THREE.)",
+    "selectCount": 3,
+    "options": [
+      {
+        "id": "A",
+        "text": "The body of an email from an outside sender",
+        "explanation": "Correct. Anyone can send an email, so its text is data to analyze, never instructions to follow."
+      },
+      {
+        "id": "B",
+        "text": "Text extracted from a PDF attached to an email",
+        "explanation": "Correct. Attachments come from the same outside sender and can carry hidden instructions."
+      },
+      {
+        "id": "C",
+        "text": "Articles returned by the third-party news MCP server",
+        "explanation": "Correct. Content fetched from outside sources is a classic path for indirect prompt injection."
+      },
+      {
+        "id": "D",
+        "text": "The system prompt the office's engineers wrote and deployed",
+        "explanation": "This is the operator's own instruction channel, so it is meant to direct the agent."
+      },
+      {
+        "id": "E",
+        "text": "A rule the operator adds mid-conversation as a system message",
+        "explanation": "This is also an operator channel, used to add instructions without editing the original system prompt."
+      },
+      {
+        "id": "F",
+        "text": "The tool definitions the office's engineers wrote for the agent",
+        "explanation": "Tool definitions come from the operator and describe the agent's own capabilities."
+      }
+    ],
+    "correct": [
+      "A",
+      "B",
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "https://code.claude.com/docs/en/security"
+    ]
+  },
+  {
+    "id": "q-2.5-045",
+    "skillId": "2.5",
+    "difficulty": 2,
+    "stem": "In a Claude Code session, a developer has worked out a careful plan for migrating the play-by-play schema. She wants to try two different implementations from that same point, without either attempt polluting the other's history. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Run `claude --continue` in two terminals, so both terminals carry on the same session",
+        "explanation": "Both terminals would add to the same session, so the two attempts would mix in one history."
+      },
+      {
+        "id": "B",
+        "text": "Run `/compact` before each attempt, so that the two histories stay short",
+        "explanation": "Compaction shortens a single history. It doesn't create a separate branch for each attempt."
+      },
+      {
+        "id": "C",
+        "text": "Resume the session with `--fork-session` for each attempt, so each gets its own new session ID",
+        "explanation": "Correct. Forking starts a new session from the existing history, so both attempts share the plan but keep separate transcripts."
+      },
+      {
+        "id": "D",
+        "text": "Export the transcript and paste it into a new claude.ai chat for the second attempt",
+        "explanation": "A claude.ai chat lacks the repository tools and context of the Claude Code session, so the attempts aren't comparable."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/cli-reference",
+      "https://code.claude.com/docs/en/common-workflows"
+    ]
+  },
+  {
+    "id": "q-2.5-046",
+    "skillId": "2.5",
+    "difficulty": 1,
+    "stem": "A developer installs two Claude Code plugins that each contain a skill named `review`: one in the security team's plugin `security-kit`, one in the docs team's plugin `docs-kit`. She wants to run the security team's version. How does Claude Code tell them apart?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "The plugin installed last replaces the other plugin's `review` skill",
+        "explanation": "Plugins don't overwrite each other's components, because each one is scoped to its own plugin."
+      },
+      {
+        "id": "B",
+        "text": "Claude Code refuses to load the second plugin until one skill is renamed",
+        "explanation": "Matching component names across plugins are expected and don't block loading."
+      },
+      {
+        "id": "C",
+        "text": "She has to map `review` to one plugin with an alias in settings.json",
+        "explanation": "No alias is needed, because the plugin name already tells the two apart."
+      },
+      {
+        "id": "D",
+        "text": "Plugin components are namespaced by plugin name, so she runs `/security-kit:review`",
+        "explanation": "Correct. Every plugin component sits under its plugin's name, so same-named skills from different plugins don't collide."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/plugins-reference",
+      "https://code.claude.com/docs/en/plugins"
+    ]
+  },
+  {
+    "id": "q-2.5-047",
+    "skillId": "2.5",
+    "difficulty": 3,
+    "stem": "A team's internal Claude Code skill formats depth charts. It runs when developers call it by name, but Claude rarely uses it on its own when someone asks for depth-chart work. Which TWO changes are most likely to help Claude use it at the right time? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Rewrite the description to state what the skill does and when to use it, in the words developers actually use",
+        "explanation": "Correct. Claude decides whether to load a skill from its description, so the description must match how people phrase the request."
+      },
+      {
+        "id": "B",
+        "text": "Move the key trigger phrases from the body of SKILL.md into the description",
+        "explanation": "Correct. Only the description is in context before the skill loads, so trigger phrases hidden in the body can't help Claude choose it."
+      },
+      {
+        "id": "C",
+        "text": "Make the body of SKILL.md longer, so Claude sees more examples before it decides",
+        "explanation": "The body isn't loaded until the skill is invoked, so it has no effect on the decision to use it."
+      },
+      {
+        "id": "D",
+        "text": "Set `disable-model-invocation: true`, so that Claude pays more attention to the skill",
+        "explanation": "This setting stops Claude from invoking the skill at all, which is the opposite of the goal."
+      },
+      {
+        "id": "E",
+        "text": "Copy the skill into three different skill folders, so it appears several times",
+        "explanation": "Duplicates add noise to the context without making the skill's purpose any clearer."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/skills"
+    ]
   }
 ]

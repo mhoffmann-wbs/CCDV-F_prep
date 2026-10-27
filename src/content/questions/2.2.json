@@ -617,5 +617,117 @@
     "sourceLinks": [
       "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
     ]
+  },
+  {
+    "id": "q-2.2-018",
+    "skillId": "2.2",
+    "difficulty": 1,
+    "stem": "On Anthropic's model deprecations page, the model behind a club's recap service is listed as \"Legacy\". A new team member asks what this status means for the maintenance plan. Which reading is accurate?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Requests to the model already fail, so the service must switch to another model today",
+        "explanation": "That describes a retired model. Legacy models still serve requests."
+      },
+      {
+        "id": "B",
+        "text": "The model has a set retirement date and a named replacement, so a migration must be scheduled before that date",
+        "explanation": "That describes a deprecated model. Legacy is the earlier stage, before a retirement date is assigned."
+      },
+      {
+        "id": "C",
+        "text": "It gets no more updates and might be deprecated later, so watch it and plan to evaluate a successor",
+        "explanation": "Correct. Legacy means no further updates and possible future deprecation. The sensible plan is to monitor the status and prepare an evaluation of a replacement."
+      },
+      {
+        "id": "D",
+        "text": "The model is the current recommended default, and its weights will keep being improved",
+        "explanation": "Legacy models are not the recommended default and receive no further updates."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/model-deprecations"
+    ]
+  },
+  {
+    "id": "q-2.2-019",
+    "skillId": "2.2",
+    "difficulty": 2,
+    "stem": "A Claude-based rules explainer passed its eval set at launch. In the offseason the league changes its overtime rules, and fans start reporting answers based on the old rules. Neither the model nor the prompt has changed. Which maintenance step best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Update the rules content Claude is given, add eval cases for the new rules, and rerun the eval before release",
+        "explanation": "Correct. The world changed, not the system. Maintenance means updating the source content and the eval set together, then verifying before release."
+      },
+      {
+        "id": "B",
+        "text": "Switch to a newer model, because the current model's training data predates the rule change",
+        "explanation": "The app should supply current rules rather than rely on training data. Swapping models without an eval also adds an unmeasured change."
+      },
+      {
+        "id": "C",
+        "text": "Roll back to the prompt version that was live at launch, since that version passed the eval",
+        "explanation": "The prompt hasn't changed, so a rollback changes nothing. The launch eval no longer reflects the current rules either."
+      },
+      {
+        "id": "D",
+        "text": "Keep the eval set frozen, so that this season's scores stay directly comparable with the scores recorded at launch",
+        "explanation": "An eval that still checks the old rules would keep passing while the app gives wrong answers. The eval must follow the requirements."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests"
+    ]
+  },
+  {
+    "id": "q-2.2-020",
+    "skillId": "2.2",
+    "difficulty": 2,
+    "stem": "While designing a game-day stats assistant, the team plans for the operate phase. The business requirement says that during a Claude API outage or sustained overload, fans should still get a reduced but working experience. Which TWO design decisions best fit? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "A documented runbook that says who is paged, how to check the provider's status page, and when to switch to fallback mode",
+        "explanation": "Correct. The operate phase needs a prepared response, so on-call staff act on a plan instead of improvising during the game."
+      },
+      {
+        "id": "B",
+        "text": "A fallback path, such as cached answers to common questions or a static stats page, behind a switch on-call staff can flip",
+        "explanation": "Correct. A degraded mode that works without the model meets the \"reduced but working\" requirement while the API is unavailable."
+      },
+      {
+        "id": "C",
+        "text": "Unlimited client retries, so every fan request eventually succeeds once the service recovers",
+        "explanation": "Unbounded retries pile load onto an overloaded service and leave fans waiting with no answer, which is the opposite of a working experience."
+      },
+      {
+        "id": "D",
+        "text": "A second API key in the same organization, so requests can fail over to it during an outage",
+        "explanation": "Another key on the same service and organization doesn't help when the service itself is down or overloaded."
+      },
+      {
+        "id": "E",
+        "text": "No monitoring until the first incident, so the team learns which metrics actually matter",
+        "explanation": "Without monitoring the team won't detect the outage promptly, so the fallback switch would be flipped late or not at all."
+      }
+    ],
+    "correct": [
+      "A",
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors",
+      "https://platform.claude.com/docs/en/api/rate-limits"
+    ]
   }
 ]

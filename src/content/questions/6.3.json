@@ -506,5 +506,124 @@
       "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "https://platform.claude.com/docs/en/agents-and-tools/tool-use/code-execution-tool"
     ]
+  },
+  {
+    "id": "q-6.3-015",
+    "skillId": "6.3",
+    "difficulty": 2,
+    "stem": "A cap-compliance service extracts guaranteed-money figures from player contracts for a report filed with the league, where a wrong figure carries a penalty. The outputs are schema-valid and read confidently, and there is no independent source to check the figures against. The team wants an automated signal for which contracts a human should review. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a confidence field to the schema and review only extractions scored below 0.8.",
+        "explanation": "A self-reported score is just more generated text. Wrong figures can come with high confidence, so it doesn't reliably separate them."
+      },
+      {
+        "id": "B",
+        "text": "Run the extraction several times and send contracts whose runs disagree to a human.",
+        "explanation": "Correct. Best-of-N comparison is a documented check: inconsistent outputs for the same input are a warning sign, and high-stakes cases go to a person."
+      },
+      {
+        "id": "C",
+        "text": "Raise max_tokens so that Claude has room to reason fully about each contract.",
+        "explanation": "max_tokens prevents truncation. It says nothing about whether a complete, well-formed figure is correct."
+      },
+      {
+        "id": "D",
+        "text": "Switch from output_config.format to a strict tool so the figures always validate.",
+        "explanation": "Strict tools and structured outputs both guarantee shape, not truth. The figures would still be unverified."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations"
+    ]
+  },
+  {
+    "id": "q-6.3-016",
+    "skillId": "6.3",
+    "difficulty": 2,
+    "stem": "An injury dashboard parses Claude's JSON inside a try/catch that returns an empty injury list on any error, \"so the page never crashes\". One week a response hit max_tokens, and the dashboard showed no injuries for a team with three starters out. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "On any error, show last week's injury list so the page still has realistic data.",
+        "explanation": "Stale data shown as current is still a silent failure, and it can be just as misleading as an empty list."
+      },
+      {
+        "id": "B",
+        "text": "Parse the truncated JSON with a lenient parser and show whatever entries it recovers.",
+        "explanation": "Partial output presented as complete hides the missing players, which is the same failure in a different form."
+      },
+      {
+        "id": "C",
+        "text": "Check stop_reason, retry a bounded number of times, then show an explicit error.",
+        "explanation": "Correct. A max_tokens stop is detectable before parsing. A bounded retry with a higher limit usually fixes it, and if it doesn't, failing loudly is safer than a plausible default."
+      },
+      {
+        "id": "D",
+        "text": "Add \"always return complete JSON\" to the system prompt to prevent truncation.",
+        "explanation": "An instruction can't stop the token limit from cutting the response off. The code still needs to handle it."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    ]
+  },
+  {
+    "id": "q-6.3-017",
+    "skillId": "6.3",
+    "difficulty": 3,
+    "stem": "A trade-approval workflow uses output_config.format with a raw JSON schema to extract player IDs, cap hits and a 0–1 risk score, which then feed an automatic approval step. Which THREE checks belong between Claude's response and that step? (Select THREE.)",
+    "selectCount": 3,
+    "options": [
+      {
+        "id": "A",
+        "text": "Check stop_reason before parsing, and handle max_tokens and refusal separately.",
+        "explanation": "Correct. Truncated or refused responses may not match the schema, so stop_reason must be checked before reading content."
+      },
+      {
+        "id": "B",
+        "text": "Skip validation, since structured outputs already guarantee the response is correct.",
+        "explanation": "Constrained decoding guarantees shape, with exceptions, not truth. Refusals, truncation and wrong values still reach the code."
+      },
+      {
+        "id": "C",
+        "text": "Validate with a schema library, including the 0–1 bound that the sent schema cannot express.",
+        "explanation": "Correct. Structured outputs don't support constraints like minimum and maximum (a raw schema containing them is rejected), so the range has to be enforced by your own validation."
+      },
+      {
+        "id": "D",
+        "text": "Read response.content[0].text, since structured output always puts the JSON first.",
+        "explanation": "With thinking or other blocks, the first block may not be text. Find the text block by type, not by position."
+      },
+      {
+        "id": "E",
+        "text": "Check business rules against source data, such as player IDs existing on the roster.",
+        "explanation": "Correct. Semantic checks catch well-formed values that are simply wrong, which no schema can detect."
+      },
+      {
+        "id": "F",
+        "text": "Add a \"verified\" boolean to the schema and approve only responses that set it to true.",
+        "explanation": "Claude filling in a field that says it verified itself is not verification. It is just more generated output."
+      }
+    ],
+    "correct": [
+      "A",
+      "C",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons"
+    ]
   }
 ]

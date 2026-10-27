@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project status
 
-**`PLAN.md` is the build plan and sets the order of work.** It covers the skill-by-skill content map, the question-bank targets, the lab specs and the phases (§5 records what is done). Phases 0–6 are complete: the scaffold, the blueprint, the question schema, the content tests, the quiz engine (practice and mock exam), the progress store, all 25 lessons, the full question bank (485 items, which meets every per-skill target, includes the 3 official samples, and mixes single-select with "select 2 of 5" and "select 3 of 6" items), all ten labs, and the polish phase. Everything marked *planned* below doesn't exist yet. As parts get built, update this file so it describes what actually exists.
+**`PLAN.md` is the build plan and sets the order of work.** It covers the skill-by-skill content map, the question-bank targets, the lab specs and the phases (§5 records what is done). Phases 0–6 are complete: the scaffold, the blueprint, the question schema, the content tests, the quiz engine (practice and mock exam), the progress store, all 25 lessons, the full question bank (585 items, which meets every per-skill target, includes the 3 official samples, and mixes single-select with "select 2 of 5" and "select 3 of 6" items), all ten labs, and the polish phase. Everything marked *planned* below doesn't exist yet. As parts get built, update this file so it describes what actually exists.
 
 ## Purpose
 

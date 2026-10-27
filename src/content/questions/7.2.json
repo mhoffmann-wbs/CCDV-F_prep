@@ -441,5 +441,88 @@
       "https://platform.claude.com/docs/en/api/rate-limits",
       "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks"
     ]
+  },
+  {
+    "id": "q-7.2-013",
+    "skillId": "7.2",
+    "difficulty": 1,
+    "stem": "Three engineers built a club's fan chatbot separately: one wrote the system prompt, one tuned an input classifier, and one wrote an output filter. In testing, the classifier blocks injury-report questions that the prompt allows, and the filter lets betting tips through that the prompt forbids. What should the team do first?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Drop the classifier and the filter, and rely on the system prompt as the one source of intent.",
+        "explanation": "This removes the layers that enforce anything. A prompt alone guides behavior but cannot guarantee it, so one clever message could defeat the whole design."
+      },
+      {
+        "id": "B",
+        "text": "Write one content policy for topics, actions and refusals, and derive every layer from it.",
+        "explanation": "Correct. Layers only add up when they enforce the same written policy. Defining it once and expressing it in the prompt, the classifier and the filter removes both the over-blocking and the gap."
+      },
+      {
+        "id": "C",
+        "text": "Keep all three as they are, since layers that disagree are harder for attackers to predict.",
+        "explanation": "Inconsistent layers are not defense in depth. They block legitimate fans in one place and leave forbidden content unchecked in another."
+      },
+      {
+        "id": "D",
+        "text": "Make every layer refuse anything that any of the others would flag, so the strictest rule wins.",
+        "explanation": "Merging inconsistent rules keeps the injury-question over-blocking and still leaves no layer that reliably catches betting tips. The missing piece is an agreed policy, not more strictness."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks"
+    ]
+  },
+  {
+    "id": "q-7.2-014",
+    "skillId": "7.2",
+    "difficulty": 2,
+    "stem": "A club is adding a feature in which Claude suggests merchandise based on a fan's purchase history. Each fan's CRM record also holds a home address, date of birth and payment details. Which THREE choices follow secure-by-design privacy practice? (Select THREE.)",
+    "selectCount": 3,
+    "options": [
+      {
+        "id": "A",
+        "text": "Send Claude the full CRM record so it has every detail it might use to personalize suggestions.",
+        "explanation": "This sends data the task does not need. Addresses, birth dates and payment details add leak risk without improving merchandise suggestions."
+      },
+      {
+        "id": "B",
+        "text": "Send Claude only the purchase-history fields that the suggestion task actually needs.",
+        "explanation": "Correct. Data minimization is the first privacy control: data that never reaches the model can never leak from it."
+      },
+      {
+        "id": "C",
+        "text": "Tell Claude in the system prompt never to mention addresses or payment details in replies.",
+        "explanation": "A prompt instruction is advisory and leaves the sensitive data in context. Not sending it is the stronger control."
+      },
+      {
+        "id": "D",
+        "text": "Load only the signed-in fan's record, looked up in code from the authenticated session.",
+        "explanation": "Correct. Scoping data to the authenticated user in code keeps other fans' records out of the context, whatever the conversation asks for."
+      },
+      {
+        "id": "E",
+        "text": "Let Claude look up any fan's record by name, so it can compare buying patterns across fans.",
+        "explanation": "This grants the model access to every customer's data. Any injection or confused request could then expose other fans' records."
+      },
+      {
+        "id": "F",
+        "text": "Redact personal data from prompts and replies before logging them, and set a retention period.",
+        "explanation": "Correct. Logs are a common leak path. Redacting before logging and limiting retention keeps observability without storing personal data indefinitely."
+      }
+    ],
+    "correct": [
+      "B",
+      "D",
+      "F"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks"
+    ]
   }
 ]

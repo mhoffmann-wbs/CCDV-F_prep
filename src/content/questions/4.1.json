@@ -561,7 +561,7 @@
     "options": [
       {
         "id": "A",
-        "text": "Switch the cache TTL to one hour so that entries live longer.",
+        "text": "Switch the cache TTL from the default five minutes to one hour, so that the cached prefix lives longer and has not already expired by the time the bot sends its next request.",
         "explanation": "The prefix never matches in the first place, so a longer lifetime doesn't help."
       },
       {
@@ -571,7 +571,7 @@
       },
       {
         "id": "C",
-        "text": "Add three more cache breakpoints later in the messages.",
+        "text": "Add three more cache breakpoints later in the messages, so more of each request is eligible for a cache read.",
         "explanation": "More breakpoints don't help if the bytes before the first one change on every request."
       },
       {
@@ -585,6 +585,125 @@
     ],
     "sourceLinks": [
       "https://platform.claude.com/docs/en/build-with-claude/prompt-caching"
+    ]
+  },
+  {
+    "id": "q-4.1-017",
+    "skillId": "4.1",
+    "difficulty": 1,
+    "stem": "A team changes one line in its config to move the draft-board assistant to a newer Claude model. From that deploy on, every request fails at once with HTTP 404 and error type not_found_error. Requests made with the previous model ID from the same API key still succeed. What should the team do first?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add retries with exponential backoff, since the new model may still be rolling out.",
+        "explanation": "A 404 is not a transient failure. It comes back the same on every attempt, so backoff only delays the error."
+      },
+      {
+        "id": "B",
+        "text": "Generate a new API key, because the old key cannot reach the newer model.",
+        "explanation": "A bad or revoked key gives a 401 authentication_error, and the same key still works with the old model ID."
+      },
+      {
+        "id": "C",
+        "text": "Check the new model ID against the models list for exact spelling and access.",
+        "explanation": "Correct. A 404 on the Messages endpoint after a model change usually means the model ID is wrong or not available to the organization. The models list shows the exact IDs the key can use."
+      },
+      {
+        "id": "D",
+        "text": "Shorten the prompt, because the newer model has a smaller context window.",
+        "explanation": "A request that is too long fails with a 400 or 413, not a 404. Nothing about the prompt changed in this deploy."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors",
+      "https://platform.claude.com/docs/en/api/models/list"
+    ]
+  },
+  {
+    "id": "q-4.1-018",
+    "skillId": "4.1",
+    "difficulty": 2,
+    "stem": "A lineup agent calls a get_injury_report tool. When the upstream feed times out, the harness catches the exception and sends back a normal tool_result with empty content. Traces show that Claude then states each player's injury status with confidence, as if the report had arrived. Which change best addresses the failure?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Add a system prompt rule telling Claude never to guess a player's injury status.",
+        "explanation": "The model is reacting to what the harness told it: an empty but successful result. A prompt rule treats the symptom and leaves the integration hiding the failure."
+      },
+      {
+        "id": "B",
+        "text": "Return the tool_result with is_error set to true and a timeout message.",
+        "explanation": "Correct. The bug is in the integration layer: the failure was reported as success. An error result with an informative message lets Claude retry, use another source, or tell the user that the data is unavailable."
+      },
+      {
+        "id": "C",
+        "text": "Leave the tool_result out of the next request whenever the injury tool raises an error.",
+        "explanation": "Every tool_use block needs a matching tool_result in the next user message. Dropping it makes the request fail with a 400."
+      },
+      {
+        "id": "D",
+        "text": "Raise max_tokens so Claude has room to reason about the missing injury data.",
+        "explanation": "The output is not being cut off. Claude had no signal that the data was missing, so a larger output limit changes nothing."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"
+    ]
+  },
+  {
+    "id": "q-4.1-019",
+    "skillId": "4.1",
+    "difficulty": 2,
+    "stem": "An overnight job generates scouting summaries for every player in the league. Its error log shows six kinds of failed requests. The team wants its retry wrapper to retry only the failures that can succeed later without any change to the request. Which THREE should it retry with backoff? (Select THREE.)",
+    "selectCount": 3,
+    "options": [
+      {
+        "id": "A",
+        "text": "413 request_too_large on calls that attach a full season of play-by-play data.",
+        "explanation": "The body is over the size limit and stays over it on every attempt. The input has to be shrunk or split."
+      },
+      {
+        "id": "B",
+        "text": "529 overloaded_error during a period of heavy traffic across the API.",
+        "explanation": "Correct. Overload is temporary and server-side. The same request can succeed once load drops, so retry with exponential backoff."
+      },
+      {
+        "id": "C",
+        "text": "400 invalid_request_error naming a parameter that the model rejects.",
+        "explanation": "The request itself is invalid and fails the same way every time. Fix the parameter instead of retrying."
+      },
+      {
+        "id": "D",
+        "text": "500 api_error returned on a few scattered requests during the night.",
+        "explanation": "Correct. An internal server error is a service-side problem, not a fault in the request, so a retry with backoff can succeed."
+      },
+      {
+        "id": "E",
+        "text": "401 authentication_error after the job's API key was rotated.",
+        "explanation": "The credential is invalid. Every retry fails until the job is given the new key."
+      },
+      {
+        "id": "F",
+        "text": "429 rate_limit_error carrying a retry-after header of a few seconds.",
+        "explanation": "Correct. The rate limit resets over time, and the retry-after header says how long to wait before sending the same request again."
+      }
+    ],
+    "correct": [
+      "B",
+      "D",
+      "F"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/api/errors",
+      "https://platform.claude.com/docs/en/api/rate-limits"
     ]
   }
 ]

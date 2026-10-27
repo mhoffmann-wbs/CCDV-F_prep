@@ -479,5 +479,112 @@
       "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
       "https://platform.claude.com/docs/en/build-with-claude/effort"
     ]
+  },
+  {
+    "id": "q-5.3-014",
+    "skillId": "5.3",
+    "difficulty": 2,
+    "stem": "A coaching app streams Claude's reasoning into a \"How I got there\" panel while the answer is prepared. After moving from Claude Opus 4.6 to a newer Opus model with adaptive thinking, the panel stays blank and users see a long pause before the answer. The thinking blocks still arrive, but their text is empty. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Go back to a fixed thinking budget with budget_tokens, which always returns the full thinking text.",
+        "explanation": "Newer Opus models reject budget_tokens with a 400. The empty text comes from a display default, not from the thinking mode."
+      },
+      {
+        "id": "B",
+        "text": "Raise the effort level so the model thinks more and the thinking blocks fill with text again.",
+        "explanation": "Effort changes how much the model thinks, not whether the thinking text is returned. The blocks would stay empty, just with more billed tokens."
+      },
+      {
+        "id": "C",
+        "text": "Treat the empty blocks as a sign that thinking is now disabled and switch thinking back on.",
+        "explanation": "The model did think; the empty blocks are the new default display, and thinking is still billed. Nothing needs to be switched back on."
+      },
+      {
+        "id": "D",
+        "text": "Set the thinking display option to \"summarized\", since newer models omit thinking text by default.",
+        "explanation": "Correct. On newer models the default display is omitted, a silent change from Opus 4.6, which returned summarized thinking. Opting into the summarized display restores the visible reasoning."
+      }
+    ],
+    "correct": [
+      "D"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
+    ]
+  },
+  {
+    "id": "q-5.3-015",
+    "skillId": "5.3",
+    "difficulty": 2,
+    "stem": "A team moves a fan-moderation feature from a much older Claude model to a current one. Their code handles only the end_turn, max_tokens and tool_use stop reasons. Now a few responses arrive with HTTP 200 but show users an empty or cut-off reply, and nothing is logged as an error. Which change best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Treat any HTTP 200 as a success and retry only the responses whose text is empty.",
+        "explanation": "A status of 200 doesn't mean the model produced a normal answer. Retrying on empty text ignores the stop reason that explains what happened."
+      },
+      {
+        "id": "B",
+        "text": "Check stop_reason first and add a branch for \"refusal\", with its own handling and logging.",
+        "explanation": "Correct. Current models can stop with stop_reason \"refusal\", which older code paths don't expect. Checking stop_reason before reading content lets the app log it and show a deliberate message or fallback."
+      },
+      {
+        "id": "C",
+        "text": "Raise max_tokens, because empty replies mean the answer was cut off by the output cap.",
+        "explanation": "A cap-related stop would report stop_reason \"max_tokens\", which the code already handles. These responses carry a stop reason the code doesn't check."
+      },
+      {
+        "id": "D",
+        "text": "Switch back to the older model for moderation, since current models return malformed replies.",
+        "explanation": "The replies aren't malformed; the code is missing a stop reason. Older models also get retired, so moving back only postpones the fix."
+      }
+    ],
+    "correct": [
+      "B"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "https://platform.claude.com/docs/en/about-claude/models/migration-guide"
+    ]
+  },
+  {
+    "id": "q-5.3-016",
+    "skillId": "5.3",
+    "difficulty": 1,
+    "stem": "A league's archive service pins an exact model snapshot so recap behavior never changes, and the team plans to leave it untouched for several seasons. They receive a notice that the model is deprecated, with a retirement date. Which plan best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Test the recommended replacement on their evals and migrate before the retirement date.",
+        "explanation": "Correct. A deprecated model still works but has a retirement date, after which requests to it fail. Testing the replacement early and migrating in time avoids an outage."
+      },
+      {
+        "id": "B",
+        "text": "Keep the pinned snapshot, since a pinned model ID is guaranteed to be served indefinitely.",
+        "explanation": "Pinning prevents silent changes, but it doesn't keep a model available forever. Once a model is retired, requests to it fail."
+      },
+      {
+        "id": "C",
+        "text": "Wait until requests start failing, then change the model ID to the newest one available.",
+        "explanation": "Waiting guarantees an outage, and swapping IDs without testing risks broken request shapes and changed behavior."
+      },
+      {
+        "id": "D",
+        "text": "Move to a cloud provider, where deprecated models remain available on the same schedule forever.",
+        "explanation": "Partner platforms set their own retirement schedules, but models are still retired there. Switching platforms only moves the deadline."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://platform.claude.com/docs/en/about-claude/model-deprecations"
+    ]
   }
 ]

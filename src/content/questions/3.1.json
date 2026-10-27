@@ -726,5 +726,118 @@
     "sourceLinks": [
       "https://code.claude.com/docs/en/headless"
     ]
+  },
+  {
+    "id": "q-3.1-021",
+    "skillId": "3.1",
+    "difficulty": 1,
+    "stem": "A developer is about to have Claude Code move the roster service from callbacks to async/await across dozens of files. First they want Claude to read the code, explore with shell commands and write up an approach they can review and edit. No source file may change until they approve that approach, and then Claude should carry it out. Which approach best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Start the session in `dontAsk` mode, so every edit is denied while Claude reads the code and writes up its proposal.",
+        "explanation": "`dontAsk` silently denies anything that would prompt and is meant for locked-down unattended runs. It has no step where the developer approves a plan and the session moves on to editing, so the second half of the requirement is not met."
+      },
+      {
+        "id": "B",
+        "text": "Add 'do not edit any files yet' to the prompt and stay in the current permission mode until the write-up looks right.",
+        "explanation": "A prompt instruction is guidance, not enforcement. In the current mode (often auto mode in an interactive session) edits could still run, which breaks the hard rule that nothing changes before approval."
+      },
+      {
+        "id": "C",
+        "text": "Switch to plan mode with Shift+Tab (or start with `--permission-mode plan`), then approve the plan when it is ready.",
+        "explanation": "Correct. Plan mode lets Claude read files and explore but blocks source edits until the plan is approved. The plan can be opened in an editor first, and approving it switches the session to an editing mode so Claude carries it out."
+      },
+      {
+        "id": "D",
+        "text": "Delegate the investigation to a read-only subagent, then paste its proposal back into a new session to apply.",
+        "explanation": "A read-only subagent can investigate, but it returns only a result and offers no approve-then-edit step. Copying the proposal into a new session adds manual work that plan mode already handles in one flow."
+      }
+    ],
+    "correct": [
+      "C"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/permission-modes"
+    ]
+  },
+  {
+    "id": "q-3.1-022",
+    "skillId": "3.1",
+    "difficulty": 2,
+    "stem": "A coaching-staff dashboard runs `claude -p` to write a weekly scouting summary. The dashboard must show the text token by token as it is generated, and the same output must also give the script the run's final cost. Which invocation best fits?",
+    "selectCount": 1,
+    "options": [
+      {
+        "id": "A",
+        "text": "Use `--output-format stream-json --verbose --include-partial-messages` and render each `text_delta` event live.",
+        "explanation": "Correct. `stream-json` emits newline-delimited events, and `--include-partial-messages` adds the token-level deltas, so the dashboard can render text as it is generated. The last line of the stream is a `result` message carrying cost and session metadata."
+      },
+      {
+        "id": "B",
+        "text": "Use `--output-format json` and render the `result` field progressively while the run is still in progress.",
+        "explanation": "`json` output is a single object written when the run finishes. It includes the cost, but there is nothing to render progressively, so the token-by-token requirement fails."
+      },
+      {
+        "id": "C",
+        "text": "Use `--output-format stream-json` without extra flags and render each complete `assistant` message it emits.",
+        "explanation": "Without `--include-partial-messages` (and `--verbose`), the stream carries whole messages rather than token deltas. The dashboard would update in large jumps, not token by token."
+      },
+      {
+        "id": "D",
+        "text": "Use `--output-format json` with a `--json-schema` that returns one field per paragraph of the scouting summary text.",
+        "explanation": "`--json-schema` shapes the content of the final answer into `structured_output`, but that still arrives only when the run ends. A schema controls structure, not timing."
+      }
+    ],
+    "correct": [
+      "A"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/headless",
+      "https://code.claude.com/docs/en/cli-reference"
+    ]
+  },
+  {
+    "id": "q-3.1-023",
+    "skillId": "3.1",
+    "difficulty": 3,
+    "stem": "A nightly CI job in the team's own repository runs `claude -p \"fix the failing tests\" --permission-mode dontAsk --allowedTools \"Edit,Bash(npm test *)\"`. No permission hook or permission prompt tool is configured. Which TWO actions can Claude perform during this run without being denied? (Select TWO.)",
+    "selectCount": 2,
+    "options": [
+      {
+        "id": "A",
+        "text": "Running `git push origin fix-tests` after the test suite passes.",
+        "explanation": "No allow rule covers `git push`, and in `dontAsk` mode any call that would prompt is denied rather than asked about."
+      },
+      {
+        "id": "B",
+        "text": "Reading `src/roster/depthChart.ts` inside the working directory.",
+        "explanation": "Correct. File reads inside the working directories need no approval, so they still run in `dontAsk` mode without any allow rule."
+      },
+      {
+        "id": "C",
+        "text": "Editing `.claude/settings.json` to add a hook that reruns the tests.",
+        "explanation": "`.claude` is a protected path. Allow rules such as `Edit` do not pre-approve protected-path writes, and `dontAsk` mode denies them."
+      },
+      {
+        "id": "D",
+        "text": "Calling `AskUserQuestion` to ask which test is known to be flaky.",
+        "explanation": "`dontAsk` mode denies `AskUserQuestion` even when an allow rule matches it, and in an unattended CI run nobody could answer anyway."
+      },
+      {
+        "id": "E",
+        "text": "Running `npm test -- --runInBand` to rerun the suite serially.",
+        "explanation": "Correct. `Bash(npm test *)` is a prefix rule, so any command starting with `npm test ` is pre-approved and runs in `dontAsk` mode."
+      }
+    ],
+    "correct": [
+      "B",
+      "E"
+    ],
+    "sourceLinks": [
+      "https://code.claude.com/docs/en/permission-modes",
+      "https://code.claude.com/docs/en/headless"
+    ]
   }
 ]

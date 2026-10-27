@@ -7,7 +7,7 @@ It has three parts:
 | | What you get |
 |---|---|
 | **Learn** | One lesson for each of the 25 exam skills, with links to the official docs and the Skilljar courses |
-| **Check** | 485 practice questions in the style of the real exam, plus a timed 53-item mock exam with a score report |
+| **Check** | 585 practice questions in the style of the real exam, plus a timed 53-item mock exam with a score report |
 | **Build** | Ten hands-on Python labs, themed around a fictional NFL-style league, that together make one app ("Gridiron Assistant") |
 
 **Use it online:** https://mhoffmann-wbs.github.io/CCDV-F_prep/ (nothing to install).
