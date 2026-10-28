@@ -89,6 +89,8 @@ function MockRunner({ exam, onSubmit }: { exam: MockExam; onSubmit: (answers: An
   const [answers, setAnswers] = useState<Answers>({})
   const [flagged, setFlagged] = useState<Set<string>>(new Set())
   const [reviewing, setReviewing] = useState(false)
+  // Once the review screen has been reached, items offer a way straight back to it.
+  const [reviewed, setReviewed] = useState(false)
 
   const submit = useCallback(() => onSubmit(answers), [answers, onSubmit])
   const remaining = Math.max(0, deadline - now)
@@ -116,7 +118,11 @@ function MockRunner({ exam, onSubmit }: { exam: MockExam; onSubmit: (answers: An
   }
 
   const isLast = index + 1 === exam.questions.length
-  const goNext = () => (isLast ? setReviewing(true) : setIndex((i) => i + 1))
+  const openReview = () => {
+    setReviewing(true)
+    setReviewed(true)
+  }
+  const goNext = () => (isLast ? openReview() : setIndex((i) => i + 1))
   // M for "mark": F is an answer letter on six-option items.
   useShortcuts(
     {
@@ -124,6 +130,7 @@ function MockRunner({ exam, onSubmit }: { exam: MockExam; onSubmit: (answers: An
       ArrowRight: goNext,
       ArrowLeft: () => setIndex((i) => Math.max(0, i - 1)),
       m: () => toggleFlag(question.id),
+      ...(reviewed && { r: openReview }),
     },
     !reviewing,
   )
@@ -191,6 +198,11 @@ function MockRunner({ exam, onSubmit }: { exam: MockExam; onSubmit: (answers: An
             <button onClick={() => toggleFlag(question.id)} className="rounded border px-4 py-2">
               {flagged.has(question.id) ? 'Unflag' : 'Flag for review'}
             </button>
+            {reviewed && (
+              <button onClick={openReview} className="rounded border px-4 py-2">
+                Back to review
+              </button>
+            )}
             <button onClick={goNext} className="rounded bg-field px-4 py-2 text-chalk">
               {isLast ? 'Review' : 'Next'}
             </button>
@@ -201,6 +213,7 @@ function MockRunner({ exam, onSubmit }: { exam: MockExam; onSubmit: (answers: An
               ['Enter', isLast ? 'review' : 'next'],
               ['← →', 'move'],
               ['M', 'flag'],
+              ...(reviewed ? [['R', 'review'] satisfies [string, string]] : []),
             ]}
           />
         </>

@@ -196,6 +196,27 @@ describe('mock exam', () => {
     await user.click(screen.getByRole('button', { name: 'Flag for review' }))
     expect(screen.getByRole('button', { name: 'Unflag' })).toBeInTheDocument()
   })
+
+  it('returns from a flagged item to the review screen', async () => {
+    const user = userEvent.setup()
+    await renderAt('/mock')
+    await user.click(screen.getByRole('button', { name: 'Kick off' }))
+    expect(screen.queryByRole('button', { name: 'Back to review' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Flag for review' }))
+    const examLength = Math.min(QUESTIONS.length, EXAM_FORMAT.items)
+    for (let i = 1; i < examLength; i++) {
+      await user.click(screen.getByRole('button', { name: 'Next' }))
+    }
+    await user.click(screen.getByRole('button', { name: 'Review' }))
+    await user.click(screen.getByRole('button', { name: '1 ⚑' }))
+    expect(screen.getByText(`Item 1 of ${examLength}`)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Back to review' }))
+    expect(screen.getByText('1 flagged.', { exact: false })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '1 ⚑' }))
+    await user.keyboard('r')
+    expect(screen.getByRole('button', { name: 'Submit exam' })).toBeInTheDocument()
+  })
 })
 
 describe('keyboard shortcuts', () => {
